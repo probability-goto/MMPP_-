@@ -6,7 +6,7 @@
     - サーバー種別ごとの平均数 (E[B], E[I], E[S], E[Off])
     - 有効到着率 λ_eff
     - 平均滞在時間 E[W] (Little の公式)
-    - サーバー利用率 ρ
+    - サーバー利用率ρ
     - エネルギーコスト
 """
 from typing import Dict
