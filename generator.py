@@ -89,13 +89,13 @@ def build_generator(params) -> csr_matrix:
     C0 = params.C0
     C1 = params.C1
 
-    # COO 形式で構築 (行, 列, 値のリスト)
+    # COO 形式 (Coordinate format（座標形式）)で構築 (行, 列, 値のリスト)
     rows = []
     cols = []
     vals = []
 
     def add_transition(src: int, dst: int, rate: float):
-        """遷移 src -> dst (率 rate) を追加. 対角も自動更新."""
+        """遷移 状態src -> dst (率 rate) を追加. 対角も自動更新."""
         if rate <= 0 or src == dst:
             return
         # 非対角 (遷移先)
@@ -108,6 +108,7 @@ def build_generator(params) -> csr_matrix:
         vals.append(-rate)
 
     for (i, j, F) in ss.iter_states():
+        """ 「遷移元 (source) の行番号」"""
         src = ss.index(i, j, F)
 
         # 補助量
@@ -119,7 +120,7 @@ def build_generator(params) -> csr_matrix:
         if j < K:
             # 通常の到着: (i, j, F) -> (i, j+1, F')
             for Fp in range(D_M):
-                rate = C1[F, Fp]
+                rate = C1[F, Fp]  # "FからFpへの遷移"
                 if rate > 0:
                     dst = ss.index(i, j + 1, Fp)
                     add_transition(src, dst, rate)
@@ -129,7 +130,7 @@ def build_generator(params) -> csr_matrix:
             # (C1[F, F] は "位相不変の到着" だが j=K では効果なしなので除外)
             for Fp in range(D_M):
                 if Fp != F:
-                    rate = C1[F, Fp]
+                    rate = C1[F, Fp]  # "FからFpへの遷移"
                     if rate > 0:
                         dst = ss.index(i, K, Fp)
                         add_transition(src, dst, rate)
