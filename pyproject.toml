@@ -18,6 +18,9 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
 ]
+sim = [
+    "matplotlib>=3.5",
+]
 
 [tool.setuptools.packages.find]
 include = ["mmpp*"]
