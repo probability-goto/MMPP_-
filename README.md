@@ -73,8 +73,11 @@ print(metrics.all_metrics())
 
 ## テスト実行
 
+# 横軸指定とプロット数を指定
+
 ```bash
 pytest tests/
+python scripts/compare_theory_sim.py --sweep lambda --n-points 10
 ```
 
 ## 数値解法の方針
