@@ -4,7 +4,11 @@ MMPP/M/c/SET-BATCH/delayoff モデルの全パラメータを保持する
 データクラス. 妥当性検証と派生量 (D_S, D_M, N, λ_bar 等) を提供.
 """
 from dataclasses import dataclass
+import warnings
+
 import numpy as np
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
 
 
 @dataclass
@@ -83,6 +87,36 @@ class ModelParameters:
         if not np.allclose(row_sums, 0, atol=1e-10):
             raise ValueError(
                 f"MMPP 整合性違反: (C0+C1)e = {row_sums} (should be zero)"
+            )
+
+        # MMPP 位相過程の既約性検証
+        # C0+C1 の非零成分をグラフとみなし, 強連結成分が 1 つであることを確認.
+        # 複数の強連結成分があると Q 全体が reducible になり, 定常分布が非一意になる.
+        C_sum = self.C0 + self.C1
+        adjacency = (np.abs(C_sum) > 1e-12).astype(int)
+        np.fill_diagonal(adjacency, 0)  # 自己ループは既約性判定に無関係
+        n_components, _ = connected_components(
+            csr_matrix(adjacency), directed=True, connection="strong"
+        )
+        if n_components > 1:
+            raise ValueError(
+                f"MMPP 位相過程が既約でない (強連結成分数 = {n_components}). "
+                "C0 と C1 の設定を確認してください. "
+                "全ての位相が互いに到達可能である必要があります."
+            )
+
+        # 到達不能状態の警告
+        # floor(K/b) < c だと i > floor(K/b) の状態が setup 経路から到達不能になる.
+        # 数学的には問題ないが, パラメータ設定ミスの可能性があるため警告.
+        max_reachable_i = self.K // self.b
+        if max_reachable_i < self.c:
+            warnings.warn(
+                f"floor(K/b) = {max_reachable_i} < c = {self.c} のため, "
+                f"i > {max_reachable_i} の状態は setup 経路から到達不能になります "
+                f"(K={self.K}, b={self.b}, c={self.c}). "
+                "意図した設定であれば無視してください.",
+                UserWarning,
+                stacklevel=2,
             )
 
     # ---------- 派生量 (プロパティ) ----------

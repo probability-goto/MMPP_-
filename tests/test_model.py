@@ -5,6 +5,8 @@
     - パラメータ妥当性検証 (負値, 型不整合, MMPP 整合性等)
     - 派生量 (D_S, D_M, D, N, lambdas, phase_stationary, lambda_bar)
 """
+import warnings
+
 import numpy as np
 import pytest
 
@@ -16,8 +18,8 @@ class TestModelParametersValid:
 
     def test_create_basic(self):
         """基本的な作成が成功."""
-        C0 = np.array([[-1.0, 0.0], [0.0, -1.0]])
-        C1 = np.array([[1.0, 0.0], [0.0, 1.0]])
+        C0 = np.array([[-1.0, 0.1], [0.1, -1.0]])
+        C1 = np.array([[0.9, 0.0], [0.0, 0.9]])
         p = ModelParameters(
             c=2, K=5, b=1, mu=1.0, alpha=0.5, beta=0.1,
             C0=C0, C1=C1,
@@ -140,6 +142,61 @@ class TestModelParametersValidation:
         with pytest.raises(ValueError, match="MMPP"):
             ModelParameters(c=2, K=5, b=1, mu=1.0, alpha=0.5, beta=0.1,
                             C0=C0, C1=C1)
+
+    def test_reducible_MMPP_rejected(self):
+        """C0 と C1 がブロック対角で位相過程が既約でない場合はエラー."""
+        # 3 位相で {0} と {1, 2} が非連結
+        C0 = np.array([
+            [-1.0, 0.0, 0.0],
+            [0.0, -1.5, 0.5],
+            [0.0, 0.3, -1.3],
+        ])
+        C1 = np.array([
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+        ])
+        with pytest.raises(ValueError, match="既約"):
+            ModelParameters(
+                c=2, K=5, b=1, mu=1.0, alpha=0.5, beta=0.1,
+                C0=C0, C1=C1,
+            )
+
+    def test_irreducible_MMPP_accepted(self):
+        """C0 と C1 が既約なら受理される."""
+        C0 = np.array([[-1.5, 0.1], [0.2, -2.0]])
+        C1 = np.array([[1.4, 0.0], [0.0, 1.8]])
+        # 例外が出ないことを確認
+        ModelParameters(
+            c=2, K=2, b=1, mu=1.0, alpha=0.5, beta=0.1,
+            C0=C0, C1=C1,
+        )
+
+    def _irreducible_C(self):
+        # 対角行列 (_base_C) は C0+C1=0 で非連結になってしまうため,
+        # 到達不能状態の警告テストには既約な行列を用いる.
+        C0 = np.array([[-1.0, 0.5], [0.3, -1.0]])
+        C1 = np.array([[0.5, 0.0], [0.0, 0.7]])
+        return C0, C1
+
+    def test_unreachable_states_warning(self):
+        """floor(K/b) < c で UserWarning が発生."""
+        C0, C1 = self._irreducible_C()
+        with pytest.warns(UserWarning, match="到達不能"):
+            ModelParameters(
+                c=5, K=3, b=2, mu=1.0, alpha=0.5, beta=0.1,
+                C0=C0, C1=C1,
+            )  # floor(3/2) = 1 < 5 = c
+
+    def test_no_warning_when_all_reachable(self):
+        """floor(K/b) >= c なら警告なし."""
+        C0, C1 = self._irreducible_C()
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", UserWarning)  # 警告をエラー化
+            ModelParameters(
+                c=2, K=10, b=1, mu=1.0, alpha=0.5, beta=0.1,
+                C0=C0, C1=C1,
+            )
 
 
 class TestDifferentPhases:

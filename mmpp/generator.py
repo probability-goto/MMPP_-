@@ -126,8 +126,10 @@ def build_generator(params) -> csr_matrix:
                     add_transition(src, dst, rate)
         else:
             # j = K: 到着ブロック.
-            # ただし MMPP 位相遷移 (F' != F) は C1 経由でも保持される.
-            # (C1[F, F] は "位相不変の到着" だが j=K では効果なしなので除外)
+            # C1 の非対角成分 (F' != F) は "位相遷移を伴う到着 attempt" として
+            # 位相のみ更新する遷移を残す. C1[F, F] (位相不変の到着) は自己ループとなり
+            # add_transition の src==dst ガードで自動的に除外されるが, ここでは
+            # モデル意味論の明示性のため Fp != F を条件として書いておく.
             for Fp in range(D_M):
                 if Fp != F:
                     rate = C1[F, Fp]  # "FからFpへの遷移"

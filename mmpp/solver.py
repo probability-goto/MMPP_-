@@ -29,6 +29,13 @@ def solve_stationary(Q, method: str = "sparse", tol: float = 1e-8) -> np.ndarray
     Returns:
         pi: 定常分布 (1D numpy 配列, サイズ N).
 
+    前提:
+        生成行列 Q は既約 (irreducible) であること. 具体的には
+        MMPP 位相過程 (C0 + C1) が既約であることが十分条件で,
+        これは ModelParameters の検証時にチェックされる.
+        非既約な Q に対しては数値誤差の範囲で「もっともらしい間違った解」
+        を返す可能性があるため, 呼び出し側で既約性を保証すること.
+
     Raises:
         RuntimeError: 数値解が検証条件を満たさない場合.
         ValueError: 未知の method 指定.
