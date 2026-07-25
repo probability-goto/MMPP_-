@@ -27,8 +27,16 @@ from mmpp_sim import SimMetrics, run_replications
 BASELINE = dict(c=10, K=50, b=2, mu=1.0, alpha=1.0, beta=0.3)
 # C0 の非対角 (位相遷移率, スイープ対象以外は固定)
 C0_OFFDIAG = np.array([[0.0, 0.3], [0.4, 0.0]])
-# C1 の「形状」(位相別到着率の相対比. lambda スイープ時にこれをスケールする)
+# C1 の「形状」(位相別到着率の相対比. 行和は 1.0 なのでスケール後の値がそのまま
+# 総到着率 lambda になる).
 C1_UNIT = np.array([[0.4, 0.0], [0.0, 0.6]])
+
+# alpha/beta スイープ (到着率自体は動かさないスイープ) で使う固定到着率.
+# c*b*mu=20 に対し rho≈0.73 となるよう選定した (P_block がスイープ全域で
+# 観測可能な水準になるようにするため. C1_UNIT をそのまま (lambda=1, rho≈0.05)
+# 使うと系が常に極端な低負荷になり, P_block が理論的にほぼ 0 に潰れてしまい
+# alpha/beta の効果が全く見えなくなる).
+FIXED_LAMBDA = 30.0
 
 # スイープパラメータごとの既定範囲 (linspace の下限・上限)
 SWEEP_RANGES: Dict[str, Tuple[float, float]] = {
@@ -55,22 +63,22 @@ METRIC_SPECS: List[Tuple[str, str, str]] = [
 def build_params(sweep_name: str, value: float) -> ModelParameters:
     """sweep_name の値を反映した ModelParameters を構築する.
 
-    lambda: C1 全体を value 倍にスケール (到着強度そのものを変える).
-    alpha/beta/mu: 該当スカラーパラメータを value に置き換える.
+    lambda: C1 全体を value 倍にスケール (到着強度そのものを変える. value を
+        そのまま総到着率として使う).
+    alpha/beta/mu: 該当スカラーパラメータを value に置き換える. 到着率は
+        FIXED_LAMBDA で固定する (C1_UNIT (lambda=1) のままだと rho が
+        常に低すぎて P_block が事実上 0 に潰れ, alpha/beta の効果が
+        シミュレーションで観測できなくなるため).
     いずれの場合も C0 の対角成分は (C0+C1)e=0 を満たすよう自動導出する.
     """
     kwargs = dict(BASELINE)
-    C1 = C1_UNIT.copy()
     C0_off = C0_OFFDIAG.copy()
 
     if sweep_name == "lambda":
-        C1 = C1 * value
-    elif sweep_name == "alpha":
-        kwargs["alpha"] = value
-    elif sweep_name == "beta":
-        kwargs["beta"] = value
-    elif sweep_name == "mu":
-        kwargs["mu"] = value
+        C1 = C1_UNIT * value
+    elif sweep_name in ("alpha", "beta", "mu"):
+        C1 = C1_UNIT * FIXED_LAMBDA
+        kwargs[sweep_name] = value
     else:
         raise ValueError(f"未知の sweep パラメータ: {sweep_name}")
 
