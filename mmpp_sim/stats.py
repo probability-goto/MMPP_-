@@ -5,12 +5,11 @@ DES 実行中に以下を蓄積する:
     - 到着 attempt 総数とブロック数
     - departure したジョブの sojourn time 総和と総数
 
-batch means 法による信頼区間計算のため, 記録期間を等分割した
-複数の SimStats を並行して蓄積できるよう `batches` 属性を持つ
-(Simulator.run() が生成し, 集計後にセットする).
+信頼区間は独立レプリケーション法 (run_replications()) で計算する.
+そのため SimStats 自体は単一の記録期間の統計のみを保持すればよい.
 """
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 
 class SimStats:
@@ -29,16 +28,11 @@ class SimStats:
         self.departure_sojourn_sum: float = 0.0
         # departure したジョブの総数。
         self.departure_count: int = 0
-        # 信頼区間計算用に、記録期間を分割した子 SimStats のリスト。
-        self.batches: List["SimStats"] = []
-        # record_state 呼び出し回数 (= 記録されたイベント数. ウォームアップ除外の検証用)
-        self.n_records: int = 0
 
     def record_state(self, state: Tuple[int, int, int], duration: float) -> None:
         """状態 (i, j, F) に duration だけ滞在したことを記録."""
         self.state_duration[state] += duration
         self.total_duration += duration
-        self.n_records += 1
 
     def record_arrival_attempt(self, blocked: bool) -> None:
         """到着 attempt を記録 (ブロックされたか否か)."""

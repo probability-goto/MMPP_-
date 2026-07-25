@@ -12,6 +12,7 @@ ModelParameters のみ mmpp と共有し, 生成行列やソルバーには依�
 from mmpp_sim.event import EventType, EventQueue, StepResult
 from mmpp_sim.simulator import (
     Simulator,
+    run_replications,
     busy_servers,
     idle_servers,
     setup_servers,
@@ -22,6 +23,7 @@ from mmpp_sim.metrics import SimMetrics
 
 __all__ = [
     "Simulator",
+    "run_replications",
     "SimStats",
     "SimMetrics",
     "EventType",

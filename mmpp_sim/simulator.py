@@ -199,24 +199,17 @@ class Simulator:
         self,
         warmup_events: int = 100_000,
         measurement_events: int = 1_000_000,
-        n_batches: int = 30,
     ) -> SimStats:
         """シミュレーションを実行し, ウォームアップ後の統計を返す.
 
         Args:
-            warmup_events: ウォームアップとして統計を記録しないイベント数.
-            measurement_events: 統計を記録するイベント数
-                (warmup_events+1 個目から warmup_events+measurement_events 個目まで).
-            n_batches: batch means 法用のバッチ分割数
-                (記録期間をイベント数で等分割する).
+            warmup_events: 統計を記録しないイベント数.
+            measurement_events: 統計を記録するイベント数.
 
         Returns:
-            SimStats: 記録期間の統計. `.batches` に長さ n_batches の
-                子 SimStats のリストを持つ (信頼区間計算用).
+            SimStats: 記録期間の統計. 信頼区間計算には run_replications() を使うこと.
         """
-        overall = SimStats()
-        batches = [SimStats() for _ in range(n_batches)]
-        batch_size = max(1, measurement_events // n_batches)
+        stats = SimStats()
         total_events = warmup_events + measurement_events
 
         for event_num in range(total_events):
@@ -225,19 +218,46 @@ class Simulator:
             if event_num < warmup_events:
                 continue
 
-            measured_idx = event_num - warmup_events
-            b_idx = min(measured_idx // batch_size, n_batches - 1)
-            batch = batches[b_idx]
-
-            overall.record_state(result.old_state, result.dt)
-            batch.record_state(result.old_state, result.dt)
+            stats.record_state(result.old_state, result.dt)
 
             if result.event_type == EventType.ARRIVAL:
-                overall.record_arrival_attempt(result.blocked)
-                batch.record_arrival_attempt(result.blocked)
+                stats.record_arrival_attempt(result.blocked)
             elif result.event_type == EventType.SERVICE_COMPLETION:
-                overall.record_departure(result.avg_sojourn, result.departure_count)
-                batch.record_departure(result.avg_sojourn, result.departure_count)
+                stats.record_departure(result.avg_sojourn, result.departure_count)
 
-        overall.batches = batches
-        return overall
+        return stats
+
+
+# ============================================================
+# 独立レプリケーション法
+# ============================================================
+
+def run_replications(
+    params,
+    n_reps: int = 20,
+    seed0: int = 42,
+    warmup_events: int = 100_000,
+    measurement_events: int = 1_000_000,
+) -> List[SimStats]:
+    """独立レプリケーション法によるシミュレーション実行.
+
+    n_reps 個の独立な Simulator インスタンスを生成し, それぞれ異なるシードで
+    warmup_events + measurement_events を実行する. 得られた SimStats のリストを返す.
+    信頼区間はこのリストを使って SimMetrics 側で計算する.
+
+    Args:
+        params: ModelParameters.
+        n_reps: レプリケーション数 (推奨 20 以上).
+        seed0: 開始シード. i 番目のレプリケーションは seed=seed0+i を使う.
+        warmup_events: 各レプリケーションのウォームアップイベント数.
+        measurement_events: 各レプリケーションの本計測イベント数.
+
+    Returns:
+        List[SimStats]: 各レプリケーションの統計. 長さ n_reps.
+    """
+    replications: List[SimStats] = []
+    for k in range(n_reps):
+        sim = Simulator(params, seed=seed0 + k)
+        stats = sim.run(warmup_events=warmup_events, measurement_events=measurement_events)
+        replications.append(stats)
+    return replications

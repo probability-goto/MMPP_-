@@ -20,7 +20,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
-from mmpp_sim import Simulator, SimMetrics
+from mmpp_sim import SimMetrics, run_replications
 
 
 # 中規模パラメータ (c=10, K=50, b=2, D_M=2) をベースラインとする
@@ -93,16 +93,17 @@ def run_simulation(
     seed: int,
     warmup_events: int,
     measurement_events: int,
-    n_batches: int,
+    n_reps: int,
 ) -> SimMetrics:
-    """シミュレーション: Simulator.run -> SimMetrics."""
-    sim = Simulator(params, seed=seed)
-    stats = sim.run(
+    """シミュレーション: 独立レプリケーション法 (run_replications) -> SimMetrics."""
+    replications = run_replications(
+        params,
+        n_reps=n_reps,
+        seed0=seed,
         warmup_events=warmup_events,
         measurement_events=measurement_events,
-        n_batches=n_batches,
     )
-    return SimMetrics(params, stats)
+    return SimMetrics(params, replications)
 
 
 def parse_args() -> argparse.Namespace:
@@ -115,7 +116,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-points", type=int, default=10, help="スイープ点数")
     parser.add_argument("--warmup-events", type=int, default=100_000)
     parser.add_argument("--measurement-events", type=int, default=1_000_000)
-    parser.add_argument("--n-batches", type=int, default=30)
+    parser.add_argument("--n-reps", type=int, default=20, help="独立レプリケーション数")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out-dir", default="figures")
     return parser.parse_args()
@@ -136,12 +137,12 @@ def main() -> None:
         theory = run_theory(params)
         sim_metrics = run_simulation(
             params, args.seed, args.warmup_events,
-            args.measurement_events, args.n_batches,
+            args.measurement_events, args.n_reps,
         )
 
         for key, method_name, _ in METRIC_SPECS:
             theory_vals[key].append(getattr(theory, method_name)())
-            pt, ci_lo, ci_hi = getattr(sim_metrics, f"{method_name}_ci")(args.n_batches)
+            pt, ci_lo, ci_hi = getattr(sim_metrics, f"{method_name}_ci")()
             sim_pts[key].append(pt)
             sim_err_lo[key].append(max(pt - ci_lo, 0.0))
             sim_err_hi[key].append(max(ci_hi - pt, 0.0))

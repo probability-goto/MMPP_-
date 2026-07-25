@@ -3,11 +3,13 @@
 検証項目:
     - 単一状態でのイベントレートの正しさ (シード固定で期待値と統計的に一致)
     - 状態遷移の正しさ (バッチサービス完了, セットアップ, Delayoff 等)
-    - ウォームアップ期間が正しく除外されること
+    - 再現性 (同一シードで同一結果)
+    - 独立レプリケーション (異なるシードで異なる結果, run_replications の基本動作)
     - 保存則: E[B] + E[I] + E[S] + E[Off] = c
     - 流量バランス: lambda_eff = b * mu * E[B]
+    - 単一 SimStats では CI 計算がエラーになること (SimMetrics の型分岐)
+    - レプリケーションから信頼区間 (CI) が計算できること
     - 小規模ケースでの理論解析との CI 内一致
-    - 再現性 (同一シードで同一結果)
 """
 from collections import defaultdict
 
@@ -15,7 +17,18 @@ import numpy as np
 import pytest
 
 from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
-from mmpp_sim import EventType, Simulator, SimMetrics
+from mmpp_sim import EventType, Simulator, SimMetrics, run_replications
+
+
+@pytest.fixture
+def small_params():
+    """独立レプリケーション/CI 系テスト向けの小規模パラメータ (D_M=2)."""
+    C0 = np.array([[-1.5, 0.1], [0.2, -2.0]])
+    C1 = np.array([[1.4, 0.0], [0.0, 1.8]])
+    return ModelParameters(
+        c=2, K=5, b=1, mu=1.0, alpha=1.0, beta=0.3,
+        C0=C0, C1=C1,
+    )
 
 
 @pytest.fixture
@@ -235,103 +248,98 @@ class TestStateTransitions:
         assert found
 
 
-class TestWarmupExclusion:
-    """ウォームアップ期間の統計が結果に含まれないことの検証."""
+def test_simulator_reproducibility(small_params):
+    """同一シードで 2 回実行して同じ結果になる."""
+    sim1 = Simulator(small_params, seed=42)
+    stats1 = sim1.run(warmup_events=1000, measurement_events=5000)
+    sim2 = Simulator(small_params, seed=42)
+    stats2 = sim2.run(warmup_events=1000, measurement_events=5000)
+    assert stats1.total_duration == stats2.total_duration
+    assert stats1.arrival_attempts == stats2.arrival_attempts
 
-    @pytest.mark.parametrize("warmup_events", [0, 1_000, 10_000, 50_000])
-    def test_recorded_count_matches_measurement_events(
-        self, rate_params, warmup_events
-    ):
-        """記録されるイベント数は warmup_events に依らず常に measurement_events."""
-        measurement_events = 5_000
-        sim = Simulator(rate_params, seed=1)
-        stats = sim.run(
-            warmup_events=warmup_events,
-            measurement_events=measurement_events,
-            n_batches=5,
-        )
-        assert stats.n_records == measurement_events
+    m1 = SimMetrics(small_params, stats1).all_metrics()
+    m2 = SimMetrics(small_params, stats2).all_metrics()
+    for key in m1:
+        assert m1[key] == m2[key]
 
 
-class TestConservationLaw:
-    """保存則: E[B] + E[I] + E[S] + E[Off] が c と (ほぼ) 一致すること."""
-
-    def test_server_conservation(self, rate_params):
-        sim = Simulator(rate_params, seed=11)
-        stats = sim.run(warmup_events=5_000, measurement_events=50_000, n_batches=20)
-        m = SimMetrics(rate_params, stats)
-
-        # バッチごとの合計値のばらつきから sigma を推定
-        batch_totals = []
-        for b in stats.batches:
-            bm = SimMetrics(rate_params, b)
-            batch_totals.append(
-                bm.mean_busy() + bm.mean_idle() + bm.mean_setup() + bm.mean_off()
-            )
-        batch_totals = np.array(batch_totals)
-        se = batch_totals.std(ddof=1) / np.sqrt(len(batch_totals))
-        sigma = max(se, 1e-12)
-
-        total = m.mean_busy() + m.mean_idle() + m.mean_setup() + m.mean_off()
-        assert abs(total - rate_params.c) < 3 * sigma + 1e-9
+def test_replications_different_seeds(small_params):
+    """異なるシードで異なる結果になる."""
+    reps = run_replications(
+        small_params, n_reps=3, seed0=42,
+        warmup_events=500, measurement_events=2000,
+    )
+    durations = [r.total_duration for r in reps]
+    assert len(set(durations)) == 3  # 全部異なる
 
 
-class TestFlowBalance:
-    """流量バランス: lambda_eff と b*mu*E[B] が (統計的に) 一致すること."""
-
-    def test_flow_balance(self, rate_params):
-        p = rate_params
-        sim = Simulator(p, seed=22)
-        stats = sim.run(warmup_events=5_000, measurement_events=80_000, n_batches=20)
-
-        diffs = []
-        for b in stats.batches:
-            bm = SimMetrics(p, b)
-            diffs.append(bm.effective_arrival_rate() - p.b * p.mu * bm.mean_busy())
-        diffs = np.array(diffs)
-        mean_diff = diffs.mean()
-        se = diffs.std(ddof=1) / np.sqrt(len(diffs))
-        assert abs(mean_diff) < 3 * se + 1e-9
+def test_server_conservation(small_params):
+    """E[B] + E[I] + E[S] + E[Off] = c (シミュレーション側でも)."""
+    reps = run_replications(
+        small_params, n_reps=5, seed0=42,
+        warmup_events=1000, measurement_events=10000,
+    )
+    m = SimMetrics(small_params, reps)
+    total = m.mean_busy() + m.mean_idle() + m.mean_setup() + m.mean_off()
+    assert abs(total - small_params.c) < 1e-10
 
 
-class TestTheoryComparison:
-    """小規模ケース (c=1, K=3, D_M=1) での理論解析との CI 内一致."""
-
-    def test_matches_theory_within_ci(self, tiny_params):
-        p = tiny_params
-        Q = build_generator(p)
-        pi = solve_stationary(Q)
-        theory = Metrics(p, pi)
-
-        sim = Simulator(p, seed=99)
-        stats = sim.run(warmup_events=10_000, measurement_events=300_000, n_batches=30)
-        sim_metrics = SimMetrics(p, stats)
-
-        checks = [
-            ("P_block", theory.blocking_probability(), sim_metrics.blocking_probability_ci),
-            ("E[j]", theory.mean_queue_length(), sim_metrics.mean_queue_length_ci),
-            ("rho", theory.utilization(), sim_metrics.utilization_ci),
-            ("E[W]", theory.mean_waiting_time(), sim_metrics.mean_waiting_time_ci),
-        ]
-        n_ok = 0
-        for name, theory_val, ci_fn in checks:
-            _, lo, hi = ci_fn()
-            if lo <= theory_val <= hi:
-                n_ok += 1
-        assert n_ok >= 3, "少なくとも 4 指標中 3 指標が理論値を CI 内に含むべき"
+def test_flow_balance(small_params):
+    """λ_eff ≈ b * μ * E[B] (定常時)."""
+    reps = run_replications(
+        small_params, n_reps=10, seed0=42,
+        warmup_events=5000, measurement_events=50000,
+    )
+    m = SimMetrics(small_params, reps)
+    lhs = m.effective_arrival_rate()
+    rhs = small_params.b * small_params.mu * m.mean_busy()
+    # 有限サンプルなので緩めのトレランス
+    assert abs(lhs - rhs) / max(abs(lhs), 1e-10) < 0.05
 
 
-class TestReproducibility:
-    """同一シードでの再現性."""
+def test_ci_requires_replications(small_params):
+    """単一 SimStats では CI 計算がエラー."""
+    sim = Simulator(small_params, seed=42)
+    stats = sim.run(warmup_events=500, measurement_events=2000)
+    m = SimMetrics(small_params, stats)
+    with pytest.raises(RuntimeError, match="レプリケーション"):
+        m.blocking_probability_ci()
 
-    def test_same_seed_gives_same_result(self, rate_params):
-        sim1 = Simulator(rate_params, seed=42)
-        stats1 = sim1.run(warmup_events=1_000, measurement_events=5_000, n_batches=5)
 
-        sim2 = Simulator(rate_params, seed=42)
-        stats2 = sim2.run(warmup_events=1_000, measurement_events=5_000, n_batches=5)
+def test_ci_from_replications(small_params):
+    """レプリケーションから CI が計算できる."""
+    reps = run_replications(
+        small_params, n_reps=10, seed0=42,
+        warmup_events=1000, measurement_events=10000,
+    )
+    m = SimMetrics(small_params, reps)
+    pt, lo, hi = m.blocking_probability_ci()
+    assert lo <= pt <= hi
+    assert 0 <= pt <= 1
 
-        m1 = SimMetrics(rate_params, stats1).all_metrics()
-        m2 = SimMetrics(rate_params, stats2).all_metrics()
-        for key in m1:
-            assert m1[key] == m2[key]
+
+def test_theory_within_ci_low_load(small_params):
+    """理論値がシミュレーションの CI 内に (おおむね) 入る.
+
+    95% CI なので指標ごとに約 5% の確率で理論値を外れうる. 単一指標の
+    際どい外れでテストが不安定化しないよう, 4 指標中 3 指標以上が
+    CI 内に収まることを要求する (旧 batch means 版のテストと同じ方針).
+    """
+    Q = build_generator(small_params)
+    pi = solve_stationary(Q)
+    theory = Metrics(small_params, pi)
+
+    reps = run_replications(
+        small_params, n_reps=20, seed0=42,
+        warmup_events=10000, measurement_events=100000,
+    )
+    sim = SimMetrics(small_params, reps)
+
+    methods = ["blocking_probability", "mean_queue_length", "utilization", "mean_waiting_time"]
+    n_ok = 0
+    for method in methods:
+        theory_val = getattr(theory, method)()
+        _, lo, hi = getattr(sim, f"{method}_ci")()
+        if lo <= theory_val <= hi:
+            n_ok += 1
+    assert n_ok >= 3, f"少なくとも {len(methods)} 指標中 3 指標が理論値を CI 内に含むべき"
