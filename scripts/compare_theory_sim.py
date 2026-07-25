@@ -44,8 +44,8 @@ SWEEP_RANGES: Dict[str, Tuple[float, float]] = {
 #     文字化け (tofu box) を避けるため英語表記にする (コード自体のコメントは日本語のまま).
 METRIC_SPECS: List[Tuple[str, str, str]] = [
     ("P_block", "blocking_probability", r"$P_{\mathrm{block}}$"),
-    ("E[j]", "mean_queue_length", r"$E[j]$ (mean queue length)"),
-    ("E[W]", "mean_waiting_time", r"$E[W]$ (mean waiting time)"),
+    ("E[L]", "mean_queue_length", r"$E[L]$"),
+    ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("lambda_eff", "effective_arrival_rate", r"$\lambda_{\mathrm{eff}}$"),
     ("rho", "utilization", r"$\rho$ (utilization)"),
     ("energy_cost", "energy_cost", "energy cost"),
@@ -113,8 +113,8 @@ def parse_args() -> argparse.Namespace:
         help="スイープするパラメータ名",
     )
     parser.add_argument("--n-points", type=int, default=10, help="スイープ点数")
-    parser.add_argument("--warmup-events", type=int, default=20_000)
-    parser.add_argument("--measurement-events", type=int, default=200_000)
+    parser.add_argument("--warmup-events", type=int, default=100_000)
+    parser.add_argument("--measurement-events", type=int, default=1_000_000)
     parser.add_argument("--n-batches", type=int, default=30)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out-dir", default="figures")
@@ -174,7 +174,6 @@ def _plot(
         ax.grid(alpha=0.3)
 
     axes.flat[0].legend(loc="best", fontsize=8)
-    fig.suptitle(f"Theory vs Simulation (sweep: {args.sweep})")
     fig.tight_layout()
 
     os.makedirs(args.out_dir, exist_ok=True)

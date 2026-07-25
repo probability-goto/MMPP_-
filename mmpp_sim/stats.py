@@ -17,13 +17,19 @@ class SimStats:
     """時間重み付き統計を蓄積するクラス."""
 
     def __init__(self) -> None:
+        # 辞書。キーは状態 (i, j, F) 、値はその状態に滞在した累積時間。\{(0,0,0): 12.3, (1,0,0): 8.5, \ldots\} のような形。
         self.state_duration: Dict[Tuple[int, int, int], float] = defaultdict(float)
+        # 記録期間の総時間 T
         self.total_duration: float = 0.0
+        # 到着 attempt の総回数(ブロックされたものも含む)。
         self.arrival_attempts: int = 0
+        # そのうちブロックされた回数。
         self.arrival_blocked: int = 0
+        # departure したジョブの滞在時間の総和。
         self.departure_sojourn_sum: float = 0.0
+        # departure したジョブの総数。
         self.departure_count: int = 0
-        # batch means 法用の子 SimStats のリスト (Simulator.run() が設定する)
+        # 信頼区間計算用に、記録期間を分割した子 SimStats のリスト。
         self.batches: List["SimStats"] = []
         # record_state 呼び出し回数 (= 記録されたイベント数. ウォームアップ除外の検証用)
         self.n_records: int = 0
