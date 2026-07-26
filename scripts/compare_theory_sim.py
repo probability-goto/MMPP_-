@@ -3,8 +3,10 @@
 1 つのパラメータ (lambda, alpha, beta, mu のいずれか) をスイープし,
 各点で理論解析 (Q 構築 -> 定常分布 -> Metrics) と
 シミュレーション (Simulator.run -> SimMetrics) の両方から性能指標を計算する.
-6 指標 (P_block, E[j], E[W], lambda_eff, rho, energy_cost) をサブプロットし,
+7 指標 (P_block, E[j], E[W], lambda_eff, rho, cost_paper, ERP_paper) をサブプロットし,
 理論を実線, シミュレーションを 95% CI 付きの点として重ね書きする.
+cost_paper/ERP_paper は先行研究 (Le-Anh & Phung-Duc 2025) 5.2 節の
+コスト式に基づく (energy_cost の任意係数版とは異なる).
 
 使用例:
     python scripts/compare_theory_sim.py --sweep lambda --n-points 10
@@ -57,7 +59,8 @@ METRIC_SPECS: List[Tuple[str, str, str]] = [
     ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("lambda_eff", "effective_arrival_rate", r"$\lambda_{\mathrm{eff}}$"),
     ("rho", "utilization", r"$\rho$ (utilization)"),
-    ("energy_cost", "energy_cost", "energy cost"),
+    ("cost_paper", "energy_cost_paper", "Cost"),
+    ("ERP_paper", "erp_paper", "ERP"),
 ]
 
 
@@ -196,8 +199,8 @@ def _plot(
     sim_err_lo: Dict[str, List[float]],
     sim_err_hi: Dict[str, List[float]],
 ) -> None:
-    """6 指標を 2x3 のサブプロットにまとめて PNG に保存する."""
-    fig, axes = plt.subplots(2, 3, figsize=(14, 8))
+    """7 指標を 2x4 のサブプロットにまとめて PNG に保存する (余った 1 枠は非表示)."""
+    fig, axes = plt.subplots(2, 4, figsize=(18, 8))
     for ax, (key, _, ylabel) in zip(axes.flat, METRIC_SPECS):
         ax.plot(values, theory_vals[key], "-", color="tab:blue", label="Theory")
         ax.errorbar(
@@ -209,6 +212,9 @@ def _plot(
         ax.set_xlabel(args.sweep)
         ax.set_ylabel(ylabel)
         ax.grid(alpha=0.3)
+
+    for ax in axes.flat[len(METRIC_SPECS):]:
+        ax.set_visible(False)
 
     axes.flat[0].legend(loc="best", fontsize=8)
     fig.tight_layout()

@@ -145,6 +145,20 @@ class SimMetrics:
             + c_off * self._mean_off(stats)
         )
 
+    def _energy_cost_paper(self, stats: SimStats) -> float:
+        p = self.params
+        C_b = 0.04419 * p.b + 0.15503
+        C_s = C_b
+        C_i = 0.6 * C_b
+        return (
+            C_b * self._mean_busy(stats)
+            + C_s * self._mean_setup(stats)
+            + C_i * self._mean_idle(stats)
+        )
+
+    def _erp_paper(self, stats: SimStats) -> float:
+        return self._mean_waiting_time(stats) * self._energy_cost_paper(stats)
+
     # ---------- 点推定 (公開 API, mmpp.Metrics と同一名) ----------
     # 全レプリケーションを合算した SimStats に対して計算する.
 
@@ -198,6 +212,14 @@ class SimMetrics:
         """電力コスト = c_busy*E[B] + c_idle*E[I] + c_setup*E[S] + c_off*E[Off]."""
         return self._energy_cost(self._aggregate_stats(), c_busy, c_idle, c_setup, c_off)
 
+    def energy_cost_paper(self) -> float:
+        """先行研究 (Le-Anh & Phung-Duc 2025) 5.2 節の公式に基づく電力コスト."""
+        return self._energy_cost_paper(self._aggregate_stats())
+
+    def erp_paper(self) -> float:
+        """ERP = E[W] * Cost (先行研究定義, paper cost formula 使用)."""
+        return self._erp_paper(self._aggregate_stats())
+
     def all_metrics(self) -> Dict[str, float]:
         """全指標を辞書として返す (mmpp.Metrics.all_metrics と同一キー)."""
         return {
@@ -212,6 +234,8 @@ class SimMetrics:
             "E[W]": self.mean_waiting_time(),
             "rho": self.utilization(),
             "energy_cost": self.energy_cost(),
+            "cost_paper": self.energy_cost_paper(),
+            "ERP_paper": self.erp_paper(),
         }
 
     # ---------- 独立レプリケーション法による信頼区間 ----------
@@ -332,6 +356,18 @@ class SimMetrics:
         ]
         return self._ci_from_values(values)
 
+    def energy_cost_paper_ci(self) -> Tuple[float, float, float]:
+        """energy_cost_paper の (点推定, CI下限, CI上限)."""
+        self._require_replicated("energy_cost_paper_ci")
+        values = [self._energy_cost_paper(rep) for rep in self.replications]
+        return self._ci_from_values(values)
+
+    def erp_paper_ci(self) -> Tuple[float, float, float]:
+        """erp_paper の (点推定, CI下限, CI上限)."""
+        self._require_replicated("erp_paper_ci")
+        values = [self._erp_paper(rep) for rep in self.replications]
+        return self._ci_from_values(values)
+
     def all_metrics_ci(self) -> Dict[str, Tuple[float, float, float]]:
         """全指標の (点推定, CI下限, CI上限) を辞書として返す."""
         return {
@@ -346,4 +382,6 @@ class SimMetrics:
             "E[W]": self.mean_waiting_time_ci(),
             "rho": self.utilization_ci(),
             "energy_cost": self.energy_cost_ci(),
+            "cost_paper": self.energy_cost_paper_ci(),
+            "ERP_paper": self.erp_paper_ci(),
         }

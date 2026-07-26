@@ -13,6 +13,7 @@ from mmpp import (
     build_generator,
     solve_stationary,
     Metrics,
+    ModelParameters,
 )
 
 
@@ -163,11 +164,43 @@ class TestEnergyCost:
             "P_block", "P_block_arrival",
             "E[j]", "E[B]", "E[I]", "E[S]", "E[Off]",
             "lambda_eff", "E[W]", "rho", "energy_cost",
+            "cost_paper", "ERP_paper",
         }
         assert set(d.keys()) == expected_keys
         for k, v in d.items():
             assert isinstance(v, (int, float, np.floating))
             assert not np.isnan(v)
+
+
+class TestEnergyCostPaper:
+    """先行研究 (Le-Anh & Phung-Duc 2025) 準拠のコスト計算."""
+
+    def test_energy_cost_paper_matches_formula(self, small_metrics):
+        """energy_cost_paper が先行研究の公式と一致."""
+        m, p = small_metrics
+
+        b = p.b
+        C_b = 0.04419 * b + 0.15503
+        C_i = 0.6 * C_b
+        expected = C_b * m.mean_busy() + C_b * m.mean_setup() + C_i * m.mean_idle()
+
+        assert abs(m.energy_cost_paper() - expected) < 1e-12
+
+    def test_energy_cost_paper_depends_on_b(self):
+        """b が変わるとコストが変わる (b 依存性の確認)."""
+        C0 = np.array([[-1.5, 0.5], [0.3, -1.3]])
+        C1 = np.array([[1.0, 0.0], [0.0, 1.0]])
+        p_b1 = ModelParameters(c=2, K=4, b=1, mu=1.0, alpha=1.0, beta=0.1, C0=C0, C1=C1)
+        p_b2 = ModelParameters(c=2, K=4, b=2, mu=1.0, alpha=1.0, beta=0.1, C0=C0, C1=C1)
+
+        Q1 = build_generator(p_b1); pi1 = solve_stationary(Q1); m1 = Metrics(p_b1, pi1)
+        Q2 = build_generator(p_b2); pi2 = solve_stationary(Q2); m2 = Metrics(p_b2, pi2)
+
+        # 係数比: C_b(b=2)/C_b(b=1) = (0.04419*2+0.15503)/(0.04419+0.15503) = 1.221
+        ratio_expected = (0.04419 * 2 + 0.15503) / (0.04419 + 0.15503)
+        # 完全比較は難しいが、係数側が変わっていることを確認
+        assert abs(ratio_expected - 1.221) < 0.001  # サニティ
+        assert m1.energy_cost_paper() != m2.energy_cost_paper()
 
 
 class TestBlockingProbability:

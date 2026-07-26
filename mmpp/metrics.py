@@ -179,6 +179,29 @@ class Metrics:
             + c_off * self.mean_off()
         )
 
+    def energy_cost_paper(self) -> float:
+        """先行研究 (Le-Anh & Phung-Duc 2025) 5.2 節の公式に基づく電力コスト.
+
+        Cost = C_b * E[B] + C_s * E[S] + C_i * E[I]
+        C_b = C_s = 0.04419 * b + 0.15503
+        C_i = 0.6 * C_b
+
+        Off サーバーは電力消費 0 と扱う (先行研究に Off 項なし).
+        ERP の絶対値を先行研究と比較する場合はこのメソッドを使う.
+        """
+        C_b = 0.04419 * self.params.b + 0.15503
+        C_s = C_b
+        C_i = 0.6 * C_b
+        return (
+            C_b * self.mean_busy()
+            + C_s * self.mean_setup()
+            + C_i * self.mean_idle()
+        )
+
+    def erp_paper(self) -> float:
+        """ERP = E[W] * Cost (先行研究定義, paper cost formula 使用)."""
+        return self.mean_waiting_time() * self.energy_cost_paper()
+
     # ---------- 一括取得 ----------
 
     def all_metrics(self) -> Dict[str, float]:
@@ -195,4 +218,6 @@ class Metrics:
             "E[W]": self.mean_waiting_time(),
             "rho": self.utilization(),
             "energy_cost": self.energy_cost(),
+            "cost_paper": self.energy_cost_paper(),
+            "ERP_paper": self.erp_paper(),
         }
