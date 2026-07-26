@@ -55,6 +55,22 @@ class Simulator:
         sim = Simulator(params, seed=42)
         stats = sim.run(warmup_events=100_000, measurement_events=1_000_000)
         metrics = SimMetrics(params, stats)
+
+    Notes:
+        sojourn time 追跡について:
+        SERVICE_COMPLETION 時に FIFO キューから最古の b 個の到着時刻を pop して
+        sojourn time を計算しているが, これは物理モデルとしては厳密ではない.
+        指数分布の無記憶性により, B(i,j) > 1 の状態では実際に完了するのは
+        B 個のバッチから一様ランダムに選ばれる 1 つであり, 必ずしも最古とは限らない.
+
+        しかし集計 E[W] は影響を受けない. 任意の到着列 {a_k} と departure 列 {d_k}
+        の間のどの 1 対 1 対応 σ についても
+            Σ (d_k - a_σ(k)) = Σ d_k - Σ a_k (bijection 不変性)
+        が成立するため, 個別ジョブへの帰属を FIFO で決めても実物理で決めても
+        総和は同一で, したがって全体平均も同一である. これにより Little の公式
+        との整合性も保たれる.
+
+        FIFO を採用している理由は実装の単純さのみで, 統計的な意味付けはない.
     """
 
     def __init__(self, params, seed: int = 42) -> None:
@@ -203,20 +219,24 @@ class Simulator:
         """シミュレーションを実行し, ウォームアップ後の統計を返す.
 
         Args:
-            warmup_events: 統計を記録しないイベント数.
+            warmup_events: 統計を記録しないウォームアップイベント数.
             measurement_events: 統計を記録するイベント数.
 
         Returns:
-            SimStats: 記録期間の統計. 信頼区間計算には run_replications() を使うこと.
+            SimStats: 記録期間の統計. `warmup_duration` にウォームアップ期間の
+                実時間が記録される (遅い時定数 1/beta 等に対する妥当性確認用).
+                信頼区間計算には run_replications() を使うこと.
         """
         stats = SimStats()
-        total_events = warmup_events + measurement_events
 
-        for event_num in range(total_events):
+        # ウォームアップ (統計は記録しない)
+        for _ in range(warmup_events):
+            self.step()
+        stats.warmup_duration = self.time
+
+        # 本計測
+        for _ in range(measurement_events):
             result = self.step()
-
-            if event_num < warmup_events:
-                continue
 
             stats.record_state(result.old_state, result.dt)
 

@@ -11,6 +11,7 @@
 """
 import argparse
 import os
+import warnings
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -102,8 +103,13 @@ def run_simulation(
     warmup_events: int,
     measurement_events: int,
     n_reps: int,
-) -> SimMetrics:
-    """シミュレーション: 独立レプリケーション法 (run_replications) -> SimMetrics."""
+) -> Tuple[List, SimMetrics]:
+    """シミュレーション: 独立レプリケーション法 (run_replications) -> SimMetrics.
+
+    Returns:
+        (replications, sim_metrics): replications は診断出力 (warmup_duration 確認等)
+            のため呼び出し元にそのまま返す.
+    """
     replications = run_replications(
         params,
         n_reps=n_reps,
@@ -111,7 +117,28 @@ def run_simulation(
         warmup_events=warmup_events,
         measurement_events=measurement_events,
     )
-    return SimMetrics(params, replications)
+    return replications, SimMetrics(params, replications)
+
+
+def _check_warmup_duration(params: ModelParameters, replications: List) -> None:
+    """ウォームアップ実時間が遅い時定数 1/beta に対して十分かを診断する.
+
+    目安として 5 倍未満なら Delayoff の時定数に対してウォームアップが
+    不足している可能性があるとして警告する.
+    """
+    warmup_duration = replications[0].warmup_duration
+    warmup_ratio = warmup_duration * params.beta
+    print(
+        f"  [診断] warmup_duration = {warmup_duration:.2f}, "
+        f"warmup / (1/beta) = {warmup_ratio:.2f} 倍"
+    )
+    if warmup_ratio < 5.0:
+        warnings.warn(
+            f"ウォームアップが遅い時定数 1/beta = {1 / params.beta:.2f} に対して "
+            f"{warmup_ratio:.2f} 倍しかありません. warmup_events を増やすことを検討してください.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
 
 def parse_args() -> argparse.Namespace:
@@ -143,10 +170,11 @@ def main() -> None:
     for value in values:
         params = build_params(args.sweep, value)
         theory = run_theory(params)
-        sim_metrics = run_simulation(
+        replications, sim_metrics = run_simulation(
             params, args.seed, args.warmup_events,
             args.measurement_events, args.n_reps,
         )
+        _check_warmup_duration(params, replications)
 
         for key, method_name, _ in METRIC_SPECS:
             theory_vals[key].append(getattr(theory, method_name)())

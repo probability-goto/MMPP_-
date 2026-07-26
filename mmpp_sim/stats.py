@@ -28,6 +28,9 @@ class SimStats:
         self.departure_sojourn_sum: float = 0.0
         # departure したジョブの総数。
         self.departure_count: int = 0
+        # ウォームアップ期間の実時間 (Simulator.run が記録する).
+        # 遅い時定数 (例: 1/beta) に対してウォームアップが十分長いかの診断に使う.
+        self.warmup_duration: float = 0.0
 
     def record_state(self, state: Tuple[int, int, int], duration: float) -> None:
         """状態 (i, j, F) に duration だけ滞在したことを記録."""

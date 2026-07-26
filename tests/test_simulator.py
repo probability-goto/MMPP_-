@@ -263,6 +263,21 @@ def test_simulator_reproducibility(small_params):
         assert m1[key] == m2[key]
 
 
+def test_warmup_duration_recorded(small_params):
+    """ウォームアップ後の実時間が SimStats に記録される."""
+    sim = Simulator(small_params, seed=42)
+    stats = sim.run(warmup_events=1000, measurement_events=1000)
+    # ウォームアップの実時間が正の値として記録されている
+    assert stats.warmup_duration > 0
+    # 総時間はウォームアップ + 本計測でおよそ 2 倍程度
+    assert stats.total_duration > 0
+    # ウォームアップ終了時点は本計測開始時点であり, 総経過時間はそれ以上
+    # (sim.time はウォームアップ + 本計測の総経過時間)
+    assert sim.time == pytest.approx(
+        stats.warmup_duration + stats.total_duration, rel=1e-10
+    )
+
+
 def test_replications_different_seeds(small_params):
     """異なるシードで異なる結果になる."""
     reps = run_replications(
@@ -343,3 +358,12 @@ def test_theory_within_ci_low_load(small_params):
         if lo <= theory_val <= hi:
             n_ok += 1
     assert n_ok >= 3, f"少なくとも {len(methods)} 指標中 3 指標が理論値を CI 内に含むべき"
+
+
+def test_event_module_has_no_queue():
+    """EventQueue が event モジュールに存在しない (デッドコード削除の回帰防止)."""
+    import mmpp_sim.event as event_mod
+    assert not hasattr(event_mod, "EventQueue"), (
+        "EventQueue はデッドコードとして削除された. "
+        "再導入する場合は具体的な使用箇所を伴うこと."
+    )

@@ -9,7 +9,7 @@ ModelParameters のみ mmpp と共有し, 生成行列やソルバーには依�
     SimMetrics: シミュレーション統計からの性能指標計算 (mmpp.Metrics と同一 API)
     EventType: イベント種別
 """
-from mmpp_sim.event import EventType, EventQueue, StepResult
+from mmpp_sim.event import EventType, StepResult
 from mmpp_sim.simulator import (
     Simulator,
     run_replications,
@@ -27,7 +27,6 @@ __all__ = [
     "SimStats",
     "SimMetrics",
     "EventType",
-    "EventQueue",
     "StepResult",
     "busy_servers",
     "idle_servers",

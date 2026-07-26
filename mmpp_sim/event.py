@@ -1,15 +1,10 @@
-"""イベント種別と優先度付きキューの定義.
+"""イベント種別と 1 イベント実行結果の型定義.
 
-DES 本体 (simulator.py) で使う「次の 1 イベント」を表現するための
-軽量なデータ構造を提供する. イベントは (time, event_type, metadata) の
-tuple として heapq ベースの優先度キューで管理する.
-
-このモジュールは mmpp パッケージに一切依存しない (独立検証のため).
+DES 本体 (simulator.py) が扱うイベントの種別と, `Simulator.step()` の
+戻り値の型を定義する軽量なモジュール. mmpp パッケージには依存しない.
 """
-import heapq
-import itertools
 from enum import Enum, auto
-from typing import Any, Dict, NamedTuple, Optional, Tuple
+from typing import NamedTuple, Optional, Tuple
 
 
 class EventType(Enum):
@@ -29,41 +24,6 @@ class EventType(Enum):
 
     PHASE_TRANSITION = auto()
     """MMPP 位相遷移 (到着を伴わない C0 由来の遷移)."""
-
-
-class EventQueue:
-    """heapq ベースの優先度付きイベントキュー (時刻昇順).
-
-    同時刻イベントの比較時に EventType/metadata の比較エラーが起きないよう,
-    単調増加カウンタをタイブレークキーとして併用する.
-    将来的にイベント駆動方式(未来のイベントをキューに積む方式)に切り替える可能性を残したデッドコード
-    """
-
-    def __init__(self) -> None:
-        self._heap: list = []
-        self._counter = itertools.count()
-
-    def push(
-        self,
-        time: float,
-        event_type: EventType,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        """イベントをキューに追加する."""
-        entry = (time, next(self._counter), event_type, metadata or {})
-        heapq.heappush(self._heap, entry)
-
-    def pop(self) -> Tuple[float, EventType, Dict[str, Any]]:
-        """最も時刻の早いイベントを取り出す."""
-        time, _, event_type, metadata = heapq.heappop(self._heap)
-        return time, event_type, metadata
-
-    def is_empty(self) -> bool:
-        """キューが空かどうか."""
-        return len(self._heap) == 0
-
-    def __len__(self) -> int:
-        return len(self._heap)
 
 
 class StepResult(NamedTuple):
