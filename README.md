@@ -51,14 +51,6 @@ pip install -e .
 import numpy as np
 from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
 
-# パラメータ設定
-C0 = np.array([[-1.05, 0.05], [0.05, -1.05]])
-C1 = np.array([[1.0, 0.0], [0.0, 1.0]])
-params = ModelParameters(
-    c=10, K=50, b=2,
-    mu=1.0, alpha=0.5, beta=0.05,
-    C0=C0, C1=C1
-)
 
 # 生成行列 Q を構築
 Q = build_generator(params)
@@ -73,11 +65,34 @@ print(metrics.all_metrics())
 
 ## テスト実行
 
-# 横軸指定とプロット数を指定
-
 ```bash
 pytest tests/
-python scripts/compare_theory_sim.py --sweep lambda --n-points 10
+```
+
+## 数値実験の実行
+
+実験 0-3 のスクリプトは `scripts/` にある. 各スクリプトは `--quick` で
+走査点数・イベント数を絞った軽量実行ができる (開発中の動作確認用).
+図は既定で `figures/` ディレクトリに保存される.
+
+```bash
+# 実験 0: 理論解析と DES シミュレーションの整合性検証 (中バースト水準, rho スイープ)
+python scripts/experiment_0_validation.py
+python scripts/experiment_0_validation.py --quick
+
+# 実験 1: トラフィック強度 rho に対する応答 (弱/中/強バースト水準を並列比較)
+python scripts/experiment_1_traffic.py
+python scripts/experiment_1_traffic.py --quick
+
+# 実験 2: delayoff 率 beta に対する応答 (alpha 3 水準)
+python scripts/experiment_2_delayoff.py                  # 中バースト (メイン)
+python scripts/experiment_2_delayoff.py --strong-burst   # 強バースト (補助)
+python scripts/experiment_2_delayoff.py --quick
+
+# 実験 3: バースト性パラメータ (delta, sigma) 自体の走査
+python scripts/experiment_3_burstiness.py --sweep delta  # 実験 3-A: 振幅走査
+python scripts/experiment_3_burstiness.py --sweep sigma  # 実験 3-B: 時定数走査
+python scripts/experiment_3_burstiness.py --sweep delta --quick
 ```
 
 ## 数値解法の方針

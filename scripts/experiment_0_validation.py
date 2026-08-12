@@ -49,8 +49,8 @@ BASELINE = dict(
 )
 
 # 中バースト水準 (対称 2 位相 MMPP): delta = 到着率の相対振れ幅, sigma = 位相遷移率
-DELTA = 0.3
-SIGMA = 1.0
+DELTA = 0.6
+SIGMA = 0.1
 
 # rho スイープ範囲・点数の既定値
 RHO_RANGE: Tuple[float, float] = (0.3, 0.95)

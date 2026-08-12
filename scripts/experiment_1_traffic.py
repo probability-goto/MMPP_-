@@ -93,7 +93,7 @@ def run_theory(params: ModelParameters) -> Metrics:
 def parse_args() -> argparse.Namespace:
     """コマンドライン引数を解析する."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--n-points", type=int, default=30, help="rho スイープ点数")
+    parser.add_argument("--n-points", type=int, default=15, help="rho スイープ点数")
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument(
         "--quick", action="store_true",
