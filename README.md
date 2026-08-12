@@ -71,7 +71,7 @@ pytest tests/
 
 ## 数値実験の実行
 
-実験 0-3 のスクリプトは `scripts/` にある. 各スクリプトは `--quick` で
+実験 0-4 のスクリプトは `scripts/` にある. 各スクリプトは `--quick` で
 走査点数・イベント数を絞った軽量実行ができる (開発中の動作確認用).
 図は既定で `figures/` ディレクトリに保存される.
 
@@ -93,6 +93,11 @@ python scripts/experiment_2_delayoff.py --quick
 python scripts/experiment_3_burstiness.py --sweep delta  # 実験 3-A: 振幅走査
 python scripts/experiment_3_burstiness.py --sweep sigma  # 実験 3-B: 時定数走査
 python scripts/experiment_3_burstiness.py --sweep delta --quick
+
+# 実験 4: バッファ容量 K に対する感度分析 (K=100,200,500,1000 x 弱/中/強バースト)
+python scripts/experiment_4_K_sensitivity.py --burst all     # 3 水準まとめて実行
+python scripts/experiment_4_K_sensitivity.py --burst medium  # 水準を 1 つだけ指定
+python scripts/experiment_4_K_sensitivity.py --burst all --quick
 ```
 
 ## 数値解法の方針
