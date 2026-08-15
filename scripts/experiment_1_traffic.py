@@ -14,6 +14,7 @@
     python scripts/experiment_1_traffic.py --quick  # 開発中の軽量実行 (n-points=3)
 """
 import argparse
+import csv
 import os
 from typing import Dict, List, Tuple
 
@@ -95,6 +96,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--n-points", type=int, default=15, help="rho スイープ点数")
     parser.add_argument("--out-dir", default="figures")
+    parser.add_argument("--csv-dir", default="results", help="CSV 出力ディレクトリ")
     parser.add_argument(
         "--quick", action="store_true",
         help="開発中の軽量実行用 (n-points=3)",
@@ -137,6 +139,7 @@ def main() -> None:
 
     max_conservation_error = 0.0
     max_flow_balance_error = 0.0
+    csv_rows: List[Dict[str, object]] = []
 
     for level_name, delta, sigma in BURST_LEVELS:
         cv_mid = compute_interarrival_cv(
@@ -173,12 +176,48 @@ def main() -> None:
             max_conservation_error = max(max_conservation_error, cons_err)
             max_flow_balance_error = max(max_flow_balance_error, flow_err)
 
+            csv_rows.append({
+                "burst_name": level_name,
+                "delta": delta,
+                "sigma": sigma,
+                "rho": rho,
+                "P_block_arrival": theory_vals[level_name]["P_block_arrival"][-1],
+                "E_W": theory_vals[level_name]["E[W]"][-1],
+                "Cost": theory_vals[level_name]["Cost"][-1],
+                "ERP": theory_vals[level_name]["ERP"][-1],
+                "E_N": theory.mean_queue_length(),
+                "lambda_eff": theory.effective_arrival_rate(),
+                "E_B": theory.mean_busy(),
+                "E_S": theory.mean_setup(),
+                "E_I": theory.mean_idle(),
+                "E_off": theory.mean_off(),
+                "N_states": params.N,
+            })
+
     print("\n=== サマリ ===")
     print(f"保存則の最大誤差: {max_conservation_error:.3e}")
     print(f"流量バランスの最大誤差: {max_flow_balance_error:.3e}")
 
     _print_caption_summary(rho_values, theory_vals)
+    _save_csv(args, csv_rows)
     _plot(args, rho_values, theory_vals)
+
+
+def _save_csv(args: argparse.Namespace, rows: List[Dict[str, object]]) -> None:
+    """rho スイープ結果を CSV に保存する (実験 1-P との比較用に列を統一)."""
+    os.makedirs(args.csv_dir, exist_ok=True)
+    csv_path = os.path.join(args.csv_dir, "experiment_1.csv")
+    fieldnames = [
+        "burst_name", "delta", "sigma", "rho",
+        "P_block_arrival", "E_W", "Cost", "ERP",
+        "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
+        "N_states",
+    ]
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"CSV 保存: {csv_path}")
 
 
 def _print_caption_summary(
