@@ -1,20 +1,23 @@
-"""実験 4 (バッファ容量 K に対する感度分析) の実装.
+"""実験 4-P (Predictive 版バッファ容量 K に対する感度分析).
 
-有限バッファ K=200 という設計選択の妥当性, および先行研究の無限バッファ近似が
-MMPP バースト到着下でどこまで妥当かを検証するため, K を {100, 200, 500, 1000}
-で走査する. 実験 1 と同じ 3 つのバースト水準 (弱・中・強) それぞれについて,
-rho = lambda_bar / (c*b*mu) を [0.1, 0.95] でスイープしながら 4 指標
-(P_block^arrival, E[W], Cost, ERP) を理論解析 (mmpp) のみで計算し, K が
-大きいほど指標がどこに収束していくかを観察する.
+有限バッファ K の設計妥当性が Predictive 拡張下でも成立するか, および
+Predictive の事前セットアップがバッファ設計にどう影響するかを検証する.
+K を {100, 200, 500, 1000} で走査し, 実験 1-P と同じ 3 つのバースト水準
+(弱・中・強) それぞれについて rho を [0.1, 0.95] でスイープしながら 4 指標
+(P_block^arrival, E[W], Cost, ERP) を理論解析 (mmpp_predictive) のみで
+計算する.
 
-c, b, mu, alpha, beta は実験 1 と同じ値 (先行研究 Fig.10 の規模) に固定する.
+c, b, mu, alpha, beta は実験 4 ベース版と同じ値に固定する.
+n_target, gamma は他の Predictive 実験 (1-P, 2-P, 3-P) と統一した代表値
+(10, 5.0) を採用する.
 
 使用例:
-    python scripts/experiment_4_K_sensitivity.py --burst medium
-    python scripts/experiment_4_K_sensitivity.py --burst all
-    python scripts/experiment_4_K_sensitivity.py --burst medium --quick  # 開発中の軽量実行 (n-points=5)
+    python scripts/experiment_4P_K_sensitivity.py --burst medium --quick
+    python scripts/experiment_4P_K_sensitivity.py --burst all
+    python scripts/experiment_4P_K_sensitivity.py --burst medium --n-target 16 --gamma 3.0
 """
 import argparse
+import csv
 import os
 from typing import Dict, List, Tuple
 
@@ -27,7 +30,7 @@ import matplotlib.pyplot as plt
 try:
     from tqdm import tqdm
 except ImportError:  # pragma: no cover
-    print("注意: tqdm が見つかりません (pip install tqdm を推奨). 素朴な進捗表示で継続します.")
+    print("注意: tqdm が見つかりません. 素朴な進捗表示で継続します.")
 
     def tqdm(iterable, desc=None):
         total = len(iterable)
@@ -35,26 +38,30 @@ except ImportError:  # pragma: no cover
             print(f"  [{desc}] {idx}/{total}")
             yield item
 
-from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
+from mmpp_predictive import (
+    PredictiveModelParameters, build_generator, solve_stationary, Metrics
+)
+
 try:
     from _mmpp_burst import build_mmpp, compute_interarrival_cv
 except ImportError:
     from scripts._mmpp_burst import build_mmpp, compute_interarrival_cv
 
 
-# 実験計画のベースラインパラメータ (実験 1 と同じ規模. K は走査変数なので含めない)
+# ============================================================
+# パラメータ (実験 4 ベース版と完全一致)
+# ============================================================
+
 BASELINE = dict(
-    c=20,       # サーバー数 (実験 1 と同じ)
-    b=5,        # バッチサイズ (実験 1 と同じ)
-    mu=1.0,     # サービス率
-    alpha=0.1,  # セットアップ率 (1/alpha = 10 s)
-    beta=0.005,  # Delayoff 率 (1/beta = 200 s)
+    c=20,
+    b=5,
+    mu=1.0,
+    alpha=0.1,
+    beta=0.005,
 )
 
-# 走査対象の K 水準 (有限バッファ設計の妥当性検証)
 K_LEVELS: List[int] = [100, 200, 500, 1000]
 
-# 水準ごとの表示色
 K_STYLE: Dict[int, Dict[str, str]] = {
     100: dict(color="tab:blue"),
     200: dict(color="tab:orange"),
@@ -62,33 +69,41 @@ K_STYLE: Dict[int, Dict[str, str]] = {
     1000: dict(color="tab:red"),
 }
 
-# バースト水準の 3 段階定義 (実験 1 と同じ): (名前, delta, sigma)
 BURST_LEVELS: List[Tuple[str, float, float]] = [
     ("weak", 0.3, 1.0),
     ("medium", 0.6, 0.1),
     ("strong", 0.9, 0.01),
 ]
 
-# rho スイープ範囲・点数の既定値 (実験 1 と同じ)
 RHO_RANGE: Tuple[float, float] = (0.1, 0.95)
 RHO_N_POINTS = 15
 
-# (指標キー, Metrics 共通メソッド名, 表示ラベル)
+# Predictive 拡張パラメータの代表値 (実験 1-P, 2-P, 3-P と統一)
+DEFAULT_N_TARGET = 10
+DEFAULT_GAMMA = 5.0
+
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}^{\mathrm{arrival}}$"),
+    ("P_block_arrival", "arrival_blocking_probability",
+     r"$P_{\mathrm{block}}^{\mathrm{arrival}}$"),
     ("E[W]", "mean_waiting_time", r"$E[W]$ (mean response time)"),
     ("Cost", "energy_cost_paper", "Cost"),
     ("ERP", "erp_paper", "ERP"),
 ]
 
 
-def build_params(K: int, rho: float, delta: float, sigma: float) -> ModelParameters:
-    """K, rho, delta, sigma に対応する ModelParameters を構築する (BASELINE 固定)."""
+def build_params(
+    K: int, rho: float, delta: float, sigma: float,
+    n_target: int, gamma: float,
+) -> PredictiveModelParameters:
+    """K, rho, delta, sigma, n_target, gamma に対応する
+    PredictiveModelParameters を構築する (BASELINE 固定)."""
     C0, C1 = build_mmpp(rho, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
-    return ModelParameters(C0=C0, C1=C1, K=K, **BASELINE)
+    return PredictiveModelParameters(
+        C0=C0, C1=C1, K=K, n_target=n_target, gamma=gamma, **BASELINE
+    )
 
 
-def run_theory(params: ModelParameters) -> Metrics:
+def run_theory(params: PredictiveModelParameters) -> Metrics:
     """理論解析: Q 構築 -> 定常分布 -> Metrics."""
     Q = build_generator(params)
     pi = solve_stationary(Q)
@@ -101,6 +116,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--burst", choices=["weak", "medium", "strong", "all"], default="all",
         help="バースト水準を指定 (既定: all で 3 水準すべてを実行)",
+    )
+    parser.add_argument(
+        "--n-target", type=int, default=DEFAULT_N_TARGET,
+        help=f"目標稼働サーバー数 (デフォルト: {DEFAULT_N_TARGET})",
+    )
+    parser.add_argument(
+        "--gamma", type=float, default=DEFAULT_GAMMA,
+        help=f"Delayoff 加速係数 (デフォルト: {DEFAULT_GAMMA})",
     )
     parser.add_argument("--n-points", type=int, default=RHO_N_POINTS, help="rho スイープ点数")
     parser.add_argument("--out-dir", default="figures")
@@ -116,20 +139,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def _conservation_and_flow_balance(
-    c: int,
-    b: int,
-    mu: float,
-    mean_busy: float,
-    mean_idle: float,
-    mean_setup: float,
-    mean_off: float,
+    c: int, b: int, mu: float,
+    mean_busy: float, mean_idle: float,
+    mean_setup: float, mean_off: float,
     lambda_eff: float,
 ) -> Tuple[float, float]:
-    """保存則 E[B]+E[I]+E[S]+E[Off]=c と 流量バランス lambda_eff=b*mu*E[B] の誤差を返す.
-
-    Returns:
-        (conservation_error, flow_balance_error)
-    """
+    """保存則と流量バランスの誤差を返す."""
     conservation_error = abs(mean_busy + mean_idle + mean_setup + mean_off - c)
     flow_balance_error = abs(lambda_eff - b * mu * mean_busy)
     return conservation_error, flow_balance_error
@@ -150,8 +165,13 @@ def main() -> None:
     max_conservation_error = 0.0
     max_flow_balance_error = 0.0
 
+    print("=== 実験 4-P: Predictive 版 K 感度分析 ===")
+    print(f"n_target = {args.n_target}")
+    print(f"gamma    = {args.gamma}")
+    print(f"K 水準   = {K_LEVELS}")
+    print(f"n_points = {args.n_points}")
+
     for level_name, delta, sigma in _burst_levels_to_run(args.burst):
-        # 結果格納: theory_vals[K][metric_key] = [値, ...] (rho 順)
         theory_vals: Dict[int, Dict[str, List[float]]] = {
             K: {k: [] for k, _, _ in METRIC_SPECS} for K in K_LEVELS
         }
@@ -167,12 +187,12 @@ def main() -> None:
         for K in K_LEVELS:
             for rho in tqdm(rho_values, desc=f"burst={level_name}, K={K}"):
                 rho = float(rho)
-                params = build_params(K, rho, delta, sigma)
+                params = build_params(K, rho, delta, sigma, args.n_target, args.gamma)
                 theory = run_theory(params)
 
                 print(
                     f"\n=== [{level_name}, K={K}] rho = {rho:.4g} "
-                    f"(lambda_bar = {params.lambda_bar:.4g}) ==="
+                    f"(lambda_bar = {params.lambda_bar:.4g}, N = {params.N}) ==="
                 )
                 print(f"  {'metric':<18}{'theory':>14}")
                 for key, method_name, _ in METRIC_SPECS:
@@ -208,7 +228,7 @@ def _print_caption_summary(
     rho_values: np.ndarray,
     theory_vals: Dict[int, Dict[str, List[float]]],
 ) -> None:
-    """図のキャプション用サマリ (K 別の最軽/最重 rho での指標表, 収束の目安) をコンソールに出力する."""
+    """図のキャプション用サマリをコンソールに出力する."""
     print(f"\n=== [{level_name}] キャプション用サマリ ===")
     lo_idx, hi_idx = 0, len(rho_values) - 1
     print(f"[最軽 rho={rho_values[lo_idx]:.4g} と最重 rho={rho_values[hi_idx]:.4g} での指標値 (K 別)]")
@@ -221,7 +241,6 @@ def _print_caption_summary(
                 row += f"{theory_vals[K][key][idx]:>18.5g}"
             print(row + f"  [{tag}]")
 
-    # 最大 2 水準の K 間の差 (無限バッファ近似への収束具合の目安, 最重 rho で評価)
     K_max, K_prev = K_LEVELS[-1], K_LEVELS[-2]
     print(f"\n[K={K_prev} -> K={K_max} での指標変化 (収束の目安, rho={rho_values[hi_idx]:.4g})]")
     for key, _, _ in METRIC_SPECS:
@@ -265,14 +284,16 @@ def _plot(
     axes.flat[0].legend(loc="best", fontsize=8)
 
     fig.suptitle(
-        f"Experiment 4: Sensitivity to Buffer Capacity $K$ ({level_name} burst)\n"
+        f"Experiment 4-P: Predictive Sensitivity to Buffer Capacity $K$ ({level_name} burst)\n"
         rf"($c=20$, $b=5$, $1/\mu=1$, $1/\alpha=10$s, $1/\beta=200$s, "
-        rf"delta={delta}, sigma={sigma})"
+        rf"delta={delta}, sigma={sigma}, "
+        rf"n_target={args.n_target}, $\gamma$={args.gamma})"
     )
     fig.tight_layout(rect=(0, 0, 1, 0.94))
 
     os.makedirs(args.out_dir, exist_ok=True)
-    png_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}.png")
+    file_stem = f"experiment_4P_K_sensitivity_{level_name}_nt{args.n_target}_g{args.gamma}"
+    png_path = os.path.join(args.out_dir, f"{file_stem}.png")
     fig.savefig(png_path, dpi=150)
     print(f"\n図を保存しました: {png_path}")
 
@@ -286,12 +307,13 @@ def _save_csv(
     theory_vals: Dict[int, Dict[str, List[float]]],
 ) -> None:
     """4 指標の K 別・rho 別データを CSV に書き出す (比較スクリプト用)."""
-    import csv
     os.makedirs(args.csv_dir, exist_ok=True)
-    csv_path = os.path.join(args.csv_dir, f"experiment_4_{level_name}.csv")
+    file_stem = f"experiment_4P_{level_name}_nt{args.n_target}_g{args.gamma}"
+    csv_path = os.path.join(args.csv_dir, f"{file_stem}.csv")
 
     fieldnames = [
         "burst_name", "delta", "sigma", "K", "rho",
+        "n_target", "gamma",
         "P_block_arrival", "E_W", "Cost", "ERP",
     ]
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
@@ -305,6 +327,8 @@ def _save_csv(
                     "sigma": sigma,
                     "K": K,
                     "rho": float(rho),
+                    "n_target": args.n_target,
+                    "gamma": args.gamma,
                     "P_block_arrival": theory_vals[K]["P_block_arrival"][i],
                     "E_W": theory_vals[K]["E[W]"][i],
                     "Cost": theory_vals[K]["Cost"][i],
