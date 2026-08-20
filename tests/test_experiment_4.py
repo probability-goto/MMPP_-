@@ -9,23 +9,27 @@ def test_experiment_4_quick_runs():
     """--quick で実行できる."""
     result = subprocess.run(
         [sys.executable, "scripts/experiment_4_K_sensitivity.py",
-         "--burst", "medium", "--quick"],
+         "--burst", "medium", "--quick",
+         "--csv-dir", "/tmp/test_4_csv_quick",
+         "--out-dir", "/tmp/test_4_figs_quick"],
         capture_output=True, text=True, timeout=600,
     )
     assert result.returncode == 0, f"stderr:\n{result.stderr}"
-    assert Path("figures/experiment_4_K_sensitivity_medium.png").exists()
+    assert Path("/tmp/test_4_figs_quick/experiment_4_K_sensitivity_medium.png").exists()
 
 
 def test_experiment_4_all_bursts():
     """全バースト水準で動作する (quick)."""
     result = subprocess.run(
         [sys.executable, "scripts/experiment_4_K_sensitivity.py",
-         "--burst", "all", "--quick"],
+         "--burst", "all", "--quick",
+         "--csv-dir", "/tmp/test_4_csv_all",
+         "--out-dir", "/tmp/test_4_figs_all"],
         capture_output=True, text=True, timeout=1200,
     )
     assert result.returncode == 0
     for level in ["weak", "medium", "strong"]:
-        assert Path(f"figures/experiment_4_K_sensitivity_{level}.png").exists()
+        assert Path(f"/tmp/test_4_figs_all/experiment_4_K_sensitivity_{level}.png").exists()
 
 
 def test_experiment_4_csv_output():

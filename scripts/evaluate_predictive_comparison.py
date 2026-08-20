@@ -171,10 +171,13 @@ def build_comparison_points(
     return points
 
 
-def load_experiment_1p(results_dir: str, n_target: int, gamma: float) -> List[ComparisonPoint]:
-    """実験 1 vs 1-P の比較点を生成 (burst 別 rho スイープ)."""
+def load_experiment_1p(results_dir: str, n_target: int, suffix: str) -> List[ComparisonPoint]:
+    """実験 1 vs 1-P の比較点を生成 (burst 別 rho スイープ).
+
+    suffix は Predictive CSV のファイル名末尾 (例: 'g5.0', 'g1.0', 'gmap').
+    """
     base_rows = load_csv(os.path.join(results_dir, "experiment_1.csv"))
-    pred_rows = load_csv(os.path.join(results_dir, f"experiment_1P_nt{n_target}_g{gamma}.csv"))
+    pred_rows = load_csv(os.path.join(results_dir, f"experiment_1P_nt{n_target}_{suffix}.csv"))
     return build_comparison_points(
         "1P", base_rows, pred_rows,
         exact_fields=["burst_name"],
@@ -184,12 +187,12 @@ def load_experiment_1p(results_dir: str, n_target: int, gamma: float) -> List[Co
 
 
 def load_experiment_2p(
-    results_dir: str, n_target: int, gamma: float, burst_name: str,
+    results_dir: str, n_target: int, suffix: str, burst_name: str,
 ) -> List[ComparisonPoint]:
     """実験 2 vs 2-P の比較点を生成 (バースト別, alpha 厳密一致 x beta 対数最近傍)."""
     base_rows = load_csv(os.path.join(results_dir, f"experiment_2_{burst_name}.csv"))
     pred_rows = load_csv(os.path.join(
-        results_dir, f"experiment_2P_{burst_name}_nt{n_target}_g{gamma}.csv"
+        results_dir, f"experiment_2P_{burst_name}_nt{n_target}_{suffix}.csv"
     ))
     if not base_rows:
         return []
@@ -205,12 +208,12 @@ def load_experiment_2p(
 
 
 def load_experiment_3p(
-    results_dir: str, n_target: int, gamma: float, sweep_var: str,
+    results_dir: str, n_target: int, suffix: str, sweep_var: str,
 ) -> List[ComparisonPoint]:
     """実験 3 vs 3-P の比較点を生成 (delta / sigma スイープ別)."""
     base_rows = load_csv(os.path.join(results_dir, f"experiment_3_{sweep_var}.csv"))
     pred_rows = load_csv(os.path.join(
-        results_dir, f"experiment_3P_{sweep_var}_nt{n_target}_g{gamma}.csv"
+        results_dir, f"experiment_3P_{sweep_var}_nt{n_target}_{suffix}.csv"
     ))
     log_scale = sweep_var == "sigma"
     return build_comparison_points(
@@ -222,12 +225,12 @@ def load_experiment_3p(
 
 
 def load_experiment_4p(
-    results_dir: str, n_target: int, gamma: float, burst_name: str,
+    results_dir: str, n_target: int, suffix: str, burst_name: str,
 ) -> List[ComparisonPoint]:
     """実験 4 vs 4-P の比較点を生成 (バースト別, K 厳密一致 x rho 線形最近傍)."""
     base_rows = load_csv(os.path.join(results_dir, f"experiment_4_{burst_name}.csv"))
     pred_rows = load_csv(os.path.join(
-        results_dir, f"experiment_4P_{burst_name}_nt{n_target}_g{gamma}.csv"
+        results_dir, f"experiment_4P_{burst_name}_nt{n_target}_{suffix}.csv"
     ))
     if not base_rows:
         return []
@@ -457,10 +460,11 @@ def summarize_match_quality(points: List[ComparisonPoint]) -> None:
     """最近傍マッチングの品質に関する注記."""
     print("\n## データ点対応に関する注記\n")
     print(
-        "ベース実験 (1〜4) は粗いグリッド (連続変数 3〜5 点), Predictive 実験 "
-        "(1-P〜4-P) は密なグリッド (15〜40 点) で実行されているため, alpha / K / "
-        "burst_name 等の離散変数は厳密一致, rho / beta / delta / sigma 等の連続変数は "
-        "最近傍点マッチング (beta, sigma は対数距離, rho, delta は線形距離) で対応付けた."
+        "ベース実験 (1〜4) と Predictive 実験 (1-P〜4-P) は連続変数を同一の 15 点 "
+        "グリッドで走査しているため, alpha / K / burst_name 等の離散変数は厳密一致, "
+        "rho / beta / delta / sigma 等の連続変数は最近傍点マッチング "
+        "(beta, sigma は対数距離, rho, delta は線形距離) で対応付けた "
+        "(グリッドが一致する場合は誤差 0 になる)."
     )
     by_exp: Dict[str, List[float]] = {}
     for pt in points:
@@ -484,23 +488,39 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--results-dir", default="results", help="CSV ディレクトリ")
     parser.add_argument("--n-target", type=int, default=10)
     parser.add_argument("--gamma", type=float, default=5.0)
+    parser.add_argument(
+        "--pred-suffix-1p-4p", default=None,
+        help="実験 1-P, 4-P の Predictive CSV のファイル名サフィックス "
+             "(例: 'g1.0'). 指定しない場合は --gamma から 'g{gamma}' を生成.",
+    )
+    parser.add_argument(
+        "--pred-suffix-2p-3p", default=None,
+        help="実験 2-P, 3-P の Predictive CSV のファイル名サフィックス "
+             "(例: 'gmap'). 指定しない場合は --gamma から 'g{gamma}' を生成.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
 
+    suffix_1p_4p = args.pred_suffix_1p_4p or f"g{args.gamma}"
+    suffix_2p_3p = args.pred_suffix_2p_3p or f"g{args.gamma}"
+
     points: List[ComparisonPoint] = []
-    points += load_experiment_1p(args.results_dir, args.n_target, args.gamma)
+    points += load_experiment_1p(args.results_dir, args.n_target, suffix_1p_4p)
     for burst in ["medium", "strong"]:
-        points += load_experiment_2p(args.results_dir, args.n_target, args.gamma, burst)
+        points += load_experiment_2p(args.results_dir, args.n_target, suffix_2p_3p, burst)
     for sweep in ["delta", "sigma"]:
-        points += load_experiment_3p(args.results_dir, args.n_target, args.gamma, sweep)
+        points += load_experiment_3p(args.results_dir, args.n_target, suffix_2p_3p, sweep)
     for burst in ["weak", "medium", "strong"]:
-        points += load_experiment_4p(args.results_dir, args.n_target, args.gamma, burst)
+        points += load_experiment_4p(args.results_dir, args.n_target, suffix_1p_4p, burst)
 
     print("# 実験 1-P〜4-P vs 実験 1〜4 の体系的評価\n")
-    print(f"パラメータ: n_target={args.n_target}, gamma={args.gamma}\n")
+    print(
+        f"パラメータ: n_target={args.n_target}, "
+        f"1-P/4-P suffix={suffix_1p_4p}, 2-P/3-P suffix={suffix_2p_3p}\n"
+    )
     print("**凡例**:")
     print("- `+X.X%`: Predictive による改善率 (正=Predictive が良い, 負=Predictive が悪い)")
     print("- `**+XX%**`: 大幅改善 (>20%)")

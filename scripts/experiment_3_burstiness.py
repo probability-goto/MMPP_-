@@ -123,7 +123,7 @@ def parse_args() -> argparse.Namespace:
         "--sweep", choices=["delta", "sigma"], required=True,
         help="走査変数: delta (振幅) または sigma (時定数)",
     )
-    parser.add_argument("--n-points", type=int, default=25, help="走査点数")
+    parser.add_argument("--n-points", type=int, default=15, help="走査点数")
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument("--csv-dir", default="results", help="CSV 出力ディレクトリ")
     parser.add_argument(

@@ -100,7 +100,7 @@ def run_theory(params: ModelParameters) -> Metrics:
 def parse_args() -> argparse.Namespace:
     """コマンドライン引数を解析する."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--n-points", type=int, default=40, help="beta スイープ点数")
+    parser.add_argument("--n-points", type=int, default=15, help="beta スイープ点数")
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument("--csv-dir", default="results", help="CSV 出力ディレクトリ")
     parser.add_argument(

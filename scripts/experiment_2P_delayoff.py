@@ -17,9 +17,10 @@ Predictive 拡張モデル (mmpp_predictive) を解析し, 4 指標
 """
 import argparse
 import csv
+import math
 import os
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import matplotlib
@@ -63,7 +64,7 @@ RHO_FIXED = 0.7
 ALPHA_LEVELS = [0.1, 1.0, 10.0]
 
 BETA_RANGE: Tuple[float, float] = (1e-2, 1e2)
-BETA_N_POINTS = 40
+BETA_N_POINTS = 15
 
 BURST_LEVELS = {
     "medium": (0.6, 0.1),
@@ -73,6 +74,30 @@ BURST_LEVELS = {
 # Predictive 拡張パラメータの代表値 (実験 1-P と統一).
 DEFAULT_N_TARGET = 10
 DEFAULT_GAMMA = 5.0
+
+
+def parse_alpha_gamma_map(map_str: str) -> Dict[float, float]:
+    """'0.1:1.0,1.0:100.0,10.0:1000.0' 形式を辞書に変換する."""
+    result = {}
+    for pair in map_str.split(","):
+        alpha_str, gamma_str = pair.split(":")
+        result[float(alpha_str.strip())] = float(gamma_str.strip())
+    return result
+
+
+def resolve_gamma(
+    alpha: float, gamma: float, alpha_gamma_dict: Optional[Dict[float, float]],
+) -> float:
+    """alpha に対応する gamma 値を返す (alpha_gamma_dict が None なら gamma をそのまま返す)."""
+    if alpha_gamma_dict is None:
+        return gamma
+    if alpha in alpha_gamma_dict:
+        return alpha_gamma_dict[alpha]
+    nearest_alpha = min(
+        alpha_gamma_dict.keys(),
+        key=lambda a: abs(math.log10(a) - math.log10(alpha)),
+    )
+    return alpha_gamma_dict[nearest_alpha]
 
 
 @dataclass
@@ -159,9 +184,14 @@ def run_single_point(
 def run_all(
     burst_name: str, delta: float, sigma: float,
     n_target: int, gamma: float, n_points: int,
+    alpha_gamma_dict: Optional[Dict[float, float]] = None,
     verbose: bool = False,
 ) -> List[ExperimentResult]:
-    """全 alpha 水準 x 全 beta 点で計算を実行する."""
+    """全 alpha 水準 x 全 beta 点で計算を実行する.
+
+    alpha_gamma_dict が指定された場合, alpha ごとに resolve_gamma で
+    gamma を切り替える (指定なしなら gamma を共通使用).
+    """
     beta_values = np.logspace(
         np.log10(BETA_RANGE[0]), np.log10(BETA_RANGE[1]), n_points
     )
@@ -170,10 +200,11 @@ def run_all(
     total = len(ALPHA_LEVELS) * len(beta_values)
     with tqdm(total=total, desc=f"実験 2-P 計算中 ({burst_name})") as pbar:
         for alpha in ALPHA_LEVELS:
+            gamma_for_alpha = resolve_gamma(alpha, gamma, alpha_gamma_dict)
             for beta in beta_values:
                 result = run_single_point(
                     RHO_FIXED, delta, sigma, alpha, float(beta),
-                    n_target, gamma, verbose,
+                    n_target, gamma_for_alpha, verbose,
                 )
                 result.burst_name = burst_name
                 results.append(result)
@@ -282,7 +313,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--gamma", type=float, default=DEFAULT_GAMMA,
-        help=f"Delayoff 加速係数 (デフォルト: {DEFAULT_GAMMA})",
+        help=f"Delayoff 加速係数 (デフォルト: {DEFAULT_GAMMA}). "
+             "--alpha-gamma-map 指定時は無視される.",
+    )
+    parser.add_argument(
+        "--alpha-gamma-map", type=str, default=None,
+        help="alpha 別 gamma の指定 (例: '0.1:1.0,1.0:100.0,10.0:1000.0'). "
+             "指定時は --gamma より優先される.",
     )
     parser.add_argument(
         "--n-points", type=int, default=BETA_N_POINTS,
@@ -298,6 +335,10 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.quick:
         args.n_points = 6
+    if args.alpha_gamma_map:
+        args.alpha_gamma_dict = parse_alpha_gamma_map(args.alpha_gamma_map)
+    else:
+        args.alpha_gamma_dict = None
     return args
 
 
@@ -313,25 +354,36 @@ def main() -> None:
     print("=== 実験 2-P: Predictive 版 Delayoff 率走査 ===")
     print(f"バースト水準: {burst_name} (delta={delta}, sigma={sigma})")
     print(f"n_target = {args.n_target}")
-    print(f"gamma    = {args.gamma}")
+    if args.alpha_gamma_dict:
+        print(f"gamma    = alpha 別 ({args.alpha_gamma_dict})")
+    else:
+        print(f"gamma    = {args.gamma}")
     print(f"n_points = {args.n_points}")
     print(f"alpha 水準: {ALPHA_LEVELS}")
 
     results = run_all(
         burst_name, delta, sigma,
-        args.n_target, args.gamma, args.n_points, args.verbose,
+        args.n_target, args.gamma, args.n_points,
+        args.alpha_gamma_dict, args.verbose,
     )
 
-    file_stem = f"experiment_2P_{burst_name}_nt{args.n_target}_g{args.gamma}"
+    gamma_tag = "gmap" if args.alpha_gamma_dict else f"g{args.gamma}"
+    file_stem = f"experiment_2P_{burst_name}_nt{args.n_target}_{gamma_tag}"
     csv_path = os.path.join(args.csv_dir, f"{file_stem}.csv")
     save_csv(results, csv_path)
 
     fig_path = os.path.join(args.out_dir, f"{file_stem}.png")
+    gamma_desc = "alpha別" if args.alpha_gamma_dict else str(args.gamma)
     title_suffix = (
         f"c={BASELINE['c']}, K={BASELINE['K']}, b={BASELINE['b']}, "
-        f"rho={RHO_FIXED}, n_target={args.n_target}, gamma={args.gamma}"
+        f"rho={RHO_FIXED}, n_target={args.n_target}, gamma={gamma_desc}"
     )
     plot_results(results, fig_path, burst_name, title_suffix)
+
+    if args.alpha_gamma_dict:
+        print("\n=== 使用した alpha 別 gamma マッピング ===")
+        for alpha, gamma in sorted(args.alpha_gamma_dict.items()):
+            print(f"  alpha={alpha}: gamma={gamma}")
 
     print("\n=== 保存則チェック ===")
     for r in [results[0], results[-1]]:

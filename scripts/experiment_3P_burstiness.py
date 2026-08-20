@@ -19,9 +19,10 @@
 """
 import argparse
 import csv
+import math
 import os
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import matplotlib
@@ -66,17 +67,41 @@ ALPHA_LEVELS = [0.1, 1.0, 10.0]
 
 # 実験 3-A: delta 走査 (振幅走査)
 DELTA_RANGE: Tuple[float, float] = (0.0, 0.95)
-DELTA_N_POINTS = 25
+DELTA_N_POINTS = 15
 DELTA_SIGMA_FIXED = 0.1
 
 # 実験 3-B: sigma 走査 (時定数走査)
 SIGMA_RANGE: Tuple[float, float] = (1e-3, 1e1)
-SIGMA_N_POINTS = 25
+SIGMA_N_POINTS = 15
 SIGMA_DELTA_FIXED = 0.6
 
 # Predictive 拡張パラメータの代表値 (実験 1-P, 2-P と統一)
 DEFAULT_N_TARGET = 10
 DEFAULT_GAMMA = 5.0
+
+
+def parse_alpha_gamma_map(map_str: str) -> Dict[float, float]:
+    """'0.1:1.0,1.0:100.0,10.0:1000.0' 形式を辞書に変換する."""
+    result = {}
+    for pair in map_str.split(","):
+        alpha_str, gamma_str = pair.split(":")
+        result[float(alpha_str.strip())] = float(gamma_str.strip())
+    return result
+
+
+def resolve_gamma(
+    alpha: float, gamma: float, alpha_gamma_dict: Optional[Dict[float, float]],
+) -> float:
+    """alpha に対応する gamma 値を返す (alpha_gamma_dict が None なら gamma をそのまま返す)."""
+    if alpha_gamma_dict is None:
+        return gamma
+    if alpha in alpha_gamma_dict:
+        return alpha_gamma_dict[alpha]
+    nearest_alpha = min(
+        alpha_gamma_dict.keys(),
+        key=lambda a: abs(math.log10(a) - math.log10(alpha)),
+    )
+    return alpha_gamma_dict[nearest_alpha]
 
 
 @dataclass
@@ -161,7 +186,9 @@ def run_single_point(
 
 
 def run_delta_sweep(
-    n_target: int, gamma: float, n_points: int, verbose: bool = False
+    n_target: int, gamma: float, n_points: int,
+    alpha_gamma_dict: Optional[Dict[float, float]] = None,
+    verbose: bool = False,
 ) -> List[ExperimentResult]:
     """実験 3-P-A: delta 走査 (sigma=0.1 固定)."""
     delta_values = np.linspace(DELTA_RANGE[0], DELTA_RANGE[1], n_points)
@@ -171,10 +198,11 @@ def run_delta_sweep(
     total = len(ALPHA_LEVELS) * len(delta_values)
     with tqdm(total=total, desc="実験 3-P-A (delta 走査)") as pbar:
         for alpha in ALPHA_LEVELS:
+            gamma_for_alpha = resolve_gamma(alpha, gamma, alpha_gamma_dict)
             for delta in delta_values:
                 result = run_single_point(
                     RHO_FIXED, float(delta), sigma, alpha,
-                    n_target, gamma, verbose,
+                    n_target, gamma_for_alpha, verbose,
                 )
                 result.sweep_var = "delta"
                 results.append(result)
@@ -184,7 +212,9 @@ def run_delta_sweep(
 
 
 def run_sigma_sweep(
-    n_target: int, gamma: float, n_points: int, verbose: bool = False
+    n_target: int, gamma: float, n_points: int,
+    alpha_gamma_dict: Optional[Dict[float, float]] = None,
+    verbose: bool = False,
 ) -> List[ExperimentResult]:
     """実験 3-P-B: sigma 走査 (delta=0.6 固定, 対数スケール)."""
     sigma_values = np.logspace(
@@ -196,10 +226,11 @@ def run_sigma_sweep(
     total = len(ALPHA_LEVELS) * len(sigma_values)
     with tqdm(total=total, desc="実験 3-P-B (sigma 走査)") as pbar:
         for alpha in ALPHA_LEVELS:
+            gamma_for_alpha = resolve_gamma(alpha, gamma, alpha_gamma_dict)
             for sigma in sigma_values:
                 result = run_single_point(
                     RHO_FIXED, delta, float(sigma), alpha,
-                    n_target, gamma, verbose,
+                    n_target, gamma_for_alpha, verbose,
                 )
                 result.sweep_var = "sigma"
                 results.append(result)
@@ -364,7 +395,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--gamma", type=float, default=DEFAULT_GAMMA,
-        help=f"Delayoff 加速係数 (デフォルト: {DEFAULT_GAMMA})",
+        help=f"Delayoff 加速係数 (デフォルト: {DEFAULT_GAMMA}). "
+             "--alpha-gamma-map 指定時は無視される.",
+    )
+    parser.add_argument(
+        "--alpha-gamma-map", type=str, default=None,
+        help="alpha 別 gamma の指定 (例: '0.1:1.0,1.0:100.0,10.0:1000.0'). "
+             "指定時は --gamma より優先される.",
     )
     parser.add_argument(
         "--n-points", type=int, default=None,
@@ -383,6 +420,10 @@ def parse_args() -> argparse.Namespace:
         args.n_points = DELTA_N_POINTS if args.sweep == "delta" else SIGMA_N_POINTS
     if args.quick:
         args.n_points = 5
+    if args.alpha_gamma_map:
+        args.alpha_gamma_dict = parse_alpha_gamma_map(args.alpha_gamma_map)
+    else:
+        args.alpha_gamma_dict = None
 
     return args
 
@@ -402,31 +443,43 @@ def main() -> None:
     print(f"=== 実験 3-P-{sub_label}: Predictive 版 {args.sweep} 走査 ===")
     print(f"固定条件: {fixed_label}, rho={RHO_FIXED}")
     print(f"n_target = {args.n_target}")
-    print(f"gamma    = {args.gamma}")
+    if args.alpha_gamma_dict:
+        print(f"gamma    = alpha 別 ({args.alpha_gamma_dict})")
+    else:
+        print(f"gamma    = {args.gamma}")
     print(f"n_points = {args.n_points}")
     print(f"alpha 水準: {ALPHA_LEVELS}")
 
     if args.sweep == "delta":
         results = run_delta_sweep(
-            args.n_target, args.gamma, args.n_points, args.verbose
+            args.n_target, args.gamma, args.n_points,
+            args.alpha_gamma_dict, args.verbose,
         )
         plot_fn = plot_delta_sweep
     else:
         results = run_sigma_sweep(
-            args.n_target, args.gamma, args.n_points, args.verbose
+            args.n_target, args.gamma, args.n_points,
+            args.alpha_gamma_dict, args.verbose,
         )
         plot_fn = plot_sigma_sweep
 
-    file_stem = f"experiment_3P_{args.sweep}_nt{args.n_target}_g{args.gamma}"
+    gamma_tag = "gmap" if args.alpha_gamma_dict else f"g{args.gamma}"
+    file_stem = f"experiment_3P_{args.sweep}_nt{args.n_target}_{gamma_tag}"
     csv_path = os.path.join(args.csv_dir, f"{file_stem}.csv")
     save_csv(results, csv_path)
 
     fig_path = os.path.join(args.out_dir, f"{file_stem}.png")
+    gamma_desc = "alpha別" if args.alpha_gamma_dict else str(args.gamma)
     title_suffix = (
         f"c={BASELINE['c']}, K={BASELINE['K']}, b={BASELINE['b']}, "
-        f"rho={RHO_FIXED}, n_target={args.n_target}, gamma={args.gamma}"
+        f"rho={RHO_FIXED}, n_target={args.n_target}, gamma={gamma_desc}"
     )
     plot_fn(results, fig_path, title_suffix)
+
+    if args.alpha_gamma_dict:
+        print("\n=== 使用した alpha 別 gamma マッピング ===")
+        for alpha, gamma in sorted(args.alpha_gamma_dict.items()):
+            print(f"  alpha={alpha}: gamma={gamma}")
 
     # Poisson 極限テスト (delta 走査のみ, delta=0 で Poisson と一致することを検証)
     if args.sweep == "delta":

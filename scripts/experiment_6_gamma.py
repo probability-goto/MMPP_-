@@ -74,8 +74,19 @@ BURST_LEVELS: List[Tuple[str, float, float]] = [
     ("strong", 0.9, 0.01),
 ]
 
-# 走査対象の gamma 水準
-GAMMA_LEVELS = [1.0, 2.0, 5.0, 10.0, 20.0]
+# 走査対象の gamma 水準 (1 <= gamma <= 20 を対数スケールで 15 点走査.
+# 境界値 gamma=1 (加速無効) と gamma=20 (拡張走査との接続点), および
+# プロジェクト全体の代表値 gamma=5.0 を含む)
+def _build_gamma_levels() -> List[float]:
+    levels = list(np.logspace(0, np.log10(20.0), 15))
+    nearest_idx = min(
+        range(len(levels)), key=lambda i: abs(np.log10(levels[i]) - np.log10(5.0))
+    )
+    levels[nearest_idx] = 5.0
+    return sorted(float(g) for g in levels)
+
+
+GAMMA_LEVELS = _build_gamma_levels()
 
 # n_target は代表値で固定
 N_TARGET_FIXED = 10

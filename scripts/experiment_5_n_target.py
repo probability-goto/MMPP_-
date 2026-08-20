@@ -73,8 +73,9 @@ BURST_LEVELS: List[Tuple[str, float, float]] = [
     ("strong", 0.9, 0.01),
 ]
 
-# 走査対象の n_target 水準
-N_TARGET_LEVELS = [0, 5, 10, 15, 20]
+# 走査対象の n_target 水準 (0 <= n_target <= c=20 を 15 点で等間隔に走査.
+# 境界値 0, 20 と代表値 10 を含む)
+N_TARGET_LEVELS = [0, 1, 3, 4, 6, 7, 9, 10, 11, 13, 14, 16, 17, 19, 20]
 
 # gamma は代表値で固定
 GAMMA_FIXED = 5.0
