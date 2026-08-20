@@ -259,7 +259,8 @@ def _plot(
 
             ax.plot(
                 rho_values, theory_vals[level_name][key], "-",
-                color=style["color"], label=label if ax is axes.flat[0] else None,
+                color=style["color"], marker="o", markersize=4,
+                label=label if ax is axes.flat[0] else None,
             )
 
         if key == "P_block_arrival":

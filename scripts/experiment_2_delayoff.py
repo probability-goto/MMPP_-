@@ -287,6 +287,7 @@ def _plot(
             ax.plot(
                 beta_values, theory_vals[level_name][key],
                 color=style["color"], linestyle=style["linestyle"],
+                marker="o", markersize=4,
                 label=level_name if ax is axes.flat[0] else None,
             )
 
