@@ -272,8 +272,10 @@ def _plot(
 
     os.makedirs(args.out_dir, exist_ok=True)
     out_path = os.path.join(args.out_dir, "experiment_0_validation.png")
+    pdf_path = os.path.join(args.out_dir, "experiment_0_validation.pdf")
     fig.savefig(out_path, dpi=150)
-    print(f"\n図を保存しました: {out_path}")
+    fig.savefig(pdf_path, dpi=100)
+    print(f"\n図を保存しました: {out_path}, {pdf_path}")
 
 
 if __name__ == "__main__":

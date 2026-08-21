@@ -274,8 +274,10 @@ def _plot(
 
     os.makedirs(args.out_dir, exist_ok=True)
     png_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}.png")
+    pdf_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}.pdf")
     fig.savefig(png_path, dpi=150)
-    print(f"\n図を保存しました: {png_path}")
+    fig.savefig(pdf_path, dpi=100)
+    print(f"\n図を保存しました: {png_path}, {pdf_path}")
 
 
 def _save_csv(

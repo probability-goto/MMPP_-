@@ -318,7 +318,9 @@ def plot_delta_sweep(
 
     plt.tight_layout()
     plt.savefig(filepath, dpi=120, bbox_inches="tight")
-    print(f"図保存: {filepath}")
+    pdf_filepath = os.path.splitext(filepath)[0] + ".pdf"
+    plt.savefig(pdf_filepath, dpi=120, bbox_inches="tight")
+    print(f"図保存: {filepath}, {pdf_filepath}")
     plt.close(fig)
 
 
@@ -375,7 +377,9 @@ def plot_sigma_sweep(
 
     plt.tight_layout()
     plt.savefig(filepath, dpi=120, bbox_inches="tight")
-    print(f"図保存: {filepath}")
+    pdf_filepath = os.path.splitext(filepath)[0] + ".pdf"
+    plt.savefig(pdf_filepath, dpi=120, bbox_inches="tight")
+    print(f"図保存: {filepath}, {pdf_filepath}")
     plt.close(fig)
 
 
