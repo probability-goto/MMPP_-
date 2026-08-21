@@ -93,7 +93,9 @@ def plot_comparison(
     axes[0, 0].legend(loc="best", fontsize=7, ncol=1)
     plt.tight_layout()
     plt.savefig(out_path, dpi=120, bbox_inches="tight")
-    print(f"比較図保存: {out_path}")
+    pdf_path = os.path.splitext(out_path)[0] + ".pdf"
+    plt.savefig(pdf_path, dpi=120, bbox_inches="tight")
+    print(f"比較図保存: {out_path}, {pdf_path}")
     plt.close(fig)
 
 

@@ -111,7 +111,9 @@ def plot_extended(
 
     plt.tight_layout()
     plt.savefig(out_path, dpi=120, bbox_inches="tight")
-    print(f"図保存: {out_path}")
+    pdf_path = os.path.splitext(out_path)[0] + ".pdf"
+    plt.savefig(pdf_path, dpi=120, bbox_inches="tight")
+    print(f"図保存: {out_path}, {pdf_path}")
     plt.close(fig)
 
 
