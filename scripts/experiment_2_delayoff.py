@@ -201,6 +201,7 @@ def main() -> None:
                 "beta": beta,
                 "rho": RHO_FIXED,
                 "P_block_arrival": theory_vals[level_name]["P_block_arrival"][-1],
+                "P_block_arrival_stable": theory.arrival_blocking_probability_stable(),
                 "E_W": theory_vals[level_name]["E[W]"][-1],
                 "Cost": theory_vals[level_name]["Cost"][-1],
                 "ERP": theory_vals[level_name]["ERP"][-1],
@@ -228,7 +229,7 @@ def _save_csv(args: argparse.Namespace, rows: List[Dict[str, object]], burst_nam
     csv_path = os.path.join(args.csv_dir, f"experiment_2_{burst_name}.csv")
     fieldnames = [
         "burst_name", "delta", "sigma", "alpha", "beta", "rho",
-        "P_block_arrival", "E_W", "Cost", "ERP",
+        "P_block_arrival", "P_block_arrival_stable", "E_W", "Cost", "ERP",
         "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
         "N_states",
     ]

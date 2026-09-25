@@ -87,6 +87,7 @@ class ExperimentResult:
     n_target: int
     gamma: float
     P_block_arrival: float
+    P_block_arrival_stable: float
     E_W: float
     Cost: float
     ERP: float
@@ -134,6 +135,7 @@ def run_single_point(
         n_target=n_target,
         gamma=gamma,
         P_block_arrival=m.arrival_blocking_probability(),
+        P_block_arrival_stable=m.arrival_blocking_probability_stable(),
         E_W=m.mean_waiting_time(),
         Cost=m.energy_cost_paper(),
         ERP=m.erp_paper(),
@@ -177,7 +179,7 @@ def save_csv(results: List[ExperimentResult], filepath: str) -> None:
     fieldnames = [
         "burst_name", "delta", "sigma", "rho",
         "n_target", "gamma",
-        "P_block_arrival", "E_W", "Cost", "ERP",
+        "P_block_arrival", "P_block_arrival_stable", "E_W", "Cost", "ERP",
         "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
         "N_states",
     ]
@@ -193,6 +195,7 @@ def save_csv(results: List[ExperimentResult], filepath: str) -> None:
                 "n_target": r.n_target,
                 "gamma": r.gamma,
                 "P_block_arrival": r.P_block_arrival,
+                "P_block_arrival_stable": r.P_block_arrival_stable,
                 "E_W": r.E_W,
                 "Cost": r.Cost,
                 "ERP": r.ERP,

@@ -173,7 +173,7 @@ def main() -> None:
 
     for level_name, delta, sigma in _burst_levels_to_run(args.burst):
         theory_vals: Dict[int, Dict[str, List[float]]] = {
-            K: {k: [] for k, _, _ in METRIC_SPECS} for K in K_LEVELS
+            K: {**{k: [] for k, _, _ in METRIC_SPECS}, "P_block_arrival_stable": []} for K in K_LEVELS
         }
 
         cv_mid = compute_interarrival_cv(
@@ -199,6 +199,8 @@ def main() -> None:
                     theory_val = getattr(theory, method_name)()
                     theory_vals[K][key].append(theory_val)
                     print(f"  {key:<18}{theory_val:>14.5g}")
+                theory_vals[K]["P_block_arrival_stable"].append(
+                    theory.arrival_blocking_probability_stable())
 
                 cons_err, flow_err = _conservation_and_flow_balance(
                     params.c, params.b, params.mu,
@@ -316,7 +318,7 @@ def _save_csv(
     fieldnames = [
         "burst_name", "delta", "sigma", "K", "rho",
         "n_target", "gamma",
-        "P_block_arrival", "E_W", "Cost", "ERP",
+        "P_block_arrival", "P_block_arrival_stable", "E_W", "Cost", "ERP",
     ]
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -332,6 +334,7 @@ def _save_csv(
                     "n_target": args.n_target,
                     "gamma": args.gamma,
                     "P_block_arrival": theory_vals[K]["P_block_arrival"][i],
+                    "P_block_arrival_stable": theory_vals[K]["P_block_arrival_stable"][i],
                     "E_W": theory_vals[K]["E[W]"][i],
                     "Cost": theory_vals[K]["Cost"][i],
                     "ERP": theory_vals[K]["ERP"][i],

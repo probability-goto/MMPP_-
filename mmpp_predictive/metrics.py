@@ -35,6 +35,9 @@ class Metrics:
         E_N = 0.0
         P_block_time = 0.0
         lambda_eff = 0.0
+        # j=K のブロック状態における到着率の重み付き質量。
+        # P_block^arrival を引き算なしで求めるために使う (下記参照)。
+        block_arrival_mass = 0.0
 
         for (i, s) in is_pairs:
             for j in range(K + 1):
@@ -54,6 +57,7 @@ class Metrics:
 
                 if j == K:
                     P_block_time += pi_sum
+                    block_arrival_mass += float(pi_slice @ lambdas)
                 else:
                     lambda_eff += float(pi_slice @ lambdas)
 
@@ -69,6 +73,14 @@ class Metrics:
         self.P_block_arrival = (
             1.0 - self.lambda_eff / lambda_bar if lambda_bar > 0 else 0.0
         )
+        # 引き算を含まない等価式 (ベースモデルの
+        # mmpp.metrics.Metrics.arrival_blocking_probability_stable と同じ導出):
+        #   pi の位相マージナルは MMPP 位相定常分布に一致するので
+        #   lambda_bar - lambda_eff = sum_{i,s,F} pi(i,s,K,F) lambda_F
+        # これにより P_block^arrival が極小の領域でも桁落ちしない。
+        self.P_block_arrival_stable = (
+            block_arrival_mass / lambda_bar if lambda_bar > 0 else 0.0
+        )
 
     # ---------- ブロック確率 ----------
 
@@ -77,8 +89,20 @@ class Metrics:
         return self.P_block_time
 
     def arrival_blocking_probability(self) -> float:
-        """到着平均ブロック確率 P_block^arrival = 1 - lambda_eff / lambda_bar."""
+        """到着平均ブロック確率 P_block^arrival = 1 - lambda_eff / lambda_bar.
+
+        注意: 引き算を含むため P_block^arrival が 1e-13 を下回る領域では
+        桁落ちにより精度が破綻する (負の値も出うる)。極小領域を扱う場合は
+        数学的に厳密に等価な arrival_blocking_probability_stable() を使うこと。
+        """
         return self.P_block_arrival
+
+    def arrival_blocking_probability_stable(self) -> float:
+        """到着平均ブロック確率 (引き算を含まない数値的に安定な等価式).
+
+        P_block^arrival = sum_{i,s,F} pi(i,s,K,F) lambda_F / lambda_bar
+        """
+        return self.P_block_arrival_stable
 
     # ---------- 平均量 ----------
 
@@ -138,6 +162,7 @@ class Metrics:
         return {
             "P_block": self.blocking_probability(),
             "P_block_arrival": self.arrival_blocking_probability(),
+            "P_block_arrival_stable": self.arrival_blocking_probability_stable(),
             "E[j]": self.mean_queue_length(),
             "E[B]": self.mean_busy(),
             "E[I]": self.mean_idle(),
