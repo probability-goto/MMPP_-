@@ -21,3 +21,13 @@
 === exp2P_strong_g5 ===
   exit=0 elapsed=202s
 === exp2P_strong_gmap ===
+  exit=0 elapsed=207s
+=== exp3P_delta_g5 ===
+  exit=0 elapsed=204s
+=== exp3P_delta_gmap ===
+  exit=0 elapsed=203s
+=== exp3P_sigma_g5 ===
+  exit=0 elapsed=203s
+=== exp3P_sigma_gmap ===
+  exit=0 elapsed=202s
+=== exp5_all ===
