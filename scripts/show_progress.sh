@@ -9,19 +9,38 @@ cd "$(dirname "$0")/.."
 
 OLD=results
 NEW=results_gth
+LOGDIR=.gth_logs
 
 echo "=================================================="
-echo " GTH 再計算 進捗"
+echo " GTH 再計算 進捗   $(date '+%Y-%m-%d %H:%M:%S')"
 echo "=================================================="
 
 # --- 実行中プロセス ---
 echo
-running=$(pgrep -af "scripts/experiment_" | grep -v pgrep | sed 's/.*scripts\///')
+running=$(pgrep -af "scripts/experiment_|python3 -m pytest" \
+    | grep -vE "pgrep|show_progress|claude-[0-9a-f]+-cwd" \
+    | sed 's/.*scripts\///;s/.*python3 -m /python3 -m /')
 if [ -n "$running" ]; then
-    echo "▶ 実行中:"
+    echo "▶ 稼働中:"
     echo "$running" | while read -r line; do echo "    $line"; done
 else
-    echo "■ 実行中のプロセスなし (停止中)"
+    echo "■ 稼働中のプロセスなし (停止中)"
+fi
+
+# --- テストスイートの進捗 ---
+if [ -f "$LOGDIR/pytest.log" ]; then
+    echo
+    echo "--- テストスイート ---"
+    tlog="$LOGDIR/pytest.log"
+    # pytest -q の進捗文字 (. F s x E) を数えて完了数とする
+    n_done=$(tr -d '\n ' < "$tlog" | tr -cd '.FsxE' | wc -c)
+    n_fail=$(tr -d '\n ' < "$tlog" | tr -cd 'F' | wc -c)
+    mtime=$(stat -c %y "$tlog" 2>/dev/null | cut -d. -f1)
+    if grep -qE "passed|failed|error" "$tlog"; then
+        echo "    完了: $(grep -E 'passed|failed' "$tlog" | tail -1)"
+    else
+        echo "    進行中: ${n_done}/226 件 (失敗 ${n_fail} 件)  最終更新 ${mtime}"
+    fi
 fi
 
 # --- 個別ファイルの進捗 ---
