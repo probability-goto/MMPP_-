@@ -161,7 +161,7 @@ class TestEnergyCost:
         m, _ = small_metrics
         d = m.all_metrics()
         expected_keys = {
-            "P_block", "P_block_arrival",
+            "P_block", "P_block_arrival", "P_block_arrival_stable",
             "E[j]", "E[B]", "E[I]", "E[S]", "E[Off]",
             "lambda_eff", "E[W]", "rho", "energy_cost",
             "cost_paper", "ERP_paper",

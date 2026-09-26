@@ -6,24 +6,41 @@
     - 疎行列 LU 分解 (推奨): scipy.sparse.linalg.spsolve
     - 密行列 LU 分解 (検証用): numpy.linalg.solve
 
-理論的背景:
+理論的背景 (splu, solver="splu"):
     - Q は生成行列 (Q e = 0) なので階数落ち (rank(Q) = N-1)
     - x_N = 1 固定により (N-1) x (N-1) 正方系に帰着
     - Q^T の左上 (N-1) x (N-1) 部分行列を A とすると -A は非特異 M 行列
     - よって A y = -u は非負一意解を持つ (M 行列理論の帰結)
+    - 欠点: 引き算を伴う通常の LU 分解であり, 絶対誤差が浮動小数点の丸め
+      (~1e-17) で頭打ちになる. π の成分が 1e-15 を下回ると相対誤差が破綻し
+      うる (負の確率も出うる).
+
+GTH 法 (solver="gth", 既定):
+    - O'Cinneide (1996) の GTH1-3 を帯格納で実装 (mmpp.gth_solver).
+    - 非対角成分 (非負) のみを使い, 引き算を一切行わない消去法.
+    - 各成分が相対精度で求まるため, splu が破綻する極小成分でも安定.
+    - 前提: 全状態が最終状態から到達可能 (既約なら成立). 満たさない場合は
+      ValueError を送出する.
 """
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import spsolve
 
+from mmpp.gth_solver import solve_stationary_gth
 
-def solve_stationary(Q, method: str = "sparse", tol: float = 1e-8) -> np.ndarray:
+
+def solve_stationary(
+    Q, method: str = "sparse", solver: str = "gth", tol: float = 1e-8
+) -> np.ndarray:
     """定常分布 π を計算する.
 
     Args:
         Q: (N, N) の生成行列 (scipy.sparse または numpy array).
-        method: 'sparse' (疎行列 LU 分解) or 'dense' (密行列 LU 分解).
-                'sparse' が主用途. 'dense' は小規模検証用.
+        method: solver="splu" のときのみ有効. 'sparse' (疎行列 LU 分解) or
+                'dense' (密行列 LU 分解). 'sparse' が主用途. 'dense' は
+                小規模検証用.
+        solver: 'gth' (既定, O'Cinneide の GTH 法, 相対精度) or
+                'splu' (旧来の疎行列 LU 分解, method で sparse/dense を選択).
         tol: 数値検証時のトレランス.
 
     Returns:
@@ -33,21 +50,26 @@ def solve_stationary(Q, method: str = "sparse", tol: float = 1e-8) -> np.ndarray
         生成行列 Q は既約 (irreducible) であること. 具体的には
         MMPP 位相過程 (C0 + C1) が既約であることが十分条件で,
         これは ModelParameters の検証時にチェックされる.
-        非既約な Q に対しては数値誤差の範囲で「もっともらしい間違った解」
-        を返す可能性があるため, 呼び出し側で既約性を保証すること.
+        非既約な Q に対しては (solver="splu" の場合) 数値誤差の範囲で
+        「もっともらしい間違った解」を返す可能性があるため, 呼び出し側で
+        既約性を保証すること (solver="gth" は到達可能性チェックで検出する).
 
     Raises:
         RuntimeError: 数値解が検証条件を満たさない場合.
-        ValueError: 未知の method 指定.
+        ValueError: 未知の method/solver 指定, または (solver="gth" で)
+            GTH の前提条件 (全状態が最終状態へ到達可能) を満たさない場合.
     """
     N = Q.shape[0]
 
-    if method == "sparse":
-        pi = _solve_sparse(Q)
-    elif method == "dense":
-        pi = _solve_dense(Q)
-    else:
+    if method not in ("sparse", "dense"):
         raise ValueError(f"Unknown method '{method}', use 'sparse' or 'dense'")
+
+    if solver == "gth":
+        pi = solve_stationary_gth(Q)
+    elif solver == "splu":
+        pi = _solve_sparse(Q) if method == "sparse" else _solve_dense(Q)
+    else:
+        raise ValueError(f"Unknown solver '{solver}', use 'gth' or 'splu'")
 
     # 検証
     residual = float(np.abs(pi @ Q).max())
