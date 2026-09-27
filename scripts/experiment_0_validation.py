@@ -254,21 +254,23 @@ def _plot(
             fmt="o", color="tab:orange", capsize=3, markersize=4,
             label="Simulation (95% CI)",
         )
-        ax.set_xlabel(r"$\rho$")
-        ax.set_ylabel(ylabel)
+        ax.set_xlabel(r"$\rho$", fontsize=16)
+        ax.set_ylabel(ylabel, fontsize=16)
         ax.grid(alpha=0.3)
 
-    axes.flat[0].legend(loc="best", fontsize=8)
+    axes.flat[0].legend(loc="best", fontsize=14)
 
+    # 図中に題名は付けない (論文キャプション側に記載する). 題名に載せていた
+    # 設定情報はコンソールに出力して残す.
     if abs(cv_hi - cv_lo) < 1e-3:
         cv_label = f"CV of interarrival time = {cv_lo:.3f}"
     else:
         cv_label = f"CV of interarrival time = {cv_lo:.3f}-{cv_hi:.3f}"
-    fig.suptitle(
-        f"Experiment 0: Theory vs Simulation (medium burst, "
+    print(
+        f"\nキャプション用情報: Experiment 0 (medium burst, "
         f"delta={DELTA}, sigma={SIGMA}, {cv_label})"
     )
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.tight_layout()
 
     os.makedirs(args.out_dir, exist_ok=True)
     out_path = os.path.join(args.out_dir, "experiment_0_validation.png")
