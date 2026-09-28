@@ -250,7 +250,7 @@ def _plot(
     theory_vals: Dict[str, Dict[str, List[float]]],
 ) -> None:
     """4 指標を 2x2 のサブプロットにまとめ, PDF と PNG に保存する."""
-    fig, axes = plt.subplots(2, 2, figsize=(13, 9))
+    fig, axes = plt.subplots(2, 2, figsize=(11, 9))
 
     for ax, (key, _, ylabel) in zip(axes.flat, METRIC_SPECS):
         for level_name, delta, sigma in BURST_LEVELS:
@@ -272,7 +272,12 @@ def _plot(
         ax.tick_params(labelsize=10)
         ax.grid(alpha=0.3)
 
-    axes.flat[0].legend(loc="best", fontsize=14)
+    # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
+    handles, labels = axes.flat[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
+        ncol=2, fontsize=14,
+    )
 
     # 図中に題名は付けない (論文キャプション側に記載する).
     # 題名に載せていた設定情報はコンソールに出力して残す.
@@ -283,7 +288,7 @@ def _plot(
         r"($c=20$, $K=200$, $b=5$, $1/\mu=1$, $1/\alpha=10$s, $1/\beta=200$s)"
     )
     print(f"\nキャプション用情報: {_caption}")
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 0.90))
 
     os.makedirs(args.out_dir, exist_ok=True)
     pdf_path = os.path.join(args.out_dir, "experiment_1_traffic.pdf")

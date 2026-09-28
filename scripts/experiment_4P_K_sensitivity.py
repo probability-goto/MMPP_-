@@ -285,7 +285,12 @@ def _plot(
         ax.tick_params(labelsize=10)
         ax.grid(alpha=0.3)
 
-    axes.flat[0].legend(loc="best", fontsize=14)
+    # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
+    handles, labels = axes.flat[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
+        ncol=4, fontsize=14,
+    )
 
     # 図中に題名は付けない (論文キャプション側に記載する).
     # 題名に載せていた設定情報はコンソールに出力して残す.
@@ -296,7 +301,7 @@ def _plot(
         rf"n_target={args.n_target}, $\gamma$={args.gamma})"
     )
     print(f"\nキャプション用情報: {_caption}")
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
 
     os.makedirs(args.out_dir, exist_ok=True)
     file_stem = f"experiment_4P_K_sensitivity_{level_name}_nt{args.n_target}_g{args.gamma}"

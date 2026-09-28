@@ -301,7 +301,12 @@ def _plot(
         ax.tick_params(labelsize=10)
         ax.grid(alpha=0.3)
 
-    axes.flat[0].legend(loc="best", fontsize=14)
+    # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
+    handles, labels = axes.flat[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
+        ncol=3, fontsize=14,
+    )
 
     suffix = "_strong" if args.strong_burst else ""
     burst_label = "strong burst" if args.strong_burst else "medium burst"
@@ -314,7 +319,7 @@ def _plot(
         rf"($c=20$, $K=200$, $b=5$, $\rho=0.7$, delta={delta}, sigma={sigma})"
     )
     print(f"\nキャプション用情報: {_caption}")
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
 
     os.makedirs(args.out_dir, exist_ok=True)
     pdf_path = os.path.join(args.out_dir, f"experiment_2_delayoff{suffix}.pdf")

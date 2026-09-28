@@ -246,9 +246,14 @@ def plot_results(
                 ax.set_yscale("log")
             ax.grid(True, alpha=0.3)
 
-    axes[0, 0].legend(loc="best", fontsize=14)
+    # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
+        ncol=3, fontsize=14,
+    )
 
-    plt.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
     plt.savefig(filepath, dpi=120, bbox_inches="tight")
     pdf_filepath = os.path.splitext(filepath)[0] + ".pdf"
     plt.savefig(pdf_filepath, dpi=120, bbox_inches="tight")
