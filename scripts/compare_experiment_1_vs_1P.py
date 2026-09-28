@@ -44,7 +44,12 @@ def plot_comparison(
 ) -> None:
     """ベース vs Predictive の 4 指標比較図を生成する."""
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-    fig.suptitle(f"Experiment 1 vs 1-P: Base vs Predictive\n({meta})", fontsize=13)
+    # 図中に題名は付けない (論文キャプション側に記載する).
+    # 題名に載せていた設定情報はコンソールに出力して残す.
+    _caption = (
+        f"Experiment 1 vs 1-P: Base vs Predictive\n({meta})"
+    )
+    print(f"\nキャプション用情報: {_caption}")
 
     colors = {"weak": "tab:blue", "medium": "tab:orange", "strong": "tab:red"}
     labels = {
@@ -53,7 +58,7 @@ def plot_comparison(
         "strong": r"strong ($\delta$=0.9, $\sigma$=0.01)",
     }
     metrics_config = [
-        (axes[0, 0], "P_block_arrival", r"$P^\mathrm{arrival}_\mathrm{block}$", True),
+        (axes[0, 0], "P_block_arrival", r"$P_{\mathrm{block}}$", True),
         (axes[0, 1], "E_W", r"$E[W]$", False),
         (axes[1, 0], "Cost", "Cost", False),
         (axes[1, 1], "ERP", "ERP", False),
@@ -84,14 +89,19 @@ def plot_comparison(
                 marker="s", markersize=4, alpha=0.7,
                 label=f"{labels[burst_name]} (Predictive)",
             )
-            ax.set_xlabel(r"$\rho$")
-            ax.set_ylabel(ylabel)
+            ax.set_xlabel(r"$\rho$", fontsize=16)
+            ax.set_ylabel(ylabel, fontsize=16)
             if log_y:
                 ax.set_yscale("log")
             ax.grid(True, alpha=0.3)
 
-    axes[0, 0].legend(loc="best", fontsize=7, ncol=1)
-    plt.tight_layout()
+    # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
+        ncol=3, fontsize=14,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
     plt.savefig(out_path, dpi=120, bbox_inches="tight")
     pdf_path = os.path.splitext(out_path)[0] + ".pdf"
     plt.savefig(pdf_path, dpi=120, bbox_inches="tight")

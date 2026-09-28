@@ -219,12 +219,14 @@ def plot_results(
 ) -> None:
     """4 指標の 2x2 サブプロットを作成する (ベース版と同じ図フォーマット)."""
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-    fig.suptitle(
+    # 図中に題名は付けない (論文キャプション側に記載する).
+    # 題名に載せていた設定情報はコンソールに出力して残す.
+    _caption = (
         f"Experiment 1-P: Predictive Response to Traffic Intensity "
         r"$\rho$"
-        f"\n({title_suffix})",
-        fontsize=13,
+        f"\n({title_suffix})"
     )
+    print(f"\nキャプション用情報: {_caption}")
 
     colors = {"weak": "tab:blue", "medium": "tab:orange", "strong": "tab:red"}
     labels = {
@@ -234,8 +236,8 @@ def plot_results(
     }
 
     metrics_config = [
-        (axes[0, 0], "P_block_arrival", r"$P^\mathrm{arrival}_\mathrm{block}$", True),
-        (axes[0, 1], "E_W", r"$E[W]$ (mean response time)", False),
+        (axes[0, 0], "P_block_arrival", r"$P_{\mathrm{block}}$", True),
+        (axes[0, 1], "E_W", r"$E[W]$", False),
         (axes[1, 0], "Cost", "Cost", False),
         (axes[1, 1], "ERP", "ERP", False),
     ]
@@ -252,13 +254,13 @@ def plot_results(
                 color=colors[burst_name], marker="o", markersize=4,
                 label=labels[burst_name],
             )
-            ax.set_xlabel(r"$\rho$")
-            ax.set_ylabel(ylabel)
+            ax.set_xlabel(r"$\rho$", fontsize=16)
+            ax.set_ylabel(ylabel, fontsize=16)
             if log_y:
                 ax.set_yscale("log")
             ax.grid(True, alpha=0.3)
 
-    axes[0, 0].legend(loc="best", fontsize=9)
+    axes[0, 0].legend(loc="best", fontsize=14)
 
     plt.tight_layout()
     plt.savefig(filepath, dpi=120, bbox_inches="tight")

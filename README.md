@@ -71,33 +71,56 @@ pytest tests/
 
 ## 数値実験の実行
 
-実験 0-4 のスクリプトは `scripts/` にある. 各スクリプトは `--quick` で
-走査点数・イベント数を絞った軽量実行ができる (開発中の動作確認用).
-図は既定で `figures/` ディレクトリに保存される.
-
 ```bash
-# 実験 0: 理論解析と DES シミュレーションの整合性検証 (中バースト水準, rho スイープ)
-python scripts/experiment_0_validation.py
-python scripts/experiment_0_validation.py --quick
-
-# 実験 1: トラフィック強度 rho に対する応答 (弱/中/強バースト水準を並列比較)
 python scripts/experiment_1_traffic.py
-python scripts/experiment_1_traffic.py --quick
+python scripts/experiment_2_delayoff.py
+python scripts/experiment_2_delayoff.py --strong-burst
+python scripts/experiment_3_burstiness.py --sweep delta
+python scripts/experiment_3_burstiness.py --sweep sigma
+python scripts/experiment_4_K_sensitivity.py --burst all
+python scripts/experiment_5_n_target.py --burst all
+python scripts/experiment_6_gamma.py --burst all
 
-# 実験 2: delayoff 率 beta に対する応答 (alpha 3 水準)
-python scripts/experiment_2_delayoff.py                  # 中バースト (メイン)
-python scripts/experiment_2_delayoff.py --strong-burst   # 強バースト (補助)
-python scripts/experiment_2_delayoff.py --quick
 
-# 実験 3: バースト性パラメータ (delta, sigma) 自体の走査
-python scripts/experiment_3_burstiness.py --sweep delta  # 実験 3-A: 振幅走査
-python scripts/experiment_3_burstiness.py --sweep sigma  # 実験 3-B: 時定数走査
-python scripts/experiment_3_burstiness.py --sweep delta --quick
+python scripts/experiment_1P_traffic.py
+python scripts/experiment_1P_traffic.py --gamma 1.0
+python scripts/experiment_2P_delayoff.py
+python scripts/experiment_2P_delayoff.py --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"
+python scripts/experiment_2P_delayoff.py --strong-burst
+python scripts/experiment_2P_delayoff.py --strong-burst --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"
+python scripts/experiment_3P_burstiness.py --sweep delta
+python scripts/experiment_3P_burstiness.py --sweep delta --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"
+python scripts/experiment_3P_burstiness.py --sweep sigma
+python scripts/experiment_3P_burstiness.py --sweep sigma --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"
+python scripts/experiment_4P_K_sensitivity.py --burst all
+python scripts/experiment_4P_K_sensitivity.py --burst all --gamma 1.0
 
-# 実験 4: バッファ容量 K に対する感度分析 (K=100,200,500,1000 x 弱/中/強バースト)
-python scripts/experiment_4_K_sensitivity.py --burst all     # 3 水準まとめて実行
-python scripts/experiment_4_K_sensitivity.py --burst medium  # 水準を 1 つだけ指定
-python scripts/experiment_4_K_sensitivity.py --burst all --quick
+
+
+python scripts/compare_experiment_1_vs_1P.py \
+  --base-csv results/experiment_1.csv \
+  --pred-csv results/experiment_1P_nt10_g1.0.csv
+python scripts/compare_experiment_2_vs_2P.py --burst-name medium \
+  --base-csv results/experiment_2_medium.csv \
+  --pred-csv results/experiment_2P_medium_nt10_gmap.csv
+python scripts/compare_experiment_2_vs_2P.py --burst-name strong \
+  --base-csv results/experiment_2_strong.csv \
+  --pred-csv results/experiment_2P_strong_nt10_gmap.csv
+python scripts/compare_experiment_3_vs_3P.py --sweep delta \
+  --base-csv results/experiment_3_delta.csv \
+  --pred-csv results/experiment_3P_delta_nt10_gmap.csv
+python scripts/compare_experiment_3_vs_3P.py --sweep sigma \
+  --base-csv results/experiment_3_sigma.csv \
+  --pred-csv results/experiment_3P_sigma_nt10_gmap.csv
+python scripts/compare_experiment_4_vs_4P.py --burst weak \
+  --base-csv results/experiment_4_weak.csv \
+  --pred-csv results/experiment_4P_weak_nt10_g1.0.csv
+python scripts/compare_experiment_4_vs_4P.py --burst medium \
+  --base-csv results/experiment_4_medium.csv \
+  --pred-csv results/experiment_4P_medium_nt10_g1.0.csv
+python scripts/compare_experiment_4_vs_4P.py --burst strong \
+  --base-csv results/experiment_4_strong.csv \
+  --pred-csv results/experiment_4P_strong_nt10_g1.0.csv
 ```
 
 ## 数値解法の方針

@@ -75,8 +75,8 @@ RHO_N_POINTS = 15
 
 # (指標キー, Metrics 共通メソッド名, 表示ラベル)
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}^{\mathrm{arrival}}$"),
-    ("E[W]", "mean_waiting_time", r"$E[W]$ (mean response time)"),
+    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}$"),
+    ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("Cost", "energy_cost_paper", "Cost"),
     ("ERP", "erp_paper", "ERP"),
 ]
@@ -259,20 +259,24 @@ def _plot(
 
         if key == "P_block_arrival":
             ax.set_yscale("log")
+            ax.set_ylim(bottom=1e-12)
 
-        ax.set_xlabel(r"$\rho$", fontsize=12)
-        ax.set_ylabel(ylabel, fontsize=12)
+        ax.set_xlabel(r"$\rho$", fontsize=16)
+        ax.set_ylabel(ylabel, fontsize=16)
         ax.tick_params(labelsize=10)
         ax.grid(alpha=0.3)
 
-    axes.flat[0].legend(loc="best", fontsize=8)
+    axes.flat[0].legend(loc="best", fontsize=14)
 
-    fig.suptitle(
+    # 図中に題名は付けない (論文キャプション側に記載する).
+    # 題名に載せていた設定情報はコンソールに出力して残す.
+    _caption = (
         f"Experiment 4: Sensitivity to Buffer Capacity $K$ ({level_name} burst)\n"
         rf"($c=20$, $b=5$, $1/\mu=1$, $1/\alpha=10$s, $1/\beta=200$s, "
         rf"delta={delta}, sigma={sigma})"
     )
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    print(f"\nキャプション用情報: {_caption}")
+    fig.tight_layout()
 
     os.makedirs(args.out_dir, exist_ok=True)
     png_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}.png")

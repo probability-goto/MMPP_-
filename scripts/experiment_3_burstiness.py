@@ -84,8 +84,8 @@ SIGMA_RANGE: Tuple[float, float] = (1e-3, 1e1)
 
 # (指標キー, Metrics 共通メソッド名, 表示ラベル)
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}^{\mathrm{arrival}}$"),
-    ("E[W]", "mean_waiting_time", r"$E[W]$ (mean response time)"),
+    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}$"),
+    ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("Cost", "energy_cost_paper", "Cost"),
     ("ERP", "erp_paper", "ERP"),
 ]
@@ -381,13 +381,13 @@ def _plot(
         if key == "P_block_arrival":
             ax.set_yscale("log")
 
-        xlabel_map = {"delta": r"$\delta$ (burst amplitude)", "sigma": r"$\sigma$ (phase transition rate)"}
-        ax.set_xlabel(xlabel_map[args.sweep], fontsize=12)
-        ax.set_ylabel(ylabel, fontsize=12)
+        xlabel_map = {"delta": r"$\delta$", "sigma": r"$\sigma$"}
+        ax.set_xlabel(xlabel_map[args.sweep], fontsize=16)
+        ax.set_ylabel(ylabel, fontsize=16)
         ax.tick_params(labelsize=10)
         ax.grid(alpha=0.3)
 
-    axes.flat[0].legend(loc="best", fontsize=8)
+    axes.flat[0].legend(loc="best", fontsize=14)
 
     if args.sweep == "delta":
         title = (
@@ -403,8 +403,10 @@ def _plot(
             rf"($c=20$, $K=200$, $b=5$, $\rho={RHO_FIXED}$, "
             rf"$\delta={DELTA_FIXED_FOR_SIGMA_SWEEP}$, $1/\beta=200$s)"
         )
-    fig.suptitle(title)
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    # 図中に題名は付けない (論文キャプション側に記載する).
+    # 題名に載せていた設定情報はコンソールに出力して残す.
+    print(f"\nキャプション用情報: {title}")
+    fig.tight_layout()
 
     os.makedirs(args.out_dir, exist_ok=True)
     pdf_path = os.path.join(args.out_dir, f"experiment_3_burstiness_{args.sweep}.pdf")

@@ -67,12 +67,14 @@ def plot_extended(
 ) -> None:
     """γ 拡張走査の 4 指標プロット (横軸: γ 対数, 3 α 曲線)."""
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-    fig.suptitle(
+    # 図中に題名は付けない (論文キャプション側に記載する).
+    # 題名に載せていた設定情報はコンソールに出力して残す.
+    _caption = (
         f"Experiment 6 (Extended): Sensitivity to gamma ({burst_name} burst, "
         rf"$n_\mathrm{{target}}$={n_target})"
-        f"\nγ ∈ [1, 1000], initial + extended sweeps merged",
-        fontsize=13,
+        f"\nγ ∈ [1, 1000], initial + extended sweeps merged"
     )
+    print(f"\nキャプション用情報: {_caption}")
 
     alpha_colors = {0.1: "tab:blue", 1.0: "tab:orange", 10.0: "tab:red"}
     alpha_labels = {
@@ -82,7 +84,7 @@ def plot_extended(
     }
 
     metrics_config = [
-        (axes[0, 0], "P_block_arrival", r"$P^\mathrm{arrival}_\mathrm{block}$", True),
+        (axes[0, 0], "P_block_arrival", r"$P_{\mathrm{block}}$", True),
         (axes[0, 1], "E_W", r"$E[W]$", False),
         (axes[1, 0], "Cost", "Cost", False),
         (axes[1, 1], "ERP", "ERP", False),
@@ -100,16 +102,20 @@ def plot_extended(
                 color=alpha_colors[alpha], marker="o", markersize=5,
                 label=alpha_labels[alpha],
             )
-            ax.set_xlabel(r"$\gamma$")
+            ax.set_xlabel(r"$\gamma$", fontsize=16)
             ax.set_xscale("log")
-            ax.set_ylabel(ylabel)
+            ax.set_ylabel(ylabel, fontsize=16)
             if log_y:
                 ax.set_yscale("log")
             ax.grid(True, alpha=0.3, which="both")
 
-    axes[0, 0].legend(loc="best", fontsize=9)
-
-    plt.tight_layout()
+    # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
+        ncol=3, fontsize=14,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.91))
     plt.savefig(out_path, dpi=120, bbox_inches="tight")
     pdf_path = os.path.splitext(out_path)[0] + ".pdf"
     plt.savefig(pdf_path, dpi=120, bbox_inches="tight")
