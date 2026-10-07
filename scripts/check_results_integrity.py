@@ -5,7 +5,9 @@
        (CSV 書き出しの dict にキーを足し忘れると DictWriter が
         空文字を書くため, 目視では気づきにくい)
     2. 安定版の値が厳密に正であること (引き算を含まないので負にならない)
-    3. 参考として現行式 P_block_arrival の負値・ゼロの件数を報告する
+    3. 参考として, 旧列 P_block_arrival (引き算版 1 - lambda_eff/lambda_bar) が
+       残っている既存 CSV では, その負値・ゼロの件数を報告する
+       (引き算版はライブラリから削除済みで, 新しい CSV には列自体がない)
 
 使用例:
     python scripts/check_results_integrity.py
@@ -17,6 +19,7 @@ import os
 import sys
 
 STABLE = "P_block_arrival_stable"
+# 引き算版の旧列. 既存 CSV にのみ存在し, 桁落ちの報告のためだけに参照する
 CURRENT = "P_block_arrival"
 
 
@@ -43,7 +46,7 @@ def check_file(path):
         cur = [float(r[CURRENT]) for r in rows if str(r[CURRENT]).strip()]
         n_bad = sum(1 for v in cur if v <= 0)
         if n_bad:
-            msg += f"  (現行式は非正値 {n_bad} 件 → 桁落ち)"
+            msg += f"  (旧列の引き算版は非正値 {n_bad} 件 → 桁落ち)"
     return name, msg, True
 
 

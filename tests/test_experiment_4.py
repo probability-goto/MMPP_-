@@ -55,5 +55,7 @@ def test_experiment_4_csv_output():
 
     # 4 指標が全て含まれているか
     for row in rows:
-        for metric in ["P_block_arrival", "E_W", "Cost", "ERP"]:
+        for metric in ["P_block_arrival_stable", "E_W", "Cost", "ERP"]:
             assert metric in row, f"metric {metric} が CSV に存在しない"
+        # 引き算版の列は出力しない
+        assert "P_block_arrival" not in row

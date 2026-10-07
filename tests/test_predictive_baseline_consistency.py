@@ -57,7 +57,7 @@ def test_predictive_reduces_to_base_for_metrics(rho):
 
     # 4 指標を比較
     tol = 1e-8
-    for metric_name in ["arrival_blocking_probability", "mean_waiting_time",
+    for metric_name in ["arrival_blocking_probability_stable", "mean_waiting_time",
                          "energy_cost_paper", "erp_paper"]:
         val_base = getattr(m_base, metric_name)()
         val_pred = getattr(m_pred, metric_name)()

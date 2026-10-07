@@ -131,26 +131,15 @@ class Metrics:
             total += float(block_F @ lambdas)
         return total
 
-    def arrival_blocking_probability(self) -> float:
-        """到着平均ブロック確率 P_block^arrival = 1 - λ_eff / λ_bar.
+    def arrival_blocking_probability_stable(self) -> float:
+        """到着平均ブロック確率 P_block^arrival.
+
+        P_block^arrival = Σ_{i,F} π(i, K, F) λ_F / λ_bar
 
         時間平均 P_block (= P(j=K)) とは異なる (MMPP 到着の場合).
         Poisson 到着 (D_M=1) では PASTA により両者一致.
 
-        注意: この式は 1 - (1 に極めて近い値) という引き算を含むため,
-        P_block^arrival が 1e-13 を下回る領域では桁落ちにより精度が破綻する
-        (負の値も出うる). 定常分布 π を GTH 法で相対精度を保って求めても,
-        この指標の計算側で精度が失われる. 極小領域を扱う場合は数学的に
-        厳密に等価な arrival_blocking_probability_stable() を使うこと.
-        """
-        return 1.0 - self.effective_arrival_rate() / self.params.lambda_bar
-
-    def arrival_blocking_probability_stable(self) -> float:
-        """到着平均ブロック確率 (引き算を含まない数値的に安定な等価式).
-
-        P_block^arrival = Σ_{i,F} π(i, K, F) λ_F / λ_bar
-
-        arrival_blocking_probability() と数学的に厳密に等価である:
+        定義式 1 - λ_eff / λ_bar と数学的に厳密に等価である:
             π の位相マージナルは MMPP 位相定常分布に一致する
             (Σ_{i,j} π(i,j,F) = π_mmpp(F); tests/test_solver.py で検証済).
             よって
@@ -159,8 +148,10 @@ class Metrics:
                   = Σ_{i,F} π(i,K,F) λ_F
             したがって 1 - λ_eff/λ_bar = Σ_{i,F} π(i,K,F) λ_F / λ_bar.
 
-        引き算を含まないため, GTH 法で求めた π の相対精度がそのまま
-        指標に反映される (mpmath 50 桁の真値に対し相対誤差 ~1e-15).
+        定義式は 1 - (1 に極めて近い値) の引き算で桁落ちし,
+        P_block^arrival < 1e-13 で負値も出るため実装しない.
+        右辺の和は引き算を含まないので, GTH 法で求めた π の相対精度が
+        そのまま指標に反映される (mpmath 50 桁の真値に対し相対誤差 ~1e-15).
         """
         p = self.params
         block = self.pi[self.ss.block_slice(p.K)].reshape(p.D_S, p.D_M)
@@ -236,7 +227,6 @@ class Metrics:
         """全指標を辞書として返す."""
         return {
             "P_block": self.blocking_probability(),
-            "P_block_arrival": self.arrival_blocking_probability(),
             "P_block_arrival_stable": self.arrival_blocking_probability_stable(),
             "E[j]": self.mean_queue_length(),
             "E[B]": self.mean_busy(),

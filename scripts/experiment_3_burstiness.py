@@ -84,7 +84,7 @@ SIGMA_RANGE: Tuple[float, float] = (1e-3, 1e1)
 
 # (指標キー, Metrics 共通メソッド名, 表示ラベル)
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}$"),
+    ("P_block_arrival_stable", "arrival_blocking_probability_stable", r"$P_{\mathrm{block}}$"),
     ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("Cost", "energy_cost_paper", "Cost"),
     ("ERP", "erp_paper", "ERP"),
@@ -286,8 +286,7 @@ def main() -> None:
                 "alpha": alpha,
                 "beta": BASELINE["beta"],
                 "rho": RHO_FIXED,
-                "P_block_arrival": theory_vals[level_name]["P_block_arrival"][-1],
-                "P_block_arrival_stable": theory.arrival_blocking_probability_stable(),
+                "P_block_arrival_stable": theory_vals[level_name]["P_block_arrival_stable"][-1],
                 "E_W": theory_vals[level_name]["E[W]"][-1],
                 "Cost": theory_vals[level_name]["Cost"][-1],
                 "ERP": theory_vals[level_name]["ERP"][-1],
@@ -315,7 +314,7 @@ def _save_csv(args: argparse.Namespace, rows: List[Dict[str, object]]) -> None:
     csv_path = os.path.join(args.csv_dir, f"experiment_3_{args.sweep}.csv")
     fieldnames = [
         "sweep_var", "delta", "sigma", "alpha", "beta", "rho",
-        "P_block_arrival", "P_block_arrival_stable", "E_W", "Cost", "ERP",
+        "P_block_arrival_stable", "E_W", "Cost", "ERP",
         "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
         "N_states",
     ]
@@ -378,7 +377,7 @@ def _plot(
         if args.sweep == "sigma":
             ax.set_xscale("log")
         # P_block^arrival のみ縦軸対数
-        if key == "P_block_arrival":
+        if key == "P_block_arrival_stable":
             ax.set_yscale("log")
 
         xlabel_map = {"delta": r"$\delta$", "sigma": r"$\sigma$"}

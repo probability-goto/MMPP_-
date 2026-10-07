@@ -23,6 +23,16 @@ from mmpp import build_generator, Metrics
 from mmpp.solver import solve_stationary
 
 
+def subtraction_arrival_blocking(metrics):
+    """引き算版の到着平均ブロッキング確率 1 - lambda_eff / lambda_bar.
+
+    桁落ちの比較のためだけに残している (ライブラリからは削除済み).
+    P_block^arrival が 1e-13 を下回る領域で精度が破綻し負値も出る.
+    旧 Metrics.arrival_blocking_probability() と同じ式.
+    """
+    return 1.0 - metrics.effective_arrival_rate() / metrics.params.lambda_bar
+
+
 def rel_diff(a, b):
     denom = max(abs(a), abs(b), 1e-300)
     return abs(a - b) / denom
@@ -39,8 +49,13 @@ def compare_point(params, tag, rows, timing):
     pi_splu = solve_stationary(Q, solver="splu")
     t_splu = time.perf_counter() - t0
 
-    m_gth = Metrics(params, pi_gth).all_metrics()
-    m_splu = Metrics(params, pi_splu).all_metrics()
+    metrics_gth = Metrics(params, pi_gth)
+    metrics_splu = Metrics(params, pi_splu)
+    m_gth = metrics_gth.all_metrics()
+    m_splu = metrics_splu.all_metrics()
+    # 引き算版は桁落ちの比較のためだけに残している (ライブラリからは削除済み)
+    m_gth["P_block_arrival"] = subtraction_arrival_blocking(metrics_gth)
+    m_splu["P_block_arrival"] = subtraction_arrival_blocking(metrics_splu)
 
     row = {"tag": tag}
     for k in m_gth:

@@ -70,10 +70,8 @@ class Metrics:
         self.lambda_eff = lambda_eff
 
         lambda_bar = p.lambda_bar
-        self.P_block_arrival = (
-            1.0 - self.lambda_eff / lambda_bar if lambda_bar > 0 else 0.0
-        )
-        # 引き算を含まない等価式 (ベースモデルの
+        # P_block^arrival は定義式 1 - lambda_eff / lambda_bar ではなく,
+        # 引き算を含まない等価式で求める (ベースモデルの
         # mmpp.metrics.Metrics.arrival_blocking_probability_stable と同じ導出):
         #   pi の位相マージナルは MMPP 位相定常分布に一致するので
         #   lambda_bar - lambda_eff = sum_{i,s,F} pi(i,s,K,F) lambda_F
@@ -88,19 +86,11 @@ class Metrics:
         """P_block = P(j = K) (時間平均)."""
         return self.P_block_time
 
-    def arrival_blocking_probability(self) -> float:
-        """到着平均ブロック確率 P_block^arrival = 1 - lambda_eff / lambda_bar.
-
-        注意: 引き算を含むため P_block^arrival が 1e-13 を下回る領域では
-        桁落ちにより精度が破綻する (負の値も出うる)。極小領域を扱う場合は
-        数学的に厳密に等価な arrival_blocking_probability_stable() を使うこと。
-        """
-        return self.P_block_arrival
-
     def arrival_blocking_probability_stable(self) -> float:
-        """到着平均ブロック確率 (引き算を含まない数値的に安定な等価式).
+        """到着平均ブロック確率 P_block^arrival (引き算を含まない式).
 
         P_block^arrival = sum_{i,s,F} pi(i,s,K,F) lambda_F / lambda_bar
+        (= 1 - lambda_eff / lambda_bar と厳密に等価だが, 桁落ちしない)
         """
         return self.P_block_arrival_stable
 
@@ -161,7 +151,6 @@ class Metrics:
         """全指標を辞書として返す."""
         return {
             "P_block": self.blocking_probability(),
-            "P_block_arrival": self.arrival_blocking_probability(),
             "P_block_arrival_stable": self.arrival_blocking_probability_stable(),
             "E[j]": self.mean_queue_length(),
             "E[B]": self.mean_busy(),

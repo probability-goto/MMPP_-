@@ -28,7 +28,7 @@ def run_case(n_target, gamma, rho=0.7, delta=0.6, sigma=0.1):
     pi = solve_stationary(Q)
     m = Metrics(p, pi)
     return {
-        "P_block_arrival": m.arrival_blocking_probability(),
+        "P_block_arrival_stable": m.arrival_blocking_probability_stable(),
         "E[W]": m.mean_waiting_time(),
         "Cost": m.energy_cost_paper(),
         "ERP": m.erp_paper(),

@@ -77,7 +77,7 @@ def plot_comparison(
     }
 
     metrics_config = [
-        (axes[0, 0], "P_block_arrival", r"$P_{\mathrm{block}}$", True),
+        (axes[0, 0], "P_block_arrival_stable", r"$P_{\mathrm{block}}$", True),
         (axes[0, 1], "E_W", r"$E[W]$", False),
         (axes[1, 0], "Cost", "Cost", False),
         (axes[1, 1], "ERP", "ERP", False),
@@ -169,7 +169,7 @@ def print_improvement_summary(
                 pred_candidates,
                 key=lambda r: distance(r[sweep_var], target),
             )
-            for metric in ["P_block_arrival", "E_W", "Cost", "ERP"]:
+            for metric in ["P_block_arrival_stable", "E_W", "Cost", "ERP"]:
                 base_val = base_pt[metric]
                 pred_val = pred_pt[metric]
                 if base_val > 0:

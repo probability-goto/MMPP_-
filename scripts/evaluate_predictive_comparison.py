@@ -26,7 +26,7 @@ import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-METRICS = ["P_block_arrival", "E_W", "Cost", "ERP"]
+METRICS = ["P_block_arrival_stable", "E_W", "Cost", "ERP"]
 
 
 @dataclass

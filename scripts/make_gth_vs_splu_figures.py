@@ -51,6 +51,10 @@ def lookup_spec(name):
                 best = (prefix, spec)
     return best[1] if best else None
 
+# P_block_arrival (引き算版 1 - lambda_eff/lambda_bar) はライブラリから削除済みで,
+# 新しく生成する CSV には出力されない。ここでは既存 CSV の旧列を読み,
+# 安定版 P_block_arrival_stable と重ねて桁落ちを示す比較のためだけに残している
+# (旧列がない CSV ではそのパネルは空になる)。
 METRICS = ["P_block_arrival", "E_W", "Cost", "ERP"]
 
 
@@ -102,8 +106,8 @@ def make_figure(name, old_rows, new_rows, x_col, x_label, series_col, log_x):
             ax_val.plot(x, np.abs(y_new), "--", color=c,
                         label=f"GTH {lbl}".strip())
 
-            # P_block_arrival については, 引き算を含まない安定版も重ねる
-            # (現行式は 1 - lambda_eff/lambda_bar の桁落ちで極小領域が
+            # P_block_arrival (旧列) については, 引き算を含まない安定版も重ねる
+            # (引き算版は 1 - lambda_eff/lambda_bar の桁落ちで極小領域が
             #  ノイズ・負値になるため, その差が一目で分かる)
             if metric == "P_block_arrival" and "P_block_arrival_stable" in new_sub[0]:
                 y_stable = np.array(

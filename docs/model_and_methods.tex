@@ -356,10 +356,9 @@ $\gamma=5.0$ が有効な状態である。
   \lambda_\eff &= \sum_{j<K}\sum_{\text{state}} \pi(\cdot,j,F)\,\lambda_F
   &&\text{(実効到着率)} \label{eq:lambda_eff}\\
   P_\blk^{\mathrm{arr}} &= 1-\frac{\lambda_\eff}{\bar\lambda}
-  &&\text{(到着平均ブロック確率, 現行式)} \label{eq:parr}\\
-  \widetilde{P}_\blk^{\mathrm{arr}} &=
-  \frac{1}{\bar\lambda}\sum_{\text{state}} \pi(\cdot,K,F)\,\lambda_F
-  &&\text{(同, 数値安定版)} \label{eq:parr_stable}\\
+  &&\text{(到着平均ブロック確率, 定義)} \label{eq:parr}\\
+  &= \frac{1}{\bar\lambda}\sum_{\text{state}} \pi(\cdot,K,F)\,\lambda_F
+  &&\text{(実装で用いる等価式)} \label{eq:parr_stable}\\
   E[j] &= \sum_{j} j \sum_{\text{state}} \pi(\cdot,j,\cdot) \\
   E[B] &= \sum \pi\, B(i,j),\quad
   E[I] = \sum \pi\, I(i,j) \\
@@ -383,12 +382,20 @@ $\sum_{i,j}\pi(i,j,F)=\varpi_F$ から
   =\sum_F \lambda_F\Bigl[\sum_{i,j}\pi(i,j,F)-\sum_{j<K,i}\pi(i,j,F)\Bigr]
   =\sum_{i,F}\pi(i,K,F)\lambda_F
 \end{equation}
-として導かれる。\eqref{eq:parr} は $1-(\text{1 に極めて近い値})$ の
+として導かれる。定義式 \eqref{eq:parr} は $1-(\text{1 に極めて近い値})$ の
 引き算を含むため $P_\blk^{\mathrm{arr}}\lesssim10^{-13}$ で桁落ちし負値も出る。
-\eqref{eq:parr_stable} は引き算を含まないので $\pi$ の相対精度がそのまま
-指標に伝わる。CSV には両方 (\code{P\_block\_arrival},
-\code{P\_block\_arrival\_stable}) を出力している。
-\textbf{ただし実験スクリプトの図は現行式 \eqref{eq:parr} の値をプロットしている}。
+そこで\textbf{実装では引き算を含まない \eqref{eq:parr_stable} だけで計算する}
+(\code{arrival\_blocking\_probability\_stable})。
+$\pi$ の相対精度 (GTH 法) がそのまま指標に伝わり, $10^{-77}$ 程度の値でも正値かつ
+$\rho$ に単調な値が得られる。\eqref{eq:parr} を直接計算する旧メソッド
+\code{arrival\_blocking\_probability} はライブラリから削除した。
+CSV の出力列は \code{P\_block\_arrival\_stable} のみで,
+図・改善率・\code{evaluate\_predictive\_comparison.py} の集計もこの列を用いる。
+既存の CSV には引き算で計算した旧列 \code{P\_block\_arrival} が残っているが,
+これを読むのは桁落ちを示す検証用スクリプト
+(\code{compare\_gth\_vs\_splu\_results.py}, \code{make\_gth\_vs\_splu\_figures.py},
+\code{check\_results\_integrity.py}) だけである。
+\code{validate\_gth\_v6\_base.py} は比較のために \eqref{eq:parr} をスクリプト内で計算する。
 
 \paragraph{電力コストと ERP}
 2 種類のコスト関数が実装されている。
@@ -517,7 +524,8 @@ $\min\pi\ge-\mathrm{tol}$ (既定 $\mathrm{tol}=10^{-8}$) を検査し,
         縮約後 $N=788$) でも GTH 相対誤差最大 $5.78\times10^{-15}$。
   \item 既存 30 実験ファイルで GTH vs splu を突き合わせ, ブロック確率以外は
         相対差 $\lesssim2\times10^{-12}$。相対差が $10^{-4}$ を超えた 14 点は
-        \emph{すべて} \eqref{eq:parr} の $P_\blk^{\mathrm{arr}}$ であり,
+        \emph{すべて}定義式 \eqref{eq:parr} の引き算で計算した旧列
+        \code{P\_block\_arrival} であり,
         時間平均 $P_\blk$ では 1 点も超過しない。これが原因が指標式の
         桁落ちであることの証拠である。
 \end{itemize}
@@ -601,6 +609,11 @@ $\mathrm{warmup\_duration}\times\beta<5$ のとき
   \lambda_\eff = \frac{\#\text{attempts}-\#\text{blocked}}{T},\\
   E[W] &= \frac{\sum \text{sojourn}}{\#\text{departures}}.
 \end{align}
+DES の $P_\blk^{\mathrm{arr}}$ はブロック数 / 到着試行数による経験的推定量であり,
+理論側の定義式 \eqref{eq:parr} の引き算とは無関係なのでそのまま残している
+(CSV・辞書のキーも \code{P\_block\_arrival})。
+理論値と比較する場合は, 理論側の値として \eqref{eq:parr_stable}
+(\code{P\_block\_arrival\_stable}) を用いる。
 その他 ($E[B],E[I],E[S],E[\mathrm{Off}],\rho,\mathrm{Cost},\mathrm{ERP}$) は
 理論側と同一の定義式を時間重み付き平均で評価する。
 Predictive 版では $E[S]$ を状態変数 $s$ の時間平均として直接計算する。
@@ -701,9 +714,11 @@ DES & $n_{\mathrm{reps}}=20$, warmup $10^5$ events, measurement $10^6$ events, s
 
 \subsection{実験 1--4 / 1-P--4-P: 制御変数の走査 (理論のみ)}
 
-4 指標 $P_\blk^{\mathrm{arr}}$ (式 \eqref{eq:parr}), $E[W]$,
+4 指標 $P_\blk^{\mathrm{arr}}$ (式 \eqref{eq:parr_stable} で計算,
+CSV 列 \code{P\_block\_arrival\_stable}), $E[W]$,
 $\mathrm{Cost}$, $\mathrm{ERP}$ を $2\times2$ サブプロットで出力する。
-$P_\blk^{\mathrm{arr}}$ の $y$ 軸は対数スケール。走査変数が対数格子のもの
+$P_\blk^{\mathrm{arr}}$ の $y$ 軸は対数スケールで, 下限は設けない
+(実験 4/4-P の低 $\rho$・大 $K$ では $10^{-77}$ 程度まで描かれる)。走査変数が対数格子のもの
 ($\beta$: 実験 2/2-P, $\sigma$: 実験 3-B/3-P-B, $\gamma$: 実験 6) は $x$ 軸も対数スケール。
 
 \begin{longtable}{p{0.10\textwidth}p{0.40\textwidth}p{0.42\textwidth}}
@@ -805,6 +820,7 @@ $\rho,\delta$ は線形距離), 離散変数 ($\alpha$, $K$, バースト名) �
 \code{benchmark\_gth\_vs\_splu.py} & 計算時間・帯格納メモリの計測 (\code{results\_gth/benchmark.md}) \\
 \code{make\_gth\_vs\_splu\_figures.py} & 精度比較図の生成 \\
 \code{check\_results\_integrity.py} & CSV の \code{P\_block\_arrival\_stable} 列の存在・正値性の検査 \\
+\code{replot\_from\_csv.py} & 既存 CSV から実験 1--6 の図だけを描き直す (定常分布は再計算しない) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -826,7 +842,7 @@ $\rho,\delta$ は線形距離), 離散変数 ($\alpha$, $K$, バースト名) �
 \code{test\_solver.py} & $\pi Q=0$, 正規化, 非負性, 位相マージナル $=\varpi$ \\
 \code{test\_gth\_solver.py} & M/M/1/K 解析解, O'Cinneide 例, 帯格納の厳密保存, $-G=LU$ \\
 \code{test\_metrics.py} & 保存則, 流量バランス, 各指標の定義 \\
-\code{test\_stable\_blocking.py} & \eqref{eq:parr} と \eqref{eq:parr_stable} の一致 (高精度領域) と安定版の正値性 \\
+\code{test\_stable\_blocking.py} & \eqref{eq:parr_stable} の正値性 (\code{results/} の全実験格子 + 同じ $\rho$ 格子の縮小モデル) と, 高精度領域で $\bar\lambda-\lambda_\eff$ の直接和との一致 \\
 \code{test\_predictive\_state\_space.py} & \eqref{eq:pred-index} の全単射性, $\Delta_{\eff}$ \\
 \code{test\_predictive\_generator.py} & Predictive の各遷移 \\
 \code{test\_predictive\_baseline\_consistency.py}
@@ -883,12 +899,15 @@ $\rho,\delta$ は線形距離), 離散変数 ($\alpha$, $K$, バースト名) �
 
 \paragraph{指標}
 \begin{enumerate}\setcounter{enumi}{11}
-\item \textbf{図にプロットしているのは引き算を含む現行式}
-      $P_\blk^{\mathrm{arr}}=1-\lambda_\eff/\bar\lambda$ であり,
-      安定版 $\widetilde{P}_\blk^{\mathrm{arr}}$ は CSV 列として併記されるのみ。
-      極小領域 ($\lesssim10^{-13}$) を図示する場合は安定版に切り替える必要がある。
+\item \textbf{到着平均ブロッキング確率は引き算を含まない式 \eqref{eq:parr_stable} だけで計算する}。
+      定義式 $1-\lambda_\eff/\bar\lambda$ (引き算版) はライブラリから削除し,
+      CSV にも \code{P\_block\_arrival\_stable} 列だけを出力する。
+      図・改善率・比較集計もすべてこの列の値であり,
+      極小領域 ($\lesssim10^{-13}$) も相対精度を保ったまま図示されている。
+      (旧 CSV に残る \code{P\_block\_arrival} 列は桁落ちの検証用にのみ参照する。)
 \item \textbf{図の $y$ ラベルは $P_{\blk}$ だが中身は到着平均}である
-      (\code{METRIC\_SPECS} のラベルが $P_{\mathrm{block}}$)。
+      (\code{METRIC\_SPECS} のラベルが $P_{\mathrm{block}}$,
+      プロットする値は \code{P\_block\_arrival\_stable})。
       時間平均 $P_\blk$ と混同しないよう, 論文側の記述に注意。
 \item \textbf{$E[W]$ は系内滞在時間} (待ち時間 + サービス時間) であり,
       Little の公式 $E[W]=E[j]/\lambda_\eff$ で求めている
