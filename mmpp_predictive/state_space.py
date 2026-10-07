@@ -120,13 +120,17 @@ def setup_target_delta(i: int, s: int, n_target: int, c: int) -> int:
 
 def setup_cancelled(i: int, s: int, j_new: int, F: int,
                     b: int, c: int, n_target: int,
-                    protect_presetup: bool) -> bool:
+                    protect_presetup: bool,
+                    never_cancel_setup: bool = False) -> bool:
     """バッチ完了 (j -> j_new = j-b) でセットアップが 1 台取り消されるか.
 
     既定 (protect_presetup=False): 需要 S(i, j_new) が s を下回れば取り消す.
     protect_presetup=True: バースト位相 F=1 で i+s <= n_target の間は
     取り消さない (事前セットアップで揃えた台数を n_target 未満に落とさない).
+    never_cancel_setup=True: 位相によらず一切取り消さない (位相を使わない対照).
     """
+    if never_cancel_setup:
+        return False
     cancel = compute_required_s(i, j_new, b, c) < s
     if protect_presetup and F == 1 and i + s <= n_target:
         cancel = False

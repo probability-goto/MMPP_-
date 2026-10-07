@@ -201,6 +201,9 @@ class PredictiveSimulator:
             # 事前セットアップの保護: バースト位相で i+s <= n_target の間は取り消さない
             if p.protect_presetup and F == 1 and i + s <= p.n_target:
                 cancel = False
+            # 位相を使わない対照: 一切取り消さない
+            if p.never_cancel_setup:
+                cancel = False
             s_new = s - 1 if cancel else s
             new_state = (i, s_new, j_new, F)
         elif event_type == EventType.SETUP_COMPLETION:

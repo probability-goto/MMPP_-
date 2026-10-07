@@ -17,7 +17,8 @@ mmpp/generator.py と同じ COO -> CSR の組み立て方針).
                               反応的セットアップ」を 1 単位取り消す).
                               protect_presetup=True なら F=1 かつ
                               i+s <= n_target の間は取り消さない
-                              (setup_cancelled).
+                              (setup_cancelled). never_cancel_setup=True
+                              なら位相によらず取り消さない.
     4. Delayoff:              (i, s, j, F) -> (i-1, s, j, F)     率 I(i,j) * beta_F
                               beta_F は F=0 (通常位相) で gamma 倍に加速.
                               protect_delayoff=True なら F=1 かつ
@@ -69,6 +70,7 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
     n_target, gamma = params.n_target, params.gamma
     protect = params.protect_presetup
     protect_off = params.protect_delayoff
+    never_cancel = params.never_cancel_setup
     C0, C1 = params.C0, params.C1
     D_M = params.D_M
 
@@ -128,7 +130,7 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
                 if B > 0 and j >= b:
                     j_new = j - b
                     cancel = setup_cancelled(i, s, j_new, F, b, c,
-                                             n_target, protect)
+                                             n_target, protect, never_cancel)
                     s_new = s - 1 if cancel else s
                     dst = idx(i, s_new, j_new, F)
                     add_transition(src, dst, B * mu)

@@ -89,7 +89,8 @@ class Metrics:
                 if B > 0 and j >= b:
                     for F in range(D_M):
                         if setup_cancelled(i, s, j - b, F, b, c,
-                                           p.n_target, p.protect_presetup):
+                                           p.n_target, p.protect_presetup,
+                                           p.never_cancel_setup):
                             cancel_mass += B * float(pi_slice[F])
 
                 if j == K:

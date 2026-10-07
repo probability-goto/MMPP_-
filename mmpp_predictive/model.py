@@ -37,6 +37,10 @@ class PredictiveModelParameters:
             間, i+s <= n_target のとき Delayoff (i,s)->(i-1,s) を起こさない.
             protect_presetup と合わせると, P1 発動後のバースト中は
             i+s >= n_target が保たれる. 既定値 False は従来の規則.
+        never_cancel_setup: 位相の情報を使わない対照. True ならバッチ完了での
+            セットアップの取り消しを, 位相によらず一切行わない (protect_presetup
+            より優先). 保護による改善のうち「起動と取り消しの繰り返しを止めた」
+            効果を切り分けるためのもの. 既定値 False は従来の規則.
     """
     c: int
     K: int
@@ -56,6 +60,7 @@ class PredictiveModelParameters:
 
     protect_presetup: bool = False
     protect_delayoff: bool = False
+    never_cancel_setup: bool = False
 
     def __post_init__(self):
         # ベースモデルの妥当性検証 (符号規約, MMPP 整合性, 既約性等) と
@@ -121,5 +126,6 @@ class PredictiveModelParameters:
             f"n_target={self.n_target}, gamma={self.gamma}, "
             f"protect_presetup={self.protect_presetup}, "
             f"protect_delayoff={self.protect_delayoff}, "
+            f"never_cancel_setup={self.never_cancel_setup}, "
             f"D_M={self.D_M}, N={self.N}, lambda_bar={self.lambda_bar:.4g})"
         )

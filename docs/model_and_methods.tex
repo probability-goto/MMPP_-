@@ -9,6 +9,7 @@
 \usepackage{luatexja}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{array}  % tabular の p 列を array で処理する (TeX Live 2023 + luatexja で \@mkpream が失敗するのを避ける)
 \usepackage{longtable}
 \usepackage[margin=25mm]{geometry}
 \usepackage{hyperref}
@@ -427,6 +428,32 @@ $\gamma=1$ と合わせてベースモデルに一致する。
 (相対誤差 $10^{-10}$), P1 発動直後の状態から $F=1$ に留まる経路の到達集合に
 $i+s<n_{\mathrm{target}}$ の状態がないこと (片方の保護だけでは現れること) を確認している。
 
+\subsection{対照: 位相を使わずに取り消しを止める (\code{never\_cancel\_setup})}
+\label{sec:never-cancel}
+
+両方の保護による改善は, P1 の発動率がほとんど変わらないまま生じることがある
+(\code{results/p1\_protect/}; 例えば medium, $\rho=0.3$, $\beta=0.5$, $\gamma=1$,
+$\alpha=0.1$ で ERP が $-6.5\%$)。
+改善の一部は「セットアップの開始と取り消しの繰り返しを止めたこと」によるとみられるので,
+それが位相の情報によるものかを切り分けるため, 位相を使わない\textbf{対照}として
+真偽値の選択肢 \code{never\_cancel\_setup} (\textbf{既定値は偽}) を設けた。
+真のときは規則 4 の取り消しを位相によらず一切行わない:
+\begin{equation}
+  \mathrm{cancel}(i,s,j,F)\equiv\text{偽},\qquad s''=s .
+  \label{eq:never-cancel}
+\end{equation}
+\code{protect\_presetup} より優先する。判定は \code{setup\_cancelled} にまとめ,
+DES には同じ規則を独立に実装した。
+比較に用いる対照 (NoCancel) は $n_{\mathrm{target}}=0$ (P1 なし), $\gamma=1$
+(Delayoff 加速なし) と組み合わせ, 位相の情報をまったく使わない方策とする。
+この方策では $s$ は到着による反応的セットアップでのみ増え, セットアップ完了でのみ減る。
+$s\ge S(i,j)$ が成り立たなくなる ($s$ が需要を上回ったまま残る) ため,
+ベースモデルには帰着しない (対照であり, ベースモデルの再現は目的としない)。
+\code{tests/test\_never\_cancel\_setup.py} で, 偽のとき既存の結果
+(\code{results/p1\_protect/p1\_protect.csv}) が不変であること,
+セットアップの流量の保存 (取り消し率 $=0$) と Delayoff 率 $=$ セットアップ完了率,
+DES との一致 ($P_\blk^{\mathrm{arr}}$, $E[W]$, Cost, 取り消し回数 $0$) を確認している。
+
 % =====================================================================
 \section{性能指標}
 \label{sec:metrics}
@@ -507,19 +534,19 @@ Predictive モデルでは $C_b,C_s,C_i$ をパラメータとして上書き可
 Predictive モデルでは次も計算する (\code{all\_metrics} のキー名)。
 位相 $0\to1$ の率 $\sigma_{01}$ は $C_0[0,1]$ から取る。
 \begin{align}
-  \code{p1\_fire\_rate} &= \sigma_{01}\sum_{i,s,j}\pi(i,s,j,0)\,\mathbf{1}[\Delta_\eff(i,s)>0]
-  &&\text{(P1 の発動率)}\\
-  \code{p1\_launch\_rate} &= \sigma_{01}\sum_{i,s,j}\pi(i,s,j,0)\,\Delta_\eff(i,s)
-  &&\text{(P1 で起動を始める台数の率)}\\
+  \code{p1\_fire\_rate} &= \sigma_{01}\sum_{i,s,j}\pi(i,s,j,0)\,\mathbf{1}[\Delta_\eff(i,s)>0]\\
+  \code{p1\_launch\_rate} &= \sigma_{01}\sum_{i,s,j}\pi(i,s,j,0)\,\Delta_\eff(i,s)\\
   \code{setup\_completion\_rate} &= \sum \pi(i,s,j,F)\,s\,\alpha = \alpha E[S]\\
   \code{setup\_cancel\_rate} &= \sum \pi(i,s,j,F)\,B(i,j)\,\mu\,
-     \mathbf{1}[\mathrm{cancel}(i,s,j,F)]
-  &&\text{(取り消しの判定は \eqref{eq:protect})}\\
+     \mathbf{1}[\mathrm{cancel}(i,s,j,F)]\\
   \code{delayoff\_rate} &= \sum \pi(i,s,j,F)\,I(i,j)\,\beta_F\,
-     \mathbf{1}[\text{\eqref{eq:protect-delayoff} で止められていない}]\\
+     \mathbf{1}[\text{Delayoff が止められていない}]\\
   \code{rho\_B} &= \lambda_1/(c\,b\,\mu)
-  &&\text{(バースト位相の負荷; \code{build\_mmpp} では } \rho(1+\delta))
 \end{align}
+順に, P1 の発動率, P1 で起動を始める台数の率, セットアップ完了率,
+取り消し率 (判定は \eqref{eq:protect}, \eqref{eq:never-cancel}),
+Delayoff 率 (止める条件は \eqref{eq:protect-delayoff}),
+バースト位相の負荷 (\code{build\_mmpp} の MMPP では $\rho(1+\delta)$) である。
 セットアップの開始 (到着による反応的開始と P1) と終了 (完了と取り消し) の率は
 定常状態で釣り合う。同様に $i$ の増加 (セットアップ完了) と減少 (Delayoff) の率も
 釣り合う ($\code{setup\_completion\_rate}=\code{delayoff\_rate}$)。
@@ -1027,6 +1054,9 @@ $\alpha=10$: 1000 (全バースト, 走査上端) であり, 桁としては対�
     両方真で $n_{\mathrm{target}}=0,\gamma=1$ のときベースと一致,
     両方真でバースト中に $i+s\ge n_{\mathrm{target}}$ が保たれること,
     Delayoff 率 $=$ セットアップ完了率, DES との一致 \\
+\code{test\_never\_cancel\_setup.py}
+  & 対照 \code{never\_cancel\_setup} が偽で既存の結果が不変, 真で取り消し率 $0$,
+    セットアップと Delayoff の流量の保存, DES との一致 \\
 \code{test\_simulator.py}, \code{test\_predictive\_sim\_simulator.py}
   & イベントメニュー, 状態遷移, 統計収集 \\
 \code{test\_experiment\_*.py} & 各実験スクリプトのパラメータ格子・CSV 列・図生成 \\
