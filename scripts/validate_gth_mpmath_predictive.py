@@ -3,9 +3,9 @@
 Predictive モデル (mmpp_predictive) の到達可能状態に縮約した生成行列に対し,
 float64 の GTH / splu と mpmath 50 桁の GTH (真値) を比較する。
 
-標準設定 (c=20, K=200) は縮約後の帯幅が大きく (N=12292, p=1042, q=942)
-mpmath では計算量 1.2e10 となり現実的でないため, 小規模設定
-(c=5, K=60, b=2; 縮約 N≈952, p=198, q=178) を用いる。
+標準設定 (c=20, K=200) は縮約後 N=12292, p=760, q=152 で
+mpmath では計算量 1.4e9 となり現実的でないため, 小規模設定
+(c=5, K=60, b=2; 縮約 N=788, p=48, q=24) を用いる。
 rho を振って P_block が極小になる領域まで走査する。
 
 使用例:
@@ -26,6 +26,7 @@ from mmpp_predictive.model import PredictiveModelParameters
 from mmpp_predictive.generator import build_generator
 from mmpp_predictive.solver import solve_stationary
 from mmpp_predictive.metrics import Metrics
+from mmpp_predictive.state_space import level_slice
 from mmpp.gth_solver import bandwidths
 from validate_gth_mpmath import gth_mpmath
 
@@ -49,18 +50,8 @@ def reduce_Q(Q):
 
 
 def block_states(params):
-    """j == K のブロック状態の名目インデックス一覧を返す.
-
-    インデックス規約 (mmpp_predictive.state_space):
-        idx = (is_index[(i,s)] * (K+1) + j) * D_M + F
-    """
-    n_is = (params.c + 1) * (params.c + 2) // 2
-    D_M = params.D_M
-    return [
-        (is_idx * (params.K + 1) + params.K) * D_M + F
-        for is_idx in range(n_is)
-        for F in range(D_M)
-    ]
+    """j == K のブロック状態の名目インデックス一覧を返す."""
+    return list(range(params.N)[level_slice(params.K, params.c, params.D_M)])
 
 
 def main():

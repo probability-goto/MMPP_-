@@ -77,7 +77,7 @@ def bench_predictive():
         return []
 
     rows = []
-    for label, c, K, b, delta, sigma, rho in CONFIGS[:2]:
+    for label, c, K, b, delta, sigma, rho in CONFIGS[:2] + CONFIGS[3:]:
         C0, C1 = build_mmpp(rho, delta, sigma, c, b, 1.0)
         params = PredictiveModelParameters(
             c=c, K=K, b=b, mu=1.0, alpha=0.1, beta=0.005,
@@ -147,9 +147,9 @@ def main():
                 f.write(f"| {r['label']} | {r['N_nominal']} | {r['N']} | {r['p']} | {r['q']} | "
                         f"{r['mem_mb']:.1f} MB | {r['t_gth']:.2f} s | "
                         f"{r['t_splu']:.2f} s | {r['t_gth']/r['t_splu']:.0f}x |\n")
-            f.write("\nPredictive モデルは状態 (i, s, j, F) の縮約状態空間がベースモデルの "
-                    "j-major 順序と噛み合わず, 帯幅 p, q がベースモデルより 1 桁大きくなる。"
-                    "GTH の計算量は O(N p q) のため計算時間もその分増大する "
+            f.write("\nPredictive モデルの索引も j-major なので縮約後の帯幅 p, q は K に"
+                    "依存しないが, 1 レベルあたりの状態数がベースモデルより多いため p, q は"
+                    "ベースより大きい。GTH の計算量は O(N p q) のため計算時間もその分増大する "
                     "(mmpp_predictive.solver が N*p*q > 5e8 で警告を出す)。\n")
 
     print(f"\n{out} に書き出しました。")

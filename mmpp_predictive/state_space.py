@@ -12,9 +12,20 @@
 超えてセットアップが先行しうる) ため, s を明示的な状態次元として持つ.
 
 拘束条件 i + s <= c を満たす状態のみを列挙する.
-状態空間サイズ: N = ((c+1)(c+2)/2) * (K+1) * D_M
+状態空間サイズ: N = N_IS * (K+1) * D_M,  N_IS = (c+1)(c+2)/2
+
+インデックス順序: j-major (レベル j が最上位. ベースモデル mmpp.state_space と
+同じ構造で, ベースの i の位置に (i, s) の線形番号 iota(i, s) が入る)
+    idx = (j * N_IS + iota(i, s)) * D_M + F
+
+この順序ではセットアップ完了 (i,s)->(i+1,s-1) と Delayoff (i,s)->(i-1,s) が
+同じレベル j の中に収まり, レベルをまたぐ遷移は到着 (j+1) とバッチ完了 (j-b)
+だけになる. そのため Q の帯幅は K に依存しない.
+レベル j の状態 = インデックス [j*N_IS*D_M, (j+1)*N_IS*D_M) (level_slice)
 """
 from typing import List, Tuple
+
+import numpy as np
 
 
 def enumerate_is_pairs(c: int) -> List[Tuple[int, int]]:
@@ -30,6 +41,11 @@ def enumerate_is_pairs(c: int) -> List[Tuple[int, int]]:
     return pairs
 
 
+def num_is_pairs(c: int) -> int:
+    """(i, s) の組の数 N_IS = (c+1)(c+2)/2."""
+    return (c + 1) * (c + 2) // 2
+
+
 def build_is_index(c: int) -> Tuple[dict, List[Tuple[int, int]]]:
     """(i, s) -> 線形インデックス の辞書と, 逆引きリストを返す."""
     pairs = enumerate_is_pairs(c)
@@ -42,26 +58,37 @@ def state_to_idx(i: int, s: int, j: int, F: int,
                   is_index: dict) -> int:
     """状態 (i, s, j, F) を線形インデックスに変換.
 
-    インデックス化: ((is_index[(i,s)]) * (K+1) + j) * D_M + F
+    インデックス化 (j-major): (j * N_IS + is_index[(i,s)]) * D_M + F
     """
-    return (is_index[(i, s)] * (K + 1) + j) * D_M + F
+    return (j * len(is_index) + is_index[(i, s)]) * D_M + F
 
 
 def idx_to_state(idx: int, c: int, K: int, D_M: int,
                   is_pairs: List[Tuple[int, int]]) -> Tuple[int, int, int, int]:
     """線形インデックスを状態 (i, s, j, F) に逆変換."""
-    F = idx % D_M
-    idx //= D_M
-    j = idx % (K + 1)
-    idx //= (K + 1)
-    i, s = is_pairs[idx]
+    idx, F = divmod(idx, D_M)
+    j, is_idx = divmod(idx, len(is_pairs))
+    i, s = is_pairs[is_idx]
     return i, s, j, F
 
 
 def num_states(c: int, K: int, D_M: int) -> int:
     """状態空間の総サイズを返す."""
-    n_is = (c + 1) * (c + 2) // 2
-    return n_is * (K + 1) * D_M
+    return num_is_pairs(c) * (K + 1) * D_M
+
+
+def level_slice(j: int, c: int, D_M: int) -> slice:
+    """レベル j の状態インデックスのスライス (mmpp.state_space.block_slice 相当)."""
+    width = num_is_pairs(c) * D_M
+    return slice(j * width, (j + 1) * width)
+
+
+def pi_by_level(pi, c: int, K: int, D_M: int) -> np.ndarray:
+    """1 次元の pi を形 (K+1, N_IS, D_M) の配列 (添字 [j, iota(i,s), F]) として見る.
+
+    インデックス順序 (j-major) を前提にした reshape はこの関数に集約する.
+    """
+    return np.asarray(pi).reshape(K + 1, num_is_pairs(c), D_M)
 
 
 def busy_count(i: int, j: int, b: int) -> int:

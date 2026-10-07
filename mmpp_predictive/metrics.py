@@ -9,7 +9,12 @@ from typing import Dict
 import numpy as np
 
 from mmpp_predictive.model import PredictiveModelParameters
-from mmpp_predictive.state_space import build_is_index, busy_count, idle_count
+from mmpp_predictive.state_space import (
+    build_is_index,
+    busy_count,
+    idle_count,
+    pi_by_level,
+)
 
 
 class Metrics:
@@ -26,8 +31,9 @@ class Metrics:
         p = self.params
         c, K, b = p.c, p.K, p.b
         D_M = p.D_M
-        is_index, is_pairs = build_is_index(c)
+        _, is_pairs = build_is_index(c)
         lambdas = p.lambdas
+        pi3 = pi_by_level(self.pi, c, K, D_M)  # 添字 [j, iota(i,s), F]
 
         E_B = 0.0
         E_S = 0.0
@@ -39,10 +45,9 @@ class Metrics:
         # P_block^arrival を引き算なしで求めるために使う (下記参照)。
         block_arrival_mass = 0.0
 
-        for (i, s) in is_pairs:
+        for is_idx, (i, s) in enumerate(is_pairs):
             for j in range(K + 1):
-                base = (is_index[(i, s)] * (K + 1) + j) * D_M
-                pi_slice = self.pi[base:base + D_M]
+                pi_slice = pi3[j, is_idx]
                 pi_sum = float(pi_slice.sum())
                 if pi_sum == 0.0:
                     continue

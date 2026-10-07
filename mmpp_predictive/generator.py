@@ -36,6 +36,7 @@ from mmpp.generator import setup_servers as compute_required_s
 from mmpp_predictive.model import PredictiveModelParameters
 from mmpp_predictive.state_space import (
     build_is_index,
+    state_to_idx,
     num_states,
     busy_count,
     idle_count,
@@ -60,7 +61,7 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
     is_index, is_pairs = build_is_index(c)
 
     def idx(i, s, j, F):
-        return (is_index[(i, s)] * (K + 1) + j) * D_M + F
+        return state_to_idx(i, s, j, F, c, K, D_M, is_index)
 
     rows = []
     cols = []
