@@ -1,13 +1,21 @@
 #!/usr/bin/env python
-"""事前セットアップの保護 (protect_presetup) の有無による P1 診断指標の比較.
+"""事前セットアップ・Delayoff の保護の有無による P1 診断指標と 4 指標の比較.
 
-固定条件: c=20, K=200, b=5, mu=1, beta=0.005, n_target=10, gamma=5
+固定条件: c=20, K=200, b=5, mu=1, n_target=10
 条件 (ブロック): (medium, rho=0.7), (strong, rho=0.7), (medium, rho=0.3)
-走査: alpha in {0.1, 1, 10} x protect_presetup in {False, True}
+走査: alpha in {0.1, 1, 10} x beta in {0.005, 0.5} x gamma in {1, 5}
+      x 保護 3 通り (protect_presetup, protect_delayoff):
+        none     = (False, False)  保護なし
+        presetup = (True,  False)  取り消しのみ保護
+        both     = (True,  True)   取り消しと Delayoff の両方を保護
 
 計算結果は 1 点ごとに results/p1_protect/p1_protect.csv に追記し, 再実行時は
 計算済みの点 (パラメータの組がキー) を飛ばして再開する. 進捗は
 results/p1_protect/progress.log に追記する.
+
+protect_delayoff 導入前の結果 (beta=0.005, gamma=5, none/presetup) は
+results/p1_protect/p1_protect_v1.csv に残してあり, 同じパラメータの点は
+計算時に照合して, 一致しなければ check 列に v1_mismatch を記録する.
 
 使用例:
     python scripts/experiment_p1_protect.py                  # 全ブロック
@@ -21,8 +29,6 @@ import time
 import warnings
 from datetime import datetime
 
-import numpy as np
-
 from mmpp_predictive import (
     PredictiveModelParameters, build_generator, solve_stationary, Metrics,
 )
@@ -33,11 +39,17 @@ except ImportError:
     from scripts._mmpp_burst import build_mmpp
 
 
-BASELINE = dict(c=20, K=200, b=5, mu=1.0, beta=0.005)
+BASELINE = dict(c=20, K=200, b=5, mu=1.0)
 N_TARGET = 10
-GAMMA = 5.0
 ALPHA_LEVELS = [0.1, 1.0, 10.0]
-PROTECT_LEVELS = [False, True]
+BETA_LEVELS = [0.005, 0.5]
+GAMMA_LEVELS = [1.0, 5.0]
+# (名前, protect_presetup, protect_delayoff)
+MODES = [
+    ("none", False, False),
+    ("presetup", True, False),
+    ("both", True, True),
+]
 
 # (ブロック名, バースト名, delta, sigma, rho)
 BLOCKS = [
@@ -51,28 +63,34 @@ warnings.filterwarnings("ignore", message="Predictive モデルの縮約後の�
 
 OUT_DIR = os.path.join("results", "p1_protect")
 CSV_PATH = os.path.join(OUT_DIR, "p1_protect.csv")
+V1_CSV_PATH = os.path.join(OUT_DIR, "p1_protect_v1.csv")
 LOG_PATH = os.path.join(OUT_DIR, "progress.log")
+SUMMARY_PATH = os.path.join(OUT_DIR, "summary.md")
 
-KEY_FIELDS = ["burst_name", "rho", "alpha", "n_target", "gamma", "protect_presetup"]
-FIELDNAMES = KEY_FIELDS + [
-    "delta", "sigma", "beta", "c", "K", "b",
+KEY_FIELDS = ["burst_name", "rho", "alpha", "beta", "gamma", "n_target",
+              "protect_presetup", "protect_delayoff"]
+METRIC_FIELDS = [
     "P_block_arrival_stable", "E_W", "Cost", "ERP",
     "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
     "p1_fire_rate", "p1_launch_rate", "setup_completion_rate",
-    "setup_cancel_rate", "rho_B",
+    "setup_cancel_rate", "delayoff_rate", "rho_B",
+]
+FIELDNAMES = KEY_FIELDS + ["mode", "delta", "sigma", "c", "K", "b"] + METRIC_FIELDS + [
     "min_pi", "elapsed_s", "check",
 ]
+# v1 の CSV と照合する列 (v1 に delayoff_rate はない)
+V1_COMPARE_FIELDS = [f for f in METRIC_FIELDS if f != "delayoff_rate"]
 
 
-def point_key(burst_name, rho, alpha, protect):
-    return (burst_name, float(rho), float(alpha), int(N_TARGET), float(GAMMA),
-            bool(protect))
+def point_key(burst_name, rho, alpha, beta, gamma, protect_presetup, protect_delayoff):
+    return (burst_name, float(rho), float(alpha), float(beta), float(gamma),
+            int(N_TARGET), bool(protect_presetup), bool(protect_delayoff))
 
 
 def row_key(row):
     return (row["burst_name"], float(row["rho"]), float(row["alpha"]),
-            int(row["n_target"]), float(row["gamma"]),
-            row["protect_presetup"] == "True")
+            float(row["beta"]), float(row["gamma"]), int(row["n_target"]),
+            row["protect_presetup"] == "True", row["protect_delayoff"] == "True")
 
 
 def load_done():
@@ -80,6 +98,18 @@ def load_done():
         return set()
     with open(CSV_PATH, newline="", encoding="utf-8") as f:
         return {row_key(r) for r in csv.DictReader(f)}
+
+
+def load_v1():
+    """v1 の結果 (protect_delayoff 導入前) をキー -> 行 の辞書で返す."""
+    if not os.path.exists(V1_CSV_PATH):
+        return {}
+    with open(V1_CSV_PATH, newline="", encoding="utf-8") as f:
+        return {
+            point_key(r["burst_name"], r["rho"], r["alpha"], r["beta"], r["gamma"],
+                      r["protect_presetup"] == "True", False): r
+            for r in csv.DictReader(f)
+        }
 
 
 def append_row(row):
@@ -102,17 +132,42 @@ def log_progress(done, total, t0, t_point_avg, last):
     print(line, flush=True)
 
 
-def run_point(burst_name, delta, sigma, rho, alpha, protect):
+def run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, mode, v1_row=None):
+    mode_name, protect_presetup, protect_delayoff = mode
     c, b, mu = BASELINE["c"], BASELINE["b"], BASELINE["mu"]
     C0, C1 = build_mmpp(rho, delta, sigma, c, b, mu)
     params = PredictiveModelParameters(
-        C0=C0, C1=C1, alpha=alpha, n_target=N_TARGET, gamma=GAMMA,
-        protect_presetup=protect, **BASELINE,
+        C0=C0, C1=C1, alpha=alpha, beta=beta, n_target=N_TARGET, gamma=gamma,
+        protect_presetup=protect_presetup, protect_delayoff=protect_delayoff,
+        **BASELINE,
     )
     t = time.time()
     pi = solve_stationary(build_generator(params), solver="gth")
     m = Metrics(params, pi)
     elapsed = time.time() - t
+
+    row = {
+        "burst_name": burst_name, "rho": rho, "alpha": alpha, "beta": beta,
+        "gamma": gamma, "n_target": N_TARGET,
+        "protect_presetup": protect_presetup, "protect_delayoff": protect_delayoff,
+        "mode": mode_name, "delta": delta, "sigma": sigma,
+        "c": c, "K": BASELINE["K"], "b": b,
+        "P_block_arrival_stable": m.arrival_blocking_probability_stable(),
+        "E_W": m.mean_waiting_time(),
+        "Cost": m.energy_cost_paper(),
+        "ERP": m.erp_paper(),
+        "E_N": m.mean_queue_length(),
+        "lambda_eff": m.effective_arrival_rate(),
+        "E_B": m.E_B, "E_S": m.E_S, "E_I": m.E_I, "E_off": m.E_off,
+        "p1_fire_rate": m.p1_fire_rate,
+        "p1_launch_rate": m.p1_launch_rate,
+        "setup_completion_rate": m.setup_completion_rate,
+        "setup_cancel_rate": m.setup_cancel_rate,
+        "delayoff_rate": m.delayoff_rate,
+        "rho_B": m.rho_B,
+        "min_pi": float(pi.min()),
+        "elapsed_s": elapsed,
+    }
 
     checks = []
     total = m.E_B + m.E_I + m.E_S + m.E_off
@@ -127,38 +182,33 @@ def run_point(burst_name, delta, sigma, rho, alpha, protect):
         checks.append("P_block_nonpositive")
     if abs(m.rho_B - rho * (1 + delta)) > 1e-12:
         checks.append("rho_B")
+    if v1_row is not None:
+        bad = [f for f in V1_COMPARE_FIELDS
+               if abs(row[f] - float(v1_row[f])) > 1e-12 * abs(float(v1_row[f]))]
+        if bad:
+            checks.append("v1_mismatch:" + "/".join(bad))
+    row["check"] = ";".join(checks) if checks else "ok"
+    return row
 
-    return {
-        "burst_name": burst_name, "rho": rho, "alpha": alpha,
-        "n_target": N_TARGET, "gamma": GAMMA, "protect_presetup": protect,
-        "delta": delta, "sigma": sigma, "beta": BASELINE["beta"],
-        "c": c, "K": BASELINE["K"], "b": b,
-        "P_block_arrival_stable": m.arrival_blocking_probability_stable(),
-        "E_W": m.mean_waiting_time(),
-        "Cost": m.energy_cost_paper(),
-        "ERP": m.erp_paper(),
-        "E_N": m.mean_queue_length(),
-        "lambda_eff": m.effective_arrival_rate(),
-        "E_B": m.E_B, "E_S": m.E_S, "E_I": m.E_I, "E_off": m.E_off,
-        "p1_fire_rate": m.p1_fire_rate,
-        "p1_launch_rate": m.p1_launch_rate,
-        "setup_completion_rate": m.setup_completion_rate,
-        "setup_cancel_rate": m.setup_cancel_rate,
-        "rho_B": m.rho_B,
-        "min_pi": float(pi.min()),
-        "elapsed_s": elapsed,
-        "check": ";".join(checks) if checks else "ok",
-    }
+
+def all_points():
+    return [(blk, alpha, beta, gamma, mode)
+            for blk in BLOCKS for alpha in ALPHA_LEVELS for beta in BETA_LEVELS
+            for gamma in GAMMA_LEVELS for mode in MODES]
+
+
+def key_of(pt):
+    (_, burst_name, _, _, rho), alpha, beta, gamma, mode = pt
+    return point_key(burst_name, rho, alpha, beta, gamma, mode[1], mode[2])
 
 
 def run(blocks):
     os.makedirs(OUT_DIR, exist_ok=True)
     # 総点数・完了点数は全ブロックで数え, 計算は指定ブロックのみ行う
-    points = [(blk, alpha, protect)
-              for blk in BLOCKS for alpha in ALPHA_LEVELS for protect in PROTECT_LEVELS]
+    points = all_points()
     done_keys = load_done()
-    remaining = [pt for pt in points
-                 if point_key(pt[0][1], pt[0][4], pt[1], pt[2]) not in done_keys]
+    v1 = load_v1()
+    remaining = [pt for pt in points if key_of(pt) not in done_keys]
     todo = [pt for pt in remaining if pt[0] in blocks]
     total = len(points)
     done = total - len(remaining)
@@ -166,8 +216,10 @@ def run(blocks):
 
     t0 = time.time()
     last_log = t0
-    for k, ((blk_name, burst_name, delta, sigma, rho), alpha, protect) in enumerate(todo):
-        row = run_point(burst_name, delta, sigma, rho, alpha, protect)
+    for k, pt in enumerate(todo):
+        (blk_name, burst_name, delta, sigma, rho), alpha, beta, gamma, mode = pt
+        row = run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, mode,
+                        v1_row=v1.get(key_of(pt)))
         append_row(row)
         done += 1
         if row["check"] != "ok":
@@ -175,40 +227,56 @@ def run(blocks):
         block_end = k + 1 == len(todo) or todo[k + 1][0][0] != blk_name
         if done % 10 == 0 or time.time() - last_log >= 60 or block_end:
             avg = (time.time() - t0) / (k + 1)
-            last = (f"{burst_name},rho={rho},alpha={alpha},"
-                    f"protect={protect}")
+            last = (f"{burst_name},rho={rho},alpha={alpha},beta={beta},"
+                    f"gamma={gamma},mode={mode[0]}")
             log_progress(done, total, t0, avg, last)
             last_log = time.time()
         if block_end:
             print(f"ブロック {blk_name} 完了", flush=True)
 
 
+def summary_table(rows, alpha):
+    """alpha を固定した比較表 (Markdown) の行リストを返す."""
+    lines = [
+        f"### alpha = {alpha}",
+        "",
+        "| 条件 | β | γ | 保護 | p1_fire_rate | setup_cancel_rate | "
+        "P_block_arrival_stable | E[W] | Cost | ERP | check |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for _, burst_name, _, _, rho in BLOCKS:
+        for beta in BETA_LEVELS:
+            for gamma in GAMMA_LEVELS:
+                for mode_name, pp, pd in MODES:
+                    key = point_key(burst_name, rho, alpha, beta, gamma, pp, pd)
+                    r = rows.get(key)
+                    if r is None:
+                        continue
+                    g = lambda k: float(r[k])
+                    lines.append(
+                        f"| {burst_name}, ρ={rho} | {beta} | {gamma:g} | {mode_name} | "
+                        f"{g('p1_fire_rate'):.4e} | {g('setup_cancel_rate'):.4e} | "
+                        f"{g('P_block_arrival_stable'):.4e} | {g('E_W'):.4f} | "
+                        f"{g('Cost'):.4f} | {g('ERP'):.4f} | {r['check']} |")
+    return lines
+
+
 def summary():
     with open(CSV_PATH, newline="", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
-    print(f"固定条件: c={BASELINE['c']}, K={BASELINE['K']}, b={BASELINE['b']}, "
-          f"mu={BASELINE['mu']}, beta={BASELINE['beta']}, n_target={N_TARGET}, "
-          f"gamma={GAMMA}")
-    print("| 条件 | alpha | rho_B | p1_fire (F) | p1_fire (T) | cancel (F) | cancel (T) | "
-          "cancel 比 T/F | P_block (F) | P_block (T) | ERP (F) | ERP (T) | check |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
-    for _, burst_name, _, _, rho in BLOCKS:
-        for alpha in ALPHA_LEVELS:
-            sel = {r["protect_presetup"]: r for r in rows
-                   if r["burst_name"] == burst_name and float(r["rho"]) == rho
-                   and float(r["alpha"]) == alpha}
-            if set(sel) != {"False", "True"}:
-                continue
-            f_, t_ = sel["False"], sel["True"]
-            g = lambda r, k: float(r[k])
-            ratio = g(t_, "setup_cancel_rate") / g(f_, "setup_cancel_rate")
-            print(f"| {burst_name}, ρ={rho} | {alpha} | {g(f_, 'rho_B'):.2f} | "
-                  f"{g(f_, 'p1_fire_rate'):.4e} | {g(t_, 'p1_fire_rate'):.4e} | "
-                  f"{g(f_, 'setup_cancel_rate'):.4e} | {g(t_, 'setup_cancel_rate'):.4e} | "
-                  f"{ratio:.3f} | "
-                  f"{g(f_, 'P_block_arrival_stable'):.4e} | {g(t_, 'P_block_arrival_stable'):.4e} | "
-                  f"{g(f_, 'ERP'):.4f} | {g(t_, 'ERP'):.4f} | "
-                  f"{f_['check']}/{t_['check']} |")
+        rows = {row_key(r): r for r in csv.DictReader(f)}
+    caption = (f"固定条件: c={BASELINE['c']}, K={BASELINE['K']}, b={BASELINE['b']}, "
+               f"mu={BASELINE['mu']}, n_target={N_TARGET}. "
+               "保護: none=(protect_presetup, protect_delayoff)=(False, False), "
+               "presetup=(True, False), both=(True, True)")
+    lines = ["# 保護の有無による比較 (results/p1_protect/p1_protect.csv から生成)",
+             "", caption, ""]
+    for alpha in ALPHA_LEVELS:
+        lines += summary_table(rows, alpha) + [""]
+    text = "\n".join(lines)
+    with open(SUMMARY_PATH, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(text)
+    print(f"保存: {SUMMARY_PATH}")
 
 
 def main():
@@ -216,7 +284,7 @@ def main():
     parser.add_argument("--block", choices=[b[0] for b in BLOCKS] + ["all"],
                         default="all")
     parser.add_argument("--summary", action="store_true",
-                        help="計算はせず CSV から比較表を出力する")
+                        help="計算はせず CSV から比較表を出力する (summary.md にも保存)")
     args = parser.parse_args()
     if args.summary:
         summary()

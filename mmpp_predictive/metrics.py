@@ -5,7 +5,8 @@
 は s が明示的な状態変数であるため, その期待値として直接計算する.
 
 あわせて事前セットアップ (P1) の診断指標 (発動率, 起動台数の率,
-セットアップ完了率, セットアップ取り消し率, バースト期の負荷) を計算する.
+セットアップ完了率, セットアップ取り消し率, Delayoff 率, バースト期の負荷)
+を計算する.
 """
 from typing import Dict
 
@@ -19,6 +20,7 @@ from mmpp_predictive.state_space import (
     pi_by_level,
     setup_target_delta,
     setup_cancelled,
+    delayoff_blocked,
 )
 
 
@@ -54,6 +56,8 @@ class Metrics:
         fire_mass = 0.0
         launch_mass = 0.0
         cancel_mass = 0.0
+        # Delayoff 率 (保護で止められる状態を除く)
+        delayoff_rate = 0.0
 
         for is_idx, (i, s) in enumerate(is_pairs):
             for j in range(K + 1):
@@ -74,6 +78,13 @@ class Metrics:
                 if delta_eff > 0:
                     fire_mass += float(pi_slice[0])
                     launch_mass += delta_eff * float(pi_slice[0])
+
+                if I > 0 and i >= 1:
+                    for F in range(D_M):
+                        if not delayoff_blocked(i, s, F, p.n_target,
+                                                p.protect_delayoff):
+                            beta_F = p.gamma * p.beta if F == 0 else p.beta
+                            delayoff_rate += I * beta_F * float(pi_slice[F])
 
                 if B > 0 and j >= b:
                     for F in range(D_M):
@@ -112,6 +123,7 @@ class Metrics:
         self.p1_launch_rate = sigma_01 * launch_mass
         self.setup_completion_rate = p.alpha * E_S
         self.setup_cancel_rate = p.mu * cancel_mass
+        self.delayoff_rate = delayoff_rate
         # バースト位相 (F=1) の負荷 lambda_1 / (c b mu).
         # build_mmpp で作った MMPP では rho * (1 + delta) に等しい.
         self.rho_B = (
@@ -193,6 +205,13 @@ class Metrics:
         """セットアップ取り消し率 sum pi(i,s,j,F) B(i,j) mu 1[取り消しが起こる]."""
         return self.setup_cancel_rate
 
+    def delayoff_count_rate(self) -> float:
+        """Delayoff 率 sum pi(i,s,j,F) I(i,j) beta_F 1[Delayoff が止められていない].
+
+        定常状態ではセットアップ完了率 (i の増加率) と等しい.
+        """
+        return self.delayoff_rate
+
     def burst_load(self) -> float:
         """バースト位相の負荷 rho_B = lambda_1 / (c b mu) (D_M < 2 なら nan)."""
         return self.rho_B
@@ -229,5 +248,6 @@ class Metrics:
             "p1_launch_rate": self.p1_launch_count_rate(),
             "setup_completion_rate": self.setup_completion_count_rate(),
             "setup_cancel_rate": self.setup_cancel_count_rate(),
+            "delayoff_rate": self.delayoff_count_rate(),
             "rho_B": self.burst_load(),
         }

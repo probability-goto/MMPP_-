@@ -33,6 +33,10 @@ class PredictiveModelParameters:
             取り消しを行わない (P1 で揃えた稼働+起動中の台数を n_target 未満に
             落とさない). 既定値 False は従来の規則 (需要 S(i,j-b) を超えた分を
             バッチ完了ごとに 1 台取り消す).
+        protect_delayoff: Delayoff の保護. True ならバースト位相 (F=1) の
+            間, i+s <= n_target のとき Delayoff (i,s)->(i-1,s) を起こさない.
+            protect_presetup と合わせると, P1 発動後のバースト中は
+            i+s >= n_target が保たれる. 既定値 False は従来の規則.
     """
     c: int
     K: int
@@ -51,6 +55,7 @@ class PredictiveModelParameters:
     C_i: Optional[float] = None
 
     protect_presetup: bool = False
+    protect_delayoff: bool = False
 
     def __post_init__(self):
         # ベースモデルの妥当性検証 (符号規約, MMPP 整合性, 既約性等) と
@@ -115,5 +120,6 @@ class PredictiveModelParameters:
             f"mu={self.mu}, alpha={self.alpha}, beta={self.beta}, "
             f"n_target={self.n_target}, gamma={self.gamma}, "
             f"protect_presetup={self.protect_presetup}, "
+            f"protect_delayoff={self.protect_delayoff}, "
             f"D_M={self.D_M}, N={self.N}, lambda_bar={self.lambda_bar:.4g})"
         )

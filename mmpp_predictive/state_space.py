@@ -131,3 +131,13 @@ def setup_cancelled(i: int, s: int, j_new: int, F: int,
     if protect_presetup and F == 1 and i + s <= n_target:
         cancel = False
     return cancel
+
+
+def delayoff_blocked(i: int, s: int, F: int, n_target: int,
+                     protect_delayoff: bool) -> bool:
+    """Delayoff (i,s) -> (i-1,s) が保護により止められるか.
+
+    protect_delayoff=True のとき, バースト位相 F=1 で i+s <= n_target の間は
+    Delayoff を起こさない (i+s を n_target 未満に落とさない).
+    """
+    return protect_delayoff and F == 1 and i + s <= n_target

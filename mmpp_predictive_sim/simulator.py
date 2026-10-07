@@ -137,8 +137,10 @@ class PredictiveSimulator:
         if s > 0:
             candidates.append((s * p.alpha, EventType.SETUP_COMPLETION, {}))
 
-        # Delayoff タイムアウト (F=0 では gamma 倍に加速)
-        if I > 0:
+        # Delayoff タイムアウト (F=0 では gamma 倍に加速).
+        # protect_delayoff: バースト位相で i+s <= n_target の間は起こさない
+        delayoff_protected = p.protect_delayoff and F == 1 and i + s <= p.n_target
+        if I > 0 and not delayoff_protected:
             beta_F = p.gamma * p.beta if F == 0 else p.beta
             candidates.append((I * beta_F, EventType.DELAYOFF_TIMEOUT, {}))
 

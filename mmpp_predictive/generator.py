@@ -20,6 +20,9 @@ mmpp/generator.py と同じ COO -> CSR の組み立て方針).
                               (setup_cancelled).
     4. Delayoff:              (i, s, j, F) -> (i-1, s, j, F)     率 I(i,j) * beta_F
                               beta_F は F=0 (通常位相) で gamma 倍に加速.
+                              protect_delayoff=True なら F=1 かつ
+                              i+s <= n_target の間は起こさない
+                              (delayoff_blocked).
     5. MMPP 位相遷移 (F=0 以外の宛先, または F=0 -> F=1 以外):
                               (i, s, j, F) -> (i, s, j, F')      率 C0[F, F']
     6. MMPP 位相遷移 (F=0 -> F=1, 事前セットアップ):
@@ -32,7 +35,9 @@ n_target=0 のとき Delta_eff は常に 0 になり, かつ 1. と 3. の s
 (tests/test_predictive_baseline_consistency.py で検証).
 protect_presetup=True でも n_target=0 なら保護の条件 i+s <= 0 は
 s=0 の状態でしか成り立たず, s=0 では取り消しがもともと起こらないので,
-同じくベースモデルに一致する.
+同じくベースモデルに一致する. protect_delayoff=True でも n_target=0 なら
+保護の条件 i+s <= 0 は i=0 でしか成り立たず, i=0 では Delayoff は
+もともと起こらないので, やはりベースモデルに一致する.
 """
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -48,6 +53,7 @@ from mmpp_predictive.state_space import (
     idle_count,
     setup_target_delta,
     setup_cancelled,
+    delayoff_blocked,
 )
 
 
@@ -62,6 +68,7 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
     mu, alpha, beta = params.mu, params.alpha, params.beta
     n_target, gamma = params.n_target, params.gamma
     protect = params.protect_presetup
+    protect_off = params.protect_delayoff
     C0, C1 = params.C0, params.C1
     D_M = params.D_M
 
@@ -128,7 +135,8 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
 
                 # --- 4. Delayoff ---
                 I = idle_count(i, j, b)
-                if I > 0 and i >= 1:
+                if I > 0 and i >= 1 and not delayoff_blocked(
+                        i, s, F, n_target, protect_off):
                     beta_F = gamma * beta if F == 0 else beta
                     dst = idx(i - 1, s, j, F)
                     add_transition(src, dst, I * beta_F)

@@ -334,6 +334,8 @@ Busy/Idle は \eqref{eq:B}, \eqref{eq:I} と同じ $(i,j)$ の関数を用いる
     \beta_F=\begin{cases}\gamma\beta & F=0\\ \beta & F\ne0\end{cases}
     \quad\text{← 機構 (P2)}
   \end{equation}
+  ただし選択肢 \code{protect\_delayoff} が真のときは \S\ref{sec:protect-delayoff} の
+  条件で遷移を加えない。
 \end{enumerate}
 
 \subsection{ベースモデルへの帰着}
@@ -383,6 +385,47 @@ $n_{\mathrm{target}}=0$ では \code{protect\_presetup} の値によらず
 $Q^P$ は同一であり, $\gamma=1$ と合わせてベースモデルに厳密に一致する。
 \code{tests/test\_protect\_presetup.py} で, $n_{\mathrm{target}}=0$ での $Q^P$ の
 完全一致と, $\gamma=1$ でのベースモデルとの指標の一致 (相対誤差 $10^{-10}$) を確認している。
+
+\subsection{選択肢: バースト中の Delayoff の保護 (\code{protect\_delayoff})}
+\label{sec:protect-delayoff}
+
+\code{protect\_presetup} は退去による取り消しで $i+s$ が $n_{\mathrm{target}}$ を
+下回ることを防ぐが, Delayoff $(i,s)\to(i-1,s)$ による減少は防がない。
+$\beta$ が大きいとこの経路でバースト中に $i+s<n_{\mathrm{target}}$ となる。
+そこで真偽値の選択肢 \code{protect\_delayoff} (\textbf{既定値は偽}) を設け,
+真のときは
+\begin{equation}
+  F=1 \text{ かつ } i+s\le n_{\mathrm{target}}
+  \ \Longrightarrow\ \text{Delayoff の遷移を加えない}
+  \label{eq:protect-delayoff}
+\end{equation}
+とする (アイドルのサーバーはバースト中は電源を落とさずに待つ)。
+通常位相 $F=0$ では従来どおり率 $I(i,j)\gamma\beta$ で起こる。
+判定は \code{state\_space.py} の \code{delayoff\_blocked} にまとめ,
+生成行列と指標 \code{delayoff\_rate} がこれを使う。DES には同じ規則を独立に実装した。
+
+\paragraph{両方を真にしたときの性質}
+\code{protect\_presetup} と \code{protect\_delayoff} を両方真にすると,
+「バースト中は $i+s\ge n_{\mathrm{target}}$ を保つ」方策になる。
+$F=1$ の間に $i+s$ を減らす遷移は取り消しと Delayoff だけで, どちらも
+$i+s\le n_{\mathrm{target}}$ では起こらないから, $i+s\ge n_{\mathrm{target}}$ の状態から
+$F=1$ に留まる経路は $i+s<n_{\mathrm{target}}$ に入らない。
+$n_{\mathrm{target}}\le c$ より \eqref{eq:delta} のクリップは効かず,
+P1 発動直後は $i+s\ge n_{\mathrm{target}}$ である。\code{build\_mmpp} の MMPP では
+$C_1$ が対角なので $F=1$ へは位相遷移 ($C_0[0,1]$) でしか入らず,
+到達可能な $F=1$ の状態はすべて $i+s\ge n_{\mathrm{target}}$ を満たす。
+実験 7・8 で保護の有無を比べるときは
+$(\code{protect\_presetup},\code{protect\_delayoff})\in\{(\text{偽},\text{偽}),(\text{真},\text{真})\}$
+の 2 通りを用いる。
+
+\paragraph{ベースモデルへの帰着}
+$n_{\mathrm{target}}=0$ のとき \eqref{eq:protect-delayoff} の条件は $i=0$ でしか
+成り立たないが, $i=0$ では Delayoff はもともと起こらない。したがって
+$n_{\mathrm{target}}=0$ では \code{protect\_delayoff} の値によらず $Q^P$ は同一で,
+$\gamma=1$ と合わせてベースモデルに一致する。
+\code{tests/test\_protect\_delayoff.py} で, 両方真での $Q^P$ の一致とベースとの一致
+(相対誤差 $10^{-10}$), P1 発動直後の状態から $F=1$ に留まる経路の到達集合に
+$i+s<n_{\mathrm{target}}$ の状態がないこと (片方の保護だけでは現れること) を確認している。
 
 % =====================================================================
 \section{性能指標}
@@ -472,11 +515,15 @@ Predictive モデルでは次も計算する (\code{all\_metrics} のキー名)�
   \code{setup\_cancel\_rate} &= \sum \pi(i,s,j,F)\,B(i,j)\,\mu\,
      \mathbf{1}[\mathrm{cancel}(i,s,j,F)]
   &&\text{(取り消しの判定は \eqref{eq:protect})}\\
+  \code{delayoff\_rate} &= \sum \pi(i,s,j,F)\,I(i,j)\,\beta_F\,
+     \mathbf{1}[\text{\eqref{eq:protect-delayoff} で止められていない}]\\
   \code{rho\_B} &= \lambda_1/(c\,b\,\mu)
   &&\text{(バースト位相の負荷; \code{build\_mmpp} では } \rho(1+\delta))
 \end{align}
 セットアップの開始 (到着による反応的開始と P1) と終了 (完了と取り消し) の率は
-定常状態で釣り合う。この恒等式もテストで確認している。
+定常状態で釣り合う。同様に $i$ の増加 (セットアップ完了) と減少 (Delayoff) の率も
+釣り合う ($\code{setup\_completion\_rate}=\code{delayoff\_rate}$)。
+これらの恒等式もテストで確認している。
 
 \paragraph{検証恒等式}
 実験スクリプトは各点で次の 2 つを診断出力する。
@@ -975,6 +1022,11 @@ $\alpha=10$: 1000 (全バースト, 走査上端) であり, 桁としては対�
   & \code{protect\_presetup} が偽で既存の結果が不変, 真でも $n_{\mathrm{target}}=0,\gamma=1$ で
     ベースと一致, 保護でバースト中の $i+s<n_{\mathrm{target}}$ の確率が減ること,
     P1 診断指標 (セットアップの流量保存, DES の発動・取り消し回数との一致) \\
+\code{test\_protect\_delayoff.py}
+  & \code{protect\_delayoff} が偽で既存の結果 (\code{results/p1\_protect/p1\_protect\_v1.csv}) が不変,
+    両方真で $n_{\mathrm{target}}=0,\gamma=1$ のときベースと一致,
+    両方真でバースト中に $i+s\ge n_{\mathrm{target}}$ が保たれること,
+    Delayoff 率 $=$ セットアップ完了率, DES との一致 \\
 \code{test\_simulator.py}, \code{test\_predictive\_sim\_simulator.py}
   & イベントメニュー, 状態遷移, 統計収集 \\
 \code{test\_experiment\_*.py} & 各実験スクリプトのパラメータ格子・CSV 列・図生成 \\
