@@ -8,6 +8,9 @@
         none     = (False, False)  保護なし
         presetup = (True,  False)  取り消しのみ保護
         both     = (True,  True)   取り消しと Delayoff の両方を保護
+      に加え, 位相の情報を使わない対照
+        nocancel = never_cancel_setup=True, n_target=0, gamma=1
+      を (条件, alpha, beta) ごとに 1 点計算する (gamma は 1 に固定).
 
 計算結果は 1 点ごとに results/p1_protect/p1_protect.csv に追記し, 再実行時は
 計算済みの点 (パラメータの組がキー) を飛ばして再開する. 進捗は
@@ -44,12 +47,17 @@ N_TARGET = 10
 ALPHA_LEVELS = [0.1, 1.0, 10.0]
 BETA_LEVELS = [0.005, 0.5]
 GAMMA_LEVELS = [1.0, 5.0]
-# (名前, protect_presetup, protect_delayoff)
+# (名前, protect_presetup, protect_delayoff, never_cancel_setup)
 MODES = [
-    ("none", False, False),
-    ("presetup", True, False),
-    ("both", True, True),
+    ("none", False, False, False),
+    ("presetup", True, False, False),
+    ("both", True, True, False),
 ]
+# 位相の情報を使わない対照: P1 なし (n_target=0), Delayoff 加速なし (gamma=1),
+# 取り消しを一切行わない.
+NOCANCEL = ("nocancel", False, False, True)
+NOCANCEL_N_TARGET = 0
+NOCANCEL_GAMMA = 1.0
 
 # (ブロック名, バースト名, delta, sigma, rho)
 BLOCKS = [
@@ -68,7 +76,7 @@ LOG_PATH = os.path.join(OUT_DIR, "progress.log")
 SUMMARY_PATH = os.path.join(OUT_DIR, "summary.md")
 
 KEY_FIELDS = ["burst_name", "rho", "alpha", "beta", "gamma", "n_target",
-              "protect_presetup", "protect_delayoff"]
+              "protect_presetup", "protect_delayoff", "never_cancel_setup"]
 METRIC_FIELDS = [
     "P_block_arrival_stable", "E_W", "Cost", "ERP",
     "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
@@ -82,15 +90,36 @@ FIELDNAMES = KEY_FIELDS + ["mode", "delta", "sigma", "c", "K", "b"] + METRIC_FIE
 V1_COMPARE_FIELDS = [f for f in METRIC_FIELDS if f != "delayoff_rate"]
 
 
-def point_key(burst_name, rho, alpha, beta, gamma, protect_presetup, protect_delayoff):
+def point_key(burst_name, rho, alpha, beta, gamma, n_target,
+              protect_presetup, protect_delayoff, never_cancel_setup):
     return (burst_name, float(rho), float(alpha), float(beta), float(gamma),
-            int(N_TARGET), bool(protect_presetup), bool(protect_delayoff))
+            int(n_target), bool(protect_presetup), bool(protect_delayoff),
+            bool(never_cancel_setup))
 
 
 def row_key(row):
     return (row["burst_name"], float(row["rho"]), float(row["alpha"]),
             float(row["beta"]), float(row["gamma"]), int(row["n_target"]),
-            row["protect_presetup"] == "True", row["protect_delayoff"] == "True")
+            row["protect_presetup"] == "True", row["protect_delayoff"] == "True",
+            row["never_cancel_setup"] == "True")
+
+
+def migrate_csv():
+    """never_cancel_setup 列のない旧形式の CSV に, 列を False で追加する (値は変えない)."""
+    if not os.path.exists(CSV_PATH):
+        return
+    with open(CSV_PATH, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        if "never_cancel_setup" in reader.fieldnames:
+            return
+        rows = list(reader)
+    for r in rows:
+        r["never_cancel_setup"] = "False"
+    with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=FIELDNAMES)
+        w.writeheader()
+        w.writerows(rows)
+    print(f"{CSV_PATH} に never_cancel_setup 列 (False) を追加 ({len(rows)} 行)", flush=True)
 
 
 def load_done():
@@ -107,7 +136,7 @@ def load_v1():
     with open(V1_CSV_PATH, newline="", encoding="utf-8") as f:
         return {
             point_key(r["burst_name"], r["rho"], r["alpha"], r["beta"], r["gamma"],
-                      r["protect_presetup"] == "True", False): r
+                      r["n_target"], r["protect_presetup"] == "True", False, False): r
             for r in csv.DictReader(f)
         }
 
@@ -132,13 +161,15 @@ def log_progress(done, total, t0, t_point_avg, last):
     print(line, flush=True)
 
 
-def run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, mode, v1_row=None):
-    mode_name, protect_presetup, protect_delayoff = mode
+def run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, n_target, mode,
+              v1_row=None):
+    mode_name, protect_presetup, protect_delayoff, never_cancel_setup = mode
     c, b, mu = BASELINE["c"], BASELINE["b"], BASELINE["mu"]
     C0, C1 = build_mmpp(rho, delta, sigma, c, b, mu)
     params = PredictiveModelParameters(
-        C0=C0, C1=C1, alpha=alpha, beta=beta, n_target=N_TARGET, gamma=gamma,
+        C0=C0, C1=C1, alpha=alpha, beta=beta, n_target=n_target, gamma=gamma,
         protect_presetup=protect_presetup, protect_delayoff=protect_delayoff,
+        never_cancel_setup=never_cancel_setup,
         **BASELINE,
     )
     t = time.time()
@@ -148,8 +179,9 @@ def run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, mode, v1_row=No
 
     row = {
         "burst_name": burst_name, "rho": rho, "alpha": alpha, "beta": beta,
-        "gamma": gamma, "n_target": N_TARGET,
+        "gamma": gamma, "n_target": n_target,
         "protect_presetup": protect_presetup, "protect_delayoff": protect_delayoff,
+        "never_cancel_setup": never_cancel_setup,
         "mode": mode_name, "delta": delta, "sigma": sigma,
         "c": c, "K": BASELINE["K"], "b": b,
         "P_block_arrival_stable": m.arrival_blocking_probability_stable(),
@@ -192,18 +224,27 @@ def run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, mode, v1_row=No
 
 
 def all_points():
-    return [(blk, alpha, beta, gamma, mode)
-            for blk in BLOCKS for alpha in ALPHA_LEVELS for beta in BETA_LEVELS
-            for gamma in GAMMA_LEVELS for mode in MODES]
+    """(ブロック, alpha, beta, gamma, n_target, mode) の全点."""
+    points = []
+    for blk in BLOCKS:
+        for alpha in ALPHA_LEVELS:
+            for beta in BETA_LEVELS:
+                for gamma in GAMMA_LEVELS:
+                    for mode in MODES:
+                        points.append((blk, alpha, beta, gamma, N_TARGET, mode))
+                points.append((blk, alpha, beta, NOCANCEL_GAMMA, NOCANCEL_N_TARGET,
+                               NOCANCEL))
+    return points
 
 
 def key_of(pt):
-    (_, burst_name, _, _, rho), alpha, beta, gamma, mode = pt
-    return point_key(burst_name, rho, alpha, beta, gamma, mode[1], mode[2])
+    (_, burst_name, _, _, rho), alpha, beta, gamma, n_target, mode = pt
+    return point_key(burst_name, rho, alpha, beta, gamma, n_target, *mode[1:])
 
 
 def run(blocks):
     os.makedirs(OUT_DIR, exist_ok=True)
+    migrate_csv()
     # 総点数・完了点数は全ブロックで数え, 計算は指定ブロックのみ行う
     points = all_points()
     done_keys = load_done()
@@ -217,9 +258,9 @@ def run(blocks):
     t0 = time.time()
     last_log = t0
     for k, pt in enumerate(todo):
-        (blk_name, burst_name, delta, sigma, rho), alpha, beta, gamma, mode = pt
-        row = run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, mode,
-                        v1_row=v1.get(key_of(pt)))
+        (blk_name, burst_name, delta, sigma, rho), alpha, beta, gamma, n_target, mode = pt
+        row = run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, n_target,
+                        mode, v1_row=v1.get(key_of(pt)))
         append_row(row)
         done += 1
         if row["check"] != "ok":
@@ -247,8 +288,9 @@ def summary_table(rows, alpha):
     for _, burst_name, _, _, rho in BLOCKS:
         for beta in BETA_LEVELS:
             for gamma in GAMMA_LEVELS:
-                for mode_name, pp, pd in MODES:
-                    key = point_key(burst_name, rho, alpha, beta, gamma, pp, pd)
+                for mode_name, pp, pd, nc in MODES:
+                    key = point_key(burst_name, rho, alpha, beta, gamma, N_TARGET,
+                                    pp, pd, nc)
                     r = rows.get(key)
                     if r is None:
                         continue
@@ -261,15 +303,56 @@ def summary_table(rows, alpha):
     return lines
 
 
+def control_table(rows, alpha):
+    """none / both / nocancel の比較表 (Markdown). nocancel は gamma=1 固定の同じ行を
+    各 gamma の組に並べる. ERP 比は none に対する変化率."""
+    lines = [
+        f"### 対照との比較: alpha = {alpha}",
+        "",
+        "| 条件 | β | γ | 方策 | p1_fire_rate | setup_cancel_rate | "
+        "P_block_arrival_stable | E[W] | Cost | ERP | ERP 変化 (対 none) | check |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for _, burst_name, _, _, rho in BLOCKS:
+        for beta in BETA_LEVELS:
+            for gamma in GAMMA_LEVELS:
+                keys = [
+                    ("none", point_key(burst_name, rho, alpha, beta, gamma, N_TARGET,
+                                       False, False, False)),
+                    ("both", point_key(burst_name, rho, alpha, beta, gamma, N_TARGET,
+                                       True, True, False)),
+                    ("NoCancel (n_target=0, γ=1)",
+                     point_key(burst_name, rho, alpha, beta, NOCANCEL_GAMMA,
+                               NOCANCEL_N_TARGET, *NOCANCEL[1:])),
+                ]
+                if any(k not in rows for _, k in keys):
+                    continue
+                erp_none = float(rows[keys[0][1]]["ERP"])
+                for name, key in keys:
+                    r = rows[key]
+                    g = lambda k: float(r[k])
+                    lines.append(
+                        f"| {burst_name}, ρ={rho} | {beta} | {gamma:g} | {name} | "
+                        f"{g('p1_fire_rate'):.4e} | {g('setup_cancel_rate'):.4e} | "
+                        f"{g('P_block_arrival_stable'):.4e} | {g('E_W'):.4f} | "
+                        f"{g('Cost'):.4f} | {g('ERP'):.4f} | "
+                        f"{100 * (g('ERP') / erp_none - 1):+.2f}% | {r['check']} |")
+    return lines
+
+
 def summary():
     with open(CSV_PATH, newline="", encoding="utf-8") as f:
         rows = {row_key(r): r for r in csv.DictReader(f)}
     caption = (f"固定条件: c={BASELINE['c']}, K={BASELINE['K']}, b={BASELINE['b']}, "
                f"mu={BASELINE['mu']}, n_target={N_TARGET}. "
                "保護: none=(protect_presetup, protect_delayoff)=(False, False), "
-               "presetup=(True, False), both=(True, True)")
+               "presetup=(True, False), both=(True, True). "
+               "NoCancel=never_cancel_setup=True, n_target=0, gamma=1 "
+               "(位相の情報を使わない対照; 表では各 gamma の組に同じ行を並べる)")
     lines = ["# 保護の有無による比較 (results/p1_protect/p1_protect.csv から生成)",
              "", caption, ""]
+    for alpha in ALPHA_LEVELS:
+        lines += control_table(rows, alpha) + [""]
     for alpha in ALPHA_LEVELS:
         lines += summary_table(rows, alpha) + [""]
     text = "\n".join(lines)

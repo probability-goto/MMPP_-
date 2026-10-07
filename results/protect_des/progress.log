@@ -1,0 +1,10 @@
+2026-10-07T22:20:25 done=1/10 elapsed=321.8s eta=2896.0s last=policy=both,rho=0.3000,in_ci=6/6
+2026-10-07T22:24:38 done=2/10 elapsed=575.1s eta=2300.5s last=policy=both,rho=0.4625,in_ci=6/6
+2026-10-07T22:28:01 done=3/10 elapsed=777.6s eta=1814.4s last=policy=both,rho=0.6250,in_ci=6/6
+2026-10-07T22:31:19 done=4/10 elapsed=975.2s eta=1462.8s last=policy=both,rho=0.7875,in_ci=5/6
+2026-10-07T22:34:35 done=5/10 elapsed=1171.4s eta=1171.4s last=policy=both,rho=0.9500,in_ci=6/6
+2026-10-07T22:38:06 done=6/10 elapsed=1382.8s eta=921.9s last=policy=nocancel,rho=0.3000,in_ci=4/6
+2026-10-07T22:41:37 done=7/10 elapsed=1593.2s eta=682.8s last=policy=nocancel,rho=0.4625,in_ci=6/6
+2026-10-07T22:45:03 done=8/10 elapsed=1799.8s eta=449.9s last=policy=nocancel,rho=0.6250,in_ci=6/6
+2026-10-07T22:48:25 done=9/10 elapsed=2001.4s eta=222.4s last=policy=nocancel,rho=0.7875,in_ci=6/6
+2026-10-07T22:51:46 done=10/10 elapsed=2202.6s eta=0.0s last=policy=nocancel,rho=0.9500,in_ci=6/6

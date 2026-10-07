@@ -11,3 +11,9 @@
 2026-10-07T21:53:38 done=90/108 elapsed=153.4s eta=30.7s last=medium,rho=0.3,alpha=1.0,beta=0.005,gamma=5.0,mode=both
 2026-10-07T21:53:55 done=100/108 elapsed=170.5s eta=13.6s last=medium,rho=0.3,alpha=10.0,beta=0.005,gamma=5.0,mode=none
 2026-10-07T21:54:09 done=108/108 elapsed=183.8s eta=0.0s last=medium,rho=0.3,alpha=10.0,beta=0.5,gamma=5.0,mode=both
+2026-10-07T22:10:44 done=110/126 elapsed=26.8s eta=214.5s last=medium,rho=0.7,alpha=0.1,beta=0.5,gamma=1.0,mode=nocancel
+2026-10-07T22:11:38 done=114/126 elapsed=81.0s eta=162.0s last=medium,rho=0.7,alpha=10.0,beta=0.5,gamma=1.0,mode=nocancel
+2026-10-07T22:12:55 done=119/126 elapsed=70.6s eta=98.8s last=strong,rho=0.7,alpha=10.0,beta=0.005,gamma=1.0,mode=nocancel
+2026-10-07T22:13:08 done=120/126 elapsed=84.2s eta=84.2s last=strong,rho=0.7,alpha=10.0,beta=0.5,gamma=1.0,mode=nocancel
+2026-10-07T22:14:23 done=125/126 elapsed=69.8s eta=14.0s last=medium,rho=0.3,alpha=10.0,beta=0.005,gamma=1.0,mode=nocancel
+2026-10-07T22:14:37 done=126/126 elapsed=83.9s eta=0.0s last=medium,rho=0.3,alpha=10.0,beta=0.5,gamma=1.0,mode=nocancel
