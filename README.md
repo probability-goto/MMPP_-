@@ -71,32 +71,144 @@ pytest tests/
 
 ## 数値実験の実行
 
+### バーストパラメータ δ, σ の定義
+
+全実験の到着過程は対称 2 位相 MMPP (`scripts/_mmpp_burst.py` の `build_mmpp`):
+
+- 平均到着率: λ̄ = ρ · c · b · μ
+- 位相 0 (通常) の到着率: λ₀ = λ̄ (1 − δ)
+- 位相 1 (バースト) の到着率: λ₁ = λ̄ (1 + δ)
+- 位相遷移率: 0→1, 1→0 ともに σ (各位相の平均滞在時間 1/σ)
+
+δ ∈ [0, 1) はバーストの**振幅** (δ=0 でポアソン到着), σ はバーストの**時定数**
+(小さいほど 1 回のバーストが長く続く) を表す。定常位相確率は (1/2, 1/2) なので
+δ, σ を変えても平均到着率 λ̄ は変わらない。
+
+### 共通パラメータ
+
+```python
+BASELINE = dict(c=20, K=200, b=5, mu=1.0, alpha=0.1, beta=0.005)
+BURST_LEVELS = {            # (delta, sigma)
+    "weak":   (0.3, 1.0),
+    "medium": (0.6, 0.1),
+    "strong": (0.9, 0.01),
+}
+ALPHA_LEVELS = [0.1, 1.0, 10.0]                          # 実験 2, 3, 5, 6 で走査
+ALPHA_GAMMA_MAP = {0.1: 1.0, 1.0: 100.0, 10.0: 1000.0}   # --alpha-gamma-map 指定時の alpha 別 gamma
+```
+
+Predictive 拡張 (P 付き) の追加パラメータ:
+`n_target` = バースト予測時 (位相 0→1) の目標稼働サーバー数 (0 ≤ n_target ≤ c),
+`gamma` = 通常位相 (F=0) での Delayoff 加速係数 (beta → gamma·beta, gamma ≥ 1)。
+既定値は `n_target=10, gamma=5.0`。
+
+### 実験 1 / 1-P: トラフィック強度 ρ の走査
+
+```python
+params = BASELINE                         # c=20, K=200, b=5, mu=1.0, alpha=0.1, beta=0.005
+bursts = ["weak", "medium", "strong"]
+rho    = np.linspace(0.1, 0.95, 15)
+# 1-P: n_target=10, gamma=5.0 (既定) / gamma=1.0
+```
+
 ```bash
-python scripts/experiment_1_traffic.py
-python scripts/experiment_2_delayoff.py
-python scripts/experiment_2_delayoff.py --strong-burst
-python scripts/experiment_3_burstiness.py --sweep delta
-python scripts/experiment_3_burstiness.py --sweep sigma
-python scripts/experiment_4_K_sensitivity.py --burst all
-python scripts/experiment_5_n_target.py --burst all
-python scripts/experiment_6_gamma.py --burst all
+python scripts/experiment_1_traffic.py                 # -> results/experiment_1.csv
+python scripts/experiment_1P_traffic.py                # -> results/experiment_1P_nt10_g5.0.csv
+python scripts/experiment_1P_traffic.py --gamma 1.0    # -> results/experiment_1P_nt10_g1.0.csv
+```
 
+### 実験 2 / 2-P: Delayoff 率 β の走査
 
-python scripts/experiment_1P_traffic.py
-python scripts/experiment_1P_traffic.py --gamma 1.0
-python scripts/experiment_2P_delayoff.py
-python scripts/experiment_2P_delayoff.py --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"
-python scripts/experiment_2P_delayoff.py --strong-burst
-python scripts/experiment_2P_delayoff.py --strong-burst --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"
-python scripts/experiment_3P_burstiness.py --sweep delta
-python scripts/experiment_3P_burstiness.py --sweep delta --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"
-python scripts/experiment_3P_burstiness.py --sweep sigma
-python scripts/experiment_3P_burstiness.py --sweep sigma --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"
-python scripts/experiment_4P_K_sensitivity.py --burst all
-python scripts/experiment_4P_K_sensitivity.py --burst all --gamma 1.0
+```python
+params = dict(c=20, K=200, b=5, mu=1.0)
+rho    = 0.7
+alpha  = [0.1, 1.0, 10.0]
+beta   = np.logspace(-2, 2, 15)           # 1e-2 .. 1e2
+burst  = "medium"  # (delta=0.6, sigma=0.1), --strong-burst で "strong" (delta=0.9, sigma=0.01)
+# 2-P: n_target=10, gamma=5.0 (既定) / --alpha-gamma-map で alpha 別 gamma
+```
 
+```bash
+python scripts/experiment_2_delayoff.py                    # -> results/experiment_2_medium.csv
+python scripts/experiment_2_delayoff.py --strong-burst     # -> results/experiment_2_strong.csv
+python scripts/experiment_2P_delayoff.py                   # -> results/experiment_2P_medium_nt10_g5.0.csv
+python scripts/experiment_2P_delayoff.py --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"   # -> ..._medium_nt10_gmap.csv
+python scripts/experiment_2P_delayoff.py --strong-burst    # -> results/experiment_2P_strong_nt10_g5.0.csv
+python scripts/experiment_2P_delayoff.py --strong-burst --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"   # -> ..._strong_nt10_gmap.csv
+```
 
+### 実験 3 / 3-P: バースト性 (δ, σ) の走査
 
+```python
+params = BASELINE                         # beta=0.005 固定
+rho    = 0.7
+alpha  = [0.1, 1.0, 10.0]
+# --sweep delta (3-A):
+delta  = np.linspace(0.0, 0.95, 15);  sigma = 0.1
+# --sweep sigma (3-B):
+sigma  = np.logspace(-3, 1, 15);      delta = 0.6     # 1e-3 .. 1e1
+# 3-P: n_target=10, gamma=5.0 (既定) / --alpha-gamma-map で alpha 別 gamma
+```
+
+```bash
+python scripts/experiment_3_burstiness.py --sweep delta    # -> results/experiment_3_delta.csv
+python scripts/experiment_3_burstiness.py --sweep sigma    # -> results/experiment_3_sigma.csv
+python scripts/experiment_3P_burstiness.py --sweep delta   # -> results/experiment_3P_delta_nt10_g5.0.csv
+python scripts/experiment_3P_burstiness.py --sweep delta --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"   # -> ..._delta_nt10_gmap.csv
+python scripts/experiment_3P_burstiness.py --sweep sigma   # -> results/experiment_3P_sigma_nt10_g5.0.csv
+python scripts/experiment_3P_burstiness.py --sweep sigma --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"   # -> ..._sigma_nt10_gmap.csv
+```
+
+### 実験 4 / 4-P: バッファ容量 K の感度
+
+```python
+params = dict(c=20, b=5, mu=1.0, alpha=0.1, beta=0.005)
+K      = [100, 200, 500, 1000]
+bursts = ["weak", "medium", "strong"]
+rho    = np.linspace(0.1, 0.95, 15)
+# 4-P: n_target=10, gamma=5.0 (既定) / gamma=1.0
+```
+
+```bash
+python scripts/experiment_4_K_sensitivity.py --burst all                 # -> results/experiment_4_{weak,medium,strong}.csv
+python scripts/experiment_4P_K_sensitivity.py --burst all                # -> results/experiment_4P_{burst}_nt10_g5.0.csv
+python scripts/experiment_4P_K_sensitivity.py --burst all --gamma 1.0    # -> results/experiment_4P_{burst}_nt10_g1.0.csv
+```
+
+### 実験 5: n_target の感度 (Predictive のみ)
+
+```python
+params   = BASELINE
+rho      = 0.7
+alpha    = [0.1, 1.0, 10.0]
+bursts   = ["weak", "medium", "strong"]
+gamma    = 5.0
+n_target = [0, 1, 3, 4, 6, 7, 9, 10, 11, 13, 14, 16, 17, 19, 20]
+```
+
+```bash
+python scripts/experiment_5_n_target.py --burst all    # -> results/experiment_5_{burst}_g5.0.csv
+```
+
+### 実験 6: gamma の感度 (Predictive のみ)
+
+```python
+params   = BASELINE
+rho      = 0.7
+alpha    = [0.1, 1.0, 10.0]
+bursts   = ["weak", "medium", "strong"]
+n_target = 10
+gamma    = np.logspace(0, np.log10(20.0), 15)   # 1 .. 20 の対数 15 点のうち 5.54 を 5.0 に置換
+# = [1.0, 1.239, 1.534, 1.900, 2.354, 2.915, 3.611, 4.472, 5.0, 6.861, 8.498, 10.525, 13.037, 16.147, 20.0]
+```
+
+```bash
+python scripts/experiment_6_gamma.py --burst all       # -> results/experiment_6_{burst}_nt10.csv
+```
+
+### ベース vs Predictive の比較図
+
+```bash
 python scripts/compare_experiment_1_vs_1P.py \
   --base-csv results/experiment_1.csv \
   --pred-csv results/experiment_1P_nt10_g1.0.csv
