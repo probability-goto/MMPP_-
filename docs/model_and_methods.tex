@@ -1,0 +1,976 @@
+% =====================================================================
+%  MMPP_- リポジトリ 実装仕様書
+%  コンパイル: lualatex docs/model_and_methods.tex  (luatexja を使用)
+%  upLaTeX を使う場合は documentclass を
+%    \documentclass[a4paper,11pt,uplatex,dvipdfmx]{jsarticle}
+%  に変更し, \usepackage{luatexja} 行を削除してください.
+% =====================================================================
+\documentclass[a4paper,11pt]{article}
+\usepackage{luatexja}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage[margin=25mm]{geometry}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\off}{\mathrm{off}}
+\newcommand{\eff}{\mathrm{eff}}
+\newcommand{\blk}{\mathrm{block}}
+
+\title{MMPP/M/$c$/SET-BATCH/Delayoff モデルおよび\\
+その Predictive 拡張の実装仕様\\
+\large --- モデル定義・数値解析手法・数値実験手順の記述 ---}
+\author{本リポジトリ (\code{MMPP\_-}) の実装に基づく記述}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本書は本リポジトリに実装されている 2 つの待ち行列モデル,
+すなわち (i) ベースモデル \textbf{Delayoff モデル}
+(\code{mmpp/}, \code{mmpp\_sim/}) と
+(ii) その拡張である \textbf{Predictive モデル}
+(\code{mmpp\_predictive/}, \code{mmpp\_predictive\_sim/}) について,
+実装されているとおりのモデル定義・性能指標・定常分布の数値解法・
+離散事象シミュレーション・数値実験の設計を記述したものである。
+数式はすべて実際のソースコードから起こしており, 実装と異なる理想化や
+一般化は意図的に行っていない。実装上の非自明な選択・近似・仕様の細部は
+本文中および第 \ref{sec:checklist} 節のチェックリストに明示した。
+\end{abstract}
+
+\tableofcontents
+
+% =====================================================================
+\section{記号と対象コード}
+% =====================================================================
+
+\subsection{対象ディレクトリ}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+ディレクトリ & 内容 \\
+\midrule
+\code{mmpp/}                 & ベースモデルの理論解析 (生成行列・定常分布・性能指標) \\
+\code{mmpp\_sim/}            & ベースモデルの離散事象シミュレーション (DES) \\
+\code{mmpp\_predictive/}     & Predictive モデルの理論解析 \\
+\code{mmpp\_predictive\_sim/}& Predictive モデルの DES \\
+\code{scripts/}              & 数値実験スクリプト (実験 0--6, 比較・検証) \\
+\code{tests/}                & pytest による単体・結合テスト \\
+\code{results/}, \code{results\_gth/} & 実験結果 CSV \\
+\code{figures/}, \code{figures\_gth/} & 出力図 (PNG/PDF) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\code{mmpp\_sim} / \code{mmpp\_predictive\_sim} は理論実装の検証用であり,
+補助関数 (\code{busy\_servers} 等) を意図的に独立再実装している
+(\code{mmpp.generator} を import しない)。共有するのはパラメータクラスのみである。
+
+\subsection{記号}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+記号 & 意味 \\
+\midrule
+$c$      & サーバー総数 ($c>0$) \\
+$K$      & バッファ容量 (系内ジョブ数の上限, $K \ge b$) \\
+$b$      & バッチサイズ ($b>0$, フルバッチ方式) \\
+$\mu$    & バッチサービス完了率 ($>0$) \\
+$\alpha$ & セットアップ完了率 ($>0$) \\
+$\beta$  & Delayoff タイムアウト率 ($>0$) \\
+$D_M$    & MMPP の位相数 \\
+$C_0,C_1$& MMPP の内部遷移行列 / 到着遷移行列 ($D_M\times D_M$) \\
+$i$      & アクティブサーバー数 (Busy または Idle=Delayoff 計時中), $0\le i\le c$ \\
+$s$      & セットアップ中サーバー数 (Predictive モデルのみ明示的状態), $0\le s\le c-i$ \\
+$j$      & 系内ジョブ数, $0\le j\le K$ \\
+$F$      & MMPP 位相, $0\le F<D_M$ \\
+$n_{\mathrm{target}}$ & 事前セットアップの目標稼働台数 (Predictive) \\
+$\gamma$ & Delayoff 加速係数 (Predictive, $\gamma\ge1$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+すべての事象時間は指数分布に従い, 系は連続時間マルコフ連鎖 (CTMC) である。
+
+% =====================================================================
+\section{共通の到着過程: MMPP}
+% =====================================================================
+
+到着は Markov Modulated Poisson Process (MMPP) である。位相過程は
+生成行列 $C_0+C_1$ をもつ $D_M$ 状態 CTMC で, 位相 $F$ にいる間
+到着率 $\lambda_F$ のポアソン到着が発生する。実装は $(C_0,C_1)$ の組で与える
+(\code{mmpp/model.py})。
+
+\paragraph{整合性条件と検証}
+\code{ModelParameters.\_validate} が以下を検査する。
+\begin{itemize}
+  \item $C_0$ の非対角成分 $\ge 0$, 対角成分 $\le 0$, $C_1 \ge 0$ (許容誤差 $10^{-12}$)。
+  \item $(C_0+C_1)\mathbf{e}=\mathbf{0}$ (許容誤差 $10^{-10}$)。
+  \item $C_0+C_1$ の非零パターンを有向グラフとみて強連結成分が 1 つであること
+        (位相過程の既約性)。これが $Q$ 全体の既約性の十分条件であり,
+        定常分布の一意性を保証する。
+  \item $\lfloor K/b\rfloor < c$ のとき, $i>\lfloor K/b\rfloor$ の状態が
+        セットアップ経路から到達不能になるため \code{UserWarning} を出す
+        (数学的には問題ないがパラメータ設定ミスの検出用)。
+\end{itemize}
+
+\paragraph{派生量}
+\begin{align}
+  \lambda_F &= (C_1\mathbf{e})_F, \\
+  \boldsymbol{\varpi}(C_0+C_1) &= \mathbf{0},\quad \boldsymbol{\varpi}\mathbf{e}=1
+  \qquad (\text{位相定常分布}), \\
+  \bar{\lambda} &= \boldsymbol{\varpi}\,\boldsymbol{\lambda}
+  \qquad (\text{平均到着率}).
+\end{align}
+$\boldsymbol{\varpi}$ は $(C_0+C_1)^{\mathsf T}$ の最終行を $\mathbf{1}^{\mathsf T}$ に
+置き換えた線形系を \code{numpy.linalg.solve} で解いて得る。
+
+% =====================================================================
+\section{ベースモデル (Delayoff モデル)}
+\label{sec:base}
+% =====================================================================
+
+\subsection{状態空間とインデックス付け}
+
+状態は 3 つ組 $(i,j,F)$ である。
+\begin{equation}
+  \mathcal{S}=\{(i,j,F): 0\le i\le c,\ 0\le j\le K,\ 0\le F<D_M\}.
+\end{equation}
+$D_S=c+1$, $D=D_S D_M$, $N=D(K+1)$ とおき, $j$-major の順序
+\begin{equation}
+  \mathrm{idx}(i,j,F)=jD+iD_M+F
+  \label{eq:base-index}
+\end{equation}
+を用いる (\code{mmpp/state\_space.py})。この順序でレベル $j$ の状態が
+連続したブロックになり, $Q$ がブロック帯構造を持つ。
+
+\textbf{重要}: ベースモデルではセットアップ中サーバー数は状態変数ではなく,
+$(i,j)$ から決定論的に定まる関数である (次節)。
+
+\subsection{サーバー内訳の補助関数}
+
+\code{mmpp/generator.py} で定義される。
+\begin{align}
+  B(i,j) &= \min\!\left(i,\ \left\lfloor j/b \right\rfloor\right)
+  &&\text{(処理中=Busy)} \label{eq:B}\\
+  I(i,j) &= i - B(i,j)
+  &&\text{(アイドル; Delayoff 計時中)} \label{eq:I}\\
+  S(i,j) &= \max\!\left(0,\ \min\!\left(c,\left\lfloor j/b\right\rfloor\right)-i\right)
+  &&\text{(セットアップ中)} \label{eq:S}\\
+  \mathrm{Off}(i,j) &= c - i - S(i,j)
+  &&\text{(電源オフ)} \label{eq:Off}
+\end{align}
+したがって $B+I+S+\mathrm{Off}=c$ が恒等的に成立する。
+
+\paragraph{モデル上の含意}
+\begin{itemize}
+  \item フルバッチ方式: 待機中の完全バッチ数は $\lfloor j/b\rfloor$ であり,
+        $b$ 個揃わないサービスは開始されない。
+  \item 需要 $\lfloor j/b\rfloor$ に対してアクティブ台数 $i$ が不足する分を
+        \emph{即座に} セットアップ開始する (反応的セットアップ)。
+  \item 逆に $j$ が減って需要が下がると, セットアップ中のサーバーは
+        \emph{即座に} 取り消される ($S$ が関数であるため)。
+\end{itemize}
+
+\subsection{生成行列 $Q$}
+
+\code{build\_generator} は全状態を \eqref{eq:base-index} の順に走査し,
+以下の遷移を COO 形式で積み上げてから CSR に変換する
+(\code{sum\_duplicates} により重複成分は集約)。
+遷移を 1 本追加するごとに対角成分に $-(\text{率})$ を加算する実装である
+(\code{add\_transition})。率 $\le 0$ および $\mathrm{src}=\mathrm{dst}$ は追加しない。
+
+\begin{enumerate}
+\item \textbf{到着} ($j<K$):
+  \begin{equation}
+    (i,j,F)\ \longrightarrow\ (i,j+1,F'),\qquad \text{率}\ C_1[F,F']
+    \quad (\forall F' \text{ s.t. } C_1[F,F']>0).
+  \end{equation}
+\item \textbf{到着ブロック} ($j=K$): 位相遷移を伴う到着のみ残す。
+  \begin{equation}
+    (i,K,F)\ \longrightarrow\ (i,K,F'),\qquad \text{率}\ C_1[F,F']
+    \quad (F'\ne F).
+  \end{equation}
+  $F'=F$ 成分は自己ループとなり $Q$ には現れない。
+  本リポジトリの実験では $C_1$ は対角行列であるため, $j=K$ での到着は
+  $Q$ に一切寄与しない (損失呼; ジョブは棄却され系の状態は変わらない)。
+\item \textbf{バッチサービス完了} ($B(i,j)>0$ かつ $j\ge b$):
+  \begin{equation}
+    (i,j,F)\ \longrightarrow\ (i,j-b,F),\qquad \text{率}\ B(i,j)\,\mu .
+  \end{equation}
+  すなわち Busy サーバー 1 台あたり完了率 $\mu$, 1 回の完了で $b$ 個同時退去。
+\item \textbf{セットアップ完了} ($S(i,j)>0$ かつ $i<c$):
+  \begin{equation}
+    (i,j,F)\ \longrightarrow\ (i+1,j,F),\qquad \text{率}\ S(i,j)\,\alpha .
+  \end{equation}
+  セットアップ中 1 台あたり完了率 $\alpha$ の競合である
+  (条件 $i<c$ は $S>0$ から従うので冗長なガード)。
+\item \textbf{Delayoff タイムアウト} ($I(i,j)>0$ かつ $i>0$):
+  \begin{equation}
+    (i,j,F)\ \longrightarrow\ (i-1,j,F),\qquad \text{率}\ I(i,j)\,\beta .
+  \end{equation}
+  アイドル 1 台あたり率 $\beta$ の独立タイマーで電源オフする
+  (条件 $i>0$ は $I>0$ から従うので冗長)。
+\item \textbf{MMPP 内部位相遷移}:
+  \begin{equation}
+    (i,j,F)\ \longrightarrow\ (i,j,F'),\qquad \text{率}\ C_0[F,F']\quad (F'\ne F).
+  \end{equation}
+\end{enumerate}
+
+\paragraph{帯構造}
+到着は $+D$, バッチ完了は $-bD$ のインデックス変位を与えるので,
+下帯幅 $p=bD$, 上帯幅 $q=D$ ($C_1$ が対角の場合。非対角成分があれば
+$q=D+D_M-1$)。$i$ の増減は変位 $\pm D_M$, 位相遷移は $\pm 1$ 以内で,
+いずれも帯の内側である。標準設定 $(c,K,b,D_M)=(20,200,5,2)$ では
+$D=42$, $N=8442$, $p=210$, $q=42$ となる。
+
+% =====================================================================
+\section{Predictive モデル}
+\label{sec:pred}
+% =====================================================================
+
+\subsection{拡張の動機と 2 つの機構}
+
+Predictive モデルは \textbf{制御器が MMPP 位相 $F$ を観測できる}
+と仮定し (バースト到来の完全予知), 以下 2 機構を追加する。
+
+\begin{description}
+\item[(P1) 事前セットアップ] 位相が $0\to1$ に遷移した瞬間
+  (通常位相からバースト位相への切替) に, 稼働台数 ($i+s$) が
+  $n_{\mathrm{target}}$ に届くよう不足分のサーバーを一斉にセットアップ開始する。
+\item[(P2) Delayoff 加速] 通常位相 $F=0$ の間はアイドルサーバーの
+  Delayoff 率を $\beta\to\gamma\beta$ に加速し, 早めに電源を落とす。
+  バースト位相 $F=1$ では $\beta$ のまま。
+\end{description}
+
+実装上, 位相番号 $0$ (通常) と $1$ (バースト) は\textbf{ハードコード}されている
+(\code{generator.py} の \code{if F == 0 and Fp == 1}, \code{beta\_F = gamma*beta if F == 0}).
+したがって $D_M=2$ の対称 2 位相 MMPP を前提とした実装である。
+
+\subsection{状態空間}
+
+事前セットアップにより $s$ はキューの実需要 $S(i,j)$ を超えうるので,
+$s$ を明示的な状態次元に昇格させる。
+\begin{equation}
+  \mathcal{S}^{P}=\{(i,s,j,F): 0\le i\le c,\ 0\le s\le c-i,\ 0\le j\le K,\ 0\le F<D_M\}.
+\end{equation}
+拘束は $i+s\le c$ のみ。$(i,s)$ の組を $i$ 昇順・同一 $i$ 内で $s$ 昇順に
+列挙して線形番号 $\iota(i,s)$ を与え,
+\begin{equation}
+  \mathrm{idx}(i,s,j,F)=\bigl(\iota(i,s)(K+1)+j\bigr)D_M+F,\qquad
+  N^{P}=\frac{(c+1)(c+2)}{2}(K+1)D_M .
+  \label{eq:pred-index}
+\end{equation}
+標準設定では $N^P = 231\times201\times2 = 92{,}862$。
+Busy/Idle は \eqref{eq:B}, \eqref{eq:I} と同じ $(i,j)$ の関数を用いる。
+
+\subsection{事前セットアップ台数}
+
+\begin{equation}
+  \Delta = \max(n_{\mathrm{target}}-i-s,\ 0),\qquad
+  \Delta_{\eff} = \min(\Delta,\ c-i-s).
+  \label{eq:delta}
+\end{equation}
+第 2 式はオフサーバー不足によるクリップである
+(\code{setup\_target\_delta})。$i+s\le c$ の下で $\Delta_{\eff}\ge0$。
+
+\subsection{生成行列 $Q^{P}$}
+
+\code{mmpp\_predictive/generator.py} は \eqref{eq:pred-index} の全名目状態を
+走査し, 以下を積み上げる。$s_{\mathrm{need}}(i,j):=S(i,j)$
+(ベースモデルの \eqref{eq:S} をそのまま再利用) と書く。
+
+\begin{enumerate}
+\item \textbf{到着} ($j<K$): $j'=j+1$ とし
+  \begin{equation}
+    s' = \begin{cases}
+      s+1 & \text{if } s_{\mathrm{need}}(i,j')>s \text{ かつ } s<c-i,\\
+      s   & \text{otherwise,}
+    \end{cases}
+    \qquad
+    (i,s,j,F)\to(i,s',j',F'),\ \text{率}\ C_1[F,F'].
+  \end{equation}
+  すなわち反応的セットアップは $j$ の増加に追従して\textbf{最大 1 台だけ}増える。
+\item \textbf{到着ブロック} ($j=K$): $(i,s,K,F)\to(i,s,K,F')$, 率 $C_1[F,F']$, $F'\ne F$。
+\item \textbf{セットアップ完了} ($s\ge1$):
+  \begin{equation}
+    (i,s,j,F)\to(i+1,s-1,j,F),\qquad \text{率}\ s\,\alpha .
+  \end{equation}
+  $i+s\le c,\ s>0$ より $i<c$ は自動的に満たされる。
+\item \textbf{バッチサービス完了} ($B(i,j)>0$ かつ $j\ge b$): $j''=j-b$ とし
+  \begin{equation}
+    s''=\begin{cases} s-1 & \text{if } s_{\mathrm{need}}(i,j'')<s,\\ s & \text{otherwise,}\end{cases}
+    \qquad (i,s,j,F)\to(i,s'',j'',F),\ \text{率}\ B(i,j)\mu .
+  \end{equation}
+  すなわち需要が下がると\textbf{最大 1 台だけ}セットアップを取り消す。
+  これは事前セットアップで積んだ分にも適用される
+  (事前セットアップは退去イベントごとに 1 台ずつ解消されていく)。
+\item \textbf{MMPP 位相遷移} ($F'\ne F$, 率 $C_0[F,F']$):
+  \begin{equation}
+    (i,s,j,F)\to
+    \begin{cases}
+      (i,\ s+\Delta_{\eff},\ j,\ 1) & (F=0,\ F'=1) \quad\text{← 機構 (P1)}\\
+      (i,\ s,\ j,\ F')              & \text{otherwise}
+    \end{cases}
+  \end{equation}
+\item \textbf{Delayoff} ($I(i,j)>0$ かつ $i\ge1$):
+  \begin{equation}
+    (i,s,j,F)\to(i-1,s,j,F),\qquad
+    \text{率}\ I(i,j)\,\beta_F,\quad
+    \beta_F=\begin{cases}\gamma\beta & F=0\\ \beta & F\ne0\end{cases}
+    \quad\text{← 機構 (P2)}
+  \end{equation}
+\end{enumerate}
+
+\subsection{ベースモデルへの帰着}
+
+$n_{\mathrm{target}}=0$ かつ $\gamma=1$ のとき, \eqref{eq:delta} より
+$\Delta_{\eff}\equiv0$ であり, また到着/サービス完了での $s$ の $\pm1$ 追従は
+$s=S(i,j)$ を帰納的に保存する。したがって Predictive モデルは
+ベースモデルと厳密に一致する。これは
+\code{tests/test\_predictive\_baseline\_consistency.py} で
+4 指標について許容誤差 $10^{-8}$ で検証されている
+(DES 側も \code{tests/test\_predictive\_sim\_baseline\_consistency.py})。
+
+なお $n_{\mathrm{target}}=0$ だけでは $\gamma$ が効くため一致しない。
+実験 5 で $n_{\mathrm{target}}=0$ の点を取っているが, そこは
+$\gamma=5.0$ が有効な状態である。
+
+% =====================================================================
+\section{性能指標}
+\label{sec:metrics}
+% =====================================================================
+
+定常分布 $\pi$ から次を計算する
+(\code{mmpp/metrics.py}, \code{mmpp\_predictive/metrics.py})。
+以下 $\sum_{\text{state}}$ はベースでは $(i,F)$, Predictive では $(i,s,F)$ にわたる和である。
+
+\begin{align}
+  P_\blk &= \Pr(j=K) = \sum_{\text{state}} \pi(\cdot,K,\cdot)
+  &&\text{(時間平均ブロック確率)} \\
+  \lambda_\eff &= \sum_{j<K}\sum_{\text{state}} \pi(\cdot,j,F)\,\lambda_F
+  &&\text{(実効到着率)} \label{eq:lambda_eff}\\
+  P_\blk^{\mathrm{arr}} &= 1-\frac{\lambda_\eff}{\bar\lambda}
+  &&\text{(到着平均ブロック確率, 現行式)} \label{eq:parr}\\
+  \widetilde{P}_\blk^{\mathrm{arr}} &=
+  \frac{1}{\bar\lambda}\sum_{\text{state}} \pi(\cdot,K,F)\,\lambda_F
+  &&\text{(同, 数値安定版)} \label{eq:parr_stable}\\
+  E[j] &= \sum_{j} j \sum_{\text{state}} \pi(\cdot,j,\cdot) \\
+  E[B] &= \sum \pi\, B(i,j),\quad
+  E[I] = \sum \pi\, I(i,j) \\
+  E[S] &= \begin{cases}
+    \sum \pi\, S(i,j) & \text{(ベース: 関数から導出)}\\
+    \sum \pi\, s      & \text{(Predictive: 状態変数 $s$ の期待値)}
+  \end{cases}\\
+  E[\mathrm{Off}] &= c-E[B]-E[I]-E[S] \\
+  E[W] &= E[j]/\lambda_\eff \qquad\text{(Little の公式)} \\
+  \rho_{\mathrm{server}} &= E[B]/c
+\end{align}
+
+\paragraph{$P_\blk \ne P_\blk^{\mathrm{arr}}$ について}
+MMPP では位相分布が $j$ に依存するため, 時間平均と到着平均は一致しない。
+Poisson 到着 ($D_M=1$) では PASTA により一致する。
+\eqref{eq:parr} と \eqref{eq:parr_stable} の数学的等価性は,
+$\pi$ の位相マージナルが MMPP 位相定常分布に一致する事実
+$\sum_{i,j}\pi(i,j,F)=\varpi_F$ から
+\begin{equation}
+  \bar\lambda-\lambda_\eff
+  =\sum_F \lambda_F\Bigl[\sum_{i,j}\pi(i,j,F)-\sum_{j<K,i}\pi(i,j,F)\Bigr]
+  =\sum_{i,F}\pi(i,K,F)\lambda_F
+\end{equation}
+として導かれる。\eqref{eq:parr} は $1-(\text{1 に極めて近い値})$ の
+引き算を含むため $P_\blk^{\mathrm{arr}}\lesssim10^{-13}$ で桁落ちし負値も出る。
+\eqref{eq:parr_stable} は引き算を含まないので $\pi$ の相対精度がそのまま
+指標に伝わる。CSV には両方 (\code{P\_block\_arrival},
+\code{P\_block\_arrival\_stable}) を出力している。
+\textbf{ただし実験スクリプトの図は現行式 \eqref{eq:parr} の値をプロットしている}。
+
+\paragraph{電力コストと ERP}
+2 種類のコスト関数が実装されている。
+\begin{align}
+  \mathrm{Cost}_{\mathrm{generic}} &=
+  1.0\,E[B]+0.6\,E[I]+1.0\,E[S]+0.0\,E[\mathrm{Off}]
+  \qquad(\code{energy\_cost}) \\
+  \mathrm{Cost} &= C_b E[B]+C_s E[S]+C_i E[I],\qquad
+  \begin{aligned}
+    C_b &= 0.04419\,b+0.15503,\\ C_s &= C_b,\\ C_i &= 0.6\,C_b
+  \end{aligned}
+  \qquad(\code{energy\_cost\_paper})\\
+  \mathrm{ERP} &= E[W]\times \mathrm{Cost}
+  \qquad(\code{erp\_paper})
+\end{align}
+後者は先行研究 (Le-Anh \& Phung-Duc 2025) 5.2 節の式で, オフサーバーの
+電力消費を $0$ とする。\textbf{全数値実験は \code{energy\_cost\_paper} /
+\code{erp\_paper} を用いている} ($b=5$ では $C_b=C_s=0.37598$, $C_i=0.225588$)。
+Predictive モデルでは $C_b,C_s,C_i$ をパラメータとして上書き可能
+(既定値は上式と同一)。
+
+\paragraph{検証恒等式}
+実験スクリプトは各点で次の 2 つを診断出力する。
+\begin{align}
+  E[B]+E[I]+E[S]+E[\mathrm{Off}] &= c &&\text{(保存則)}\\
+  \lambda_\eff &= b\,\mu\,E[B] &&\text{(流量バランス)}
+\end{align}
+
+% =====================================================================
+\section{定常分布の数値解法}
+\label{sec:solver}
+% =====================================================================
+
+$\pi Q=\mathbf{0}$, $\pi\mathbf{e}=1$ を解く。既定ソルバーは \textbf{GTH 法}。
+
+\subsection{GTH 法 (既定)}
+
+\code{mmpp/gth\_solver.py}。Grassmann--Taksar--Heyman 法
+(O'Cinneide 1993, 1996 の GTH1--GTH3) を帯格納で実装する。
+生成行列 $G$ の\textbf{非対角成分のみ}を使い, \textbf{引き算を一切行わない}。
+
+\begin{align}
+  &\text{GTH1:} && \alpha_k=\sum_{j>k} g_{kj} \\
+  &\text{GTH2:} && g_{ij}\leftarrow g_{ij}+\frac{g_{ik}g_{kj}}{\alpha_k}
+  \qquad (i,j>k,\ i\ne j) \\
+  &\text{GTH3:} && a_{N-1}=1,\quad
+  a_k=\frac{1}{\alpha_k}\sum_{i>k} a_i g_{ik},\quad
+  \pi=\frac{a}{\sum_k a_k}
+\end{align}
+全演算が非負値の加算・乗算のみなので桁落ちが原理的に発生せず,
+$\pi$ の各成分が\textbf{相対精度}で求まる。
+
+\paragraph{帯格納と計算量}
+$\mathrm{Bnd}[r,\,c-r+p]=g_{rc}$ (非対角のみ) に展開する。
+帯幅 $(p,q)$ は行列の非零パターンから実測する (\code{bandwidths})。
+記憶量 $O(N(p+q))$, 演算量 $O(Npq)$。前進消去 (GTH1+GTH2) と
+後退代入 (GTH3) を numba \code{@njit(cache=True)} で高速化し,
+標準設定 $(c,K,b)=(20,200,5)$ で約 $0.17$ 秒/点。
+ピボット交換は行わず, 更新は帯の内側に限定されるため帯外フィルインは生じない。
+
+\paragraph{前提条件チェック}
+GTH は「全状態が最終状態 $N-1$ へ到達可能」であることを要する
+(既約ならば成立)。\code{check\_reachability} が $Q$ の逆向きグラフ上で
+$N-1$ から BFS して検証し, 満たさなければ \code{ValueError} を送出する。
+
+\paragraph{LU 分解}
+\code{return\_factors=True} で掃引後行列 $S$ と $\alpha$ を返し,
+\code{build\_LU} が $L$ (単位下三角, $L_{ik}=-S[i,k]/\alpha_k$) と
+$U$ ($U_{kk}=\alpha_k$, $U_{N-1,N-1}=0$, $U_{kj}=-S[k,j]$) を構成する。
+$-G=LU$ が成り立つ (検証 V4)。
+
+\subsection{Predictive モデルでの到達可能部分空間への縮約}
+
+\eqref{eq:pred-index} の名目状態空間は $i+s\le c$ の全組合せを含むが,
+実際に到達可能な状態はその真部分集合である (特に $n_{\mathrm{target}}=0$ では
+$s=S(i,j)$ に固定される)。到達不能状態を残すと $Q$ が可約になり
+LU も GTH も破綻する。そこで \code{mmpp\_predictive/solver.py} は
+\begin{enumerate}
+  \item 対角成分を除いた隣接構造上で, 起点
+        $\mathrm{idx}=0 \Leftrightarrow (i,s,j,F)=(0,0,0,0)$ から
+        \code{breadth\_first\_order} で到達集合を求める,
+  \item 到達集合を元のインデックス順にソートして $Q$ を部分行列に縮約,
+  \item ベースの \code{solve\_stationary} をそのまま適用,
+  \item 得た解を名目サイズのベクトルに散布 (到達不能状態には確率 $0$)
+\end{enumerate}
+という手順をとる。縮約後の帯幅 $(p,q)$ を実測し,
+$N p q > 5\times10^8$ なら \code{RuntimeWarning} を出す。
+
+\textbf{注意}: Predictive の索引順序 \eqref{eq:pred-index} は $(i,s)$ が最上位,
+$j$ が中位であるため, セットアップ完了 $(i,s)\to(i+1,s-1)$ が
+$\iota$ を $c-i$ だけ跳ばす。結果として帯幅が大きく,
+標準設定では $Npq\simeq1.2\times10^{10}$ となり, ベースモデルより
+大幅に計算コストが高い。
+
+\subsection{疎 LU 分解 (\code{solver="splu"}, 旧既定)}
+
+$Q\mathbf{e}=\mathbf{0}$ より $\mathrm{rank}(Q)=N-1$。
+$x_N=1$ と固定し, $A=(Q^{\mathsf T})[0{:}N-1,\,0{:}N-1]$,
+$u=(Q^{\mathsf T})[0{:}N-1,\,N-1]$ として $Ay=-u$ を
+\code{scipy.sparse.linalg.spsolve} で解き, $x=(y,1)$ を正規化する。
+$-A$ は非特異 $M$ 行列なので非負一意解をもつ。
+ただし引き算を含む通常の LU であり絶対誤差が $\sim10^{-17}$ で頭打ちになるため,
+$\pi$ の成分が $10^{-15}$ を下回る領域では相対誤差が破綻する (負値も出る)。
+反復法 (GMRES 等) は本モデルの剛性 ($\kappa\sim10^3$) と
+動的レンジ ($\kappa_\pi\sim10^{10}$--$10^{20}$) では不適と判断して採用していない。
+
+\subsection{解の事後検証}
+
+\code{solve\_stationary} は解を返す前に
+$\|\pi Q\|_\infty\le \mathrm{tol}$, $|\sum\pi-1|\le\mathrm{tol}$,
+$\min\pi\ge-\mathrm{tol}$ (既定 $\mathrm{tol}=10^{-8}$) を検査し,
+違反時は \code{RuntimeError}。通過後, 数値誤差による微小負値を $0$ に
+クリップして再正規化する。
+
+\subsection{検証結果の要旨}
+
+\code{results\_gth/VALIDATION\_REPORT.md} に詳細がある。要点のみ:
+\begin{itemize}
+  \item M/M/1/K 解析解および O'Cinneide (1996) \S4 の 20 状態例で
+        相対誤差 $0.0$ (ビット一致)。同例を通常の Gauss 消去で解くと
+        相対誤差 $5.71$, 最小成分 $-2.9\times10^{-17}$ (負の確率)。
+  \item mpmath 50 桁の真値との比較 (ベース): $P_\blk$ が $10^{-65}$ でも
+        GTH の相対誤差 $\sim10^{-15}$。splu は $P_\blk\lesssim10^{-12}$ で破綻
+        (最悪ケースで真値と 29 桁ずれ)。
+  \item Predictive モデル (小規模設定 $c=5,K=60,b=2,n_{\mathrm{target}}=3,\gamma=5$,
+        縮約後 $N=788$) でも GTH 相対誤差最大 $5.78\times10^{-15}$。
+  \item 既存 30 実験ファイルで GTH vs splu を突き合わせ, ブロック確率以外は
+        相対差 $\lesssim2\times10^{-12}$。相対差が $10^{-4}$ を超えた 14 点は
+        \emph{すべて} \eqref{eq:parr} の $P_\blk^{\mathrm{arr}}$ であり,
+        時間平均 $P_\blk$ では 1 点も超過しない。これが原因が指標式の
+        桁落ちであることの証拠である。
+\end{itemize}
+
+% =====================================================================
+\section{離散事象シミュレーション (DES)}
+\label{sec:des}
+% =====================================================================
+
+理論実装の独立検証用。\code{mmpp\_sim/}, \code{mmpp\_predictive\_sim/}。
+
+\subsection{方式}
+
+競合指数分布法 (Gillespie 法)。現状態から発生しうる全遷移を列挙し,
+\begin{enumerate}
+  \item 合計率 $R=\sum_k r_k$ で滞在時間 $\Delta t\sim\mathrm{Exp}(R)$ を生成,
+  \item $u\sim\mathcal{U}(0,R)$ で率に比例する確率でイベント種別を選択
+\end{enumerate}
+する。全事象が指数分布 (無記憶) なので真の CTMC 軌道と同分布である。
+
+イベント種別は 5 種: \code{ARRIVAL}, \code{SERVICE\_COMPLETION},
+\code{SETUP\_COMPLETION}, \code{DELAYOFF\_TIMEOUT}, \code{PHASE\_TRANSITION}。
+Predictive 版では \code{PHASE\_TRANSITION} が $F:0\to1$ のとき
+同一イベント内で $s\mathrel{+}=\Delta_{\eff}$ を適用し, その発動回数と
+台数を別途集計する。
+
+\paragraph{$j=K$ での到着の扱い (重要)}
+DES のイベントメニューは $j=K$ でも率 $C_1[F,F']$ の到着を
+\emph{すべて} (自己ループ $F'=F$ を含めて) 候補に入れる。
+これは $P_\blk^{\mathrm{arr}}=\text{ブロック数}/\text{到着試行数}$ の
+統計を正しく取るためである。理論側の $Q$ では自己ループが消えているため
+一見不整合だが, 自己ループを選んだ場合は状態が変わらず,
+その滞在時間 $\Delta t$ も \code{record\_state} で加算されるので,
+無記憶性より連続する自己ループ分の合計滞在時間は真の
+$\mathrm{Exp}(R_{\text{実遷移}})$ と同分布になる。
+したがって時間重み付き統計は不偏である。
+
+\subsection{統計収集}
+
+\code{SimStats} が時間重み付き統計を蓄積する: 状態別累積滞在時間,
+総記録時間 $T$, 到着試行数, ブロック数, 退去ジョブの滞在時間総和と総数。
+
+\paragraph{滞在時間 (sojourn time) の帰属近似}
+\code{SERVICE\_COMPLETION} 時に FIFO キューから最古の $b$ 個の到着時刻を
+pop して滞在時間を計算する。物理的には $B(i,j)>1$ のとき完了するバッチは
+一様ランダムであり最古とは限らないので, これは厳密ではない。
+しかし任意の 1 対 1 対応 $\sigma$ について
+$\sum_k(d_k-a_{\sigma(k)})=\sum_k d_k-\sum_k a_k$ であり総和は帰属方法に
+依らないため, 集計平均 $E[W]$ は影響を受けず Little の公式との整合も保たれる。
+FIFO を使う理由は実装の単純さのみである。
+
+\subsection{実行手順と信頼区間}
+
+\begin{itemize}
+  \item 初期状態 $(i,j,F)=(0,0,0)$ (Predictive は $(0,0,0,0)$), 時刻 $0$。
+  \item \code{warmup\_events} 回は統計を記録せず実行 (既定 $10^5$)。
+        このときの実時間を \code{warmup\_duration} に記録する。
+  \item 続く \code{measurement\_events} 回を記録 (既定 $10^6$)。
+  \item \textbf{独立レプリケーション法}: \code{run\_replications} が
+        $n_{\mathrm{reps}}$ 個 (既定 20) の独立シミュレータを
+        シード $\mathrm{seed}_0+k$ で実行する。
+  \item 点推定は全レプリケーションの統計を\textbf{合算}した
+        \code{SimStats} から計算する。
+  \item 95\% 信頼区間はレプリケーションごとの指標値から
+        $t$ 分布近似 ($t_{0.975,n-1}\cdot s/\sqrt{n}$) で求める。
+        非有限値のレプリケーションは除外し警告を出す。
+\end{itemize}
+
+\paragraph{ウォームアップ妥当性診断}
+\code{check\_warmup\_duration} は
+$\mathrm{warmup\_duration}\times\beta<5$ のとき
+「最も遅い時定数 $1/\beta$ に対しウォームアップが不足」と
+\code{RuntimeWarning} を出す。
+
+\subsection{DES 側の指標}
+
+\begin{align}
+  P_\blk &= \frac{\sum_{\text{states with }j=K}\tau_{\text{state}}}{T},\qquad
+  E[j] = \frac{\sum_{\text{state}} j\,\tau_{\text{state}}}{T},\\
+  P_\blk^{\mathrm{arr}} &= \frac{\#\text{blocked}}{\#\text{attempts}},\qquad
+  \lambda_\eff = \frac{\#\text{attempts}-\#\text{blocked}}{T},\\
+  E[W] &= \frac{\sum \text{sojourn}}{\#\text{departures}}.
+\end{align}
+その他 ($E[B],E[I],E[S],E[\mathrm{Off}],\rho,\mathrm{Cost},\mathrm{ERP}$) は
+理論側と同一の定義式を時間重み付き平均で評価する。
+Predictive 版では $E[S]$ を状態変数 $s$ の時間平均として直接計算する。
+
+% =====================================================================
+\section{数値実験の設計}
+\label{sec:experiments}
+% =====================================================================
+
+\subsection{バースト MMPP の構成}
+
+全実験の到着過程は\textbf{対称 2 位相 MMPP} である
+(\code{scripts/\_mmpp\_burst.py} の \code{build\_mmpp})。
+トラフィック強度 $\rho$, 振幅 $\delta$, 時定数 $\sigma$ から
+\begin{align}
+  \bar\lambda &= \rho\, c\, b\, \mu, \\
+  \lambda_0 &= \bar\lambda(1-\delta) \quad\text{(通常位相)}, \qquad
+  \lambda_1 = \bar\lambda(1+\delta) \quad\text{(バースト位相)}, \\
+  C_1 &= \begin{pmatrix}\lambda_0 & 0\\ 0 & \lambda_1\end{pmatrix},\qquad
+  C_0 = \begin{pmatrix}-(\sigma+\lambda_0) & \sigma\\
+                        \sigma & -(\sigma+\lambda_1)\end{pmatrix}.
+\end{align}
+位相遷移率は $0\to1$, $1\to0$ ともに $\sigma$ (各位相の平均滞在時間 $1/\sigma$)。
+$C_1$ が\textbf{対角}であることから\textbf{到着は位相を変えない}。
+定常位相確率は $(1/2,1/2)$ なので, $\delta,\sigma$ を変えても
+$\bar\lambda=\rho c b\mu$ は不変である (バースト性のみを独立に変えられる設計)。
+
+$\rho$ は「飽和スループット $cb\mu$ に対する到着率の比」として定義されている
+点に注意 ($\rho=\bar\lambda/(cb\mu)$)。これは実測のサーバー利用率
+$\rho_{\mathrm{server}}=E[B]/c$ とは別物である。
+
+\paragraph{到着間隔の変動係数 CV}
+図のキャプション用に \code{compute\_interarrival\_cv} が
+phase-type 分布の 2 次モーメント
+\begin{equation}
+  E[X^2]=2\,\boldsymbol{p}_{\mathrm{arr}}(-C_0)^{-2}\mathbf{e},\qquad
+  \boldsymbol{p}_{\mathrm{arr}}=\frac{\boldsymbol{\varpi}C_1}{\bar\lambda}
+\end{equation}
+(Fischer \& Meier-Hellstern 1993, "The MMPP cookbook") から
+$\mathrm{CV}=\sqrt{E[X^2]-E[X]^2}/E[X]$, $E[X]=1/\bar\lambda$ を計算する。
+
+\subsection{共通パラメータ}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+項目 & 値 & 備考 \\
+\midrule
+\code{BASELINE} & $c=20,\ K=200,\ b=5,\ \mu=1.0,\ \alpha=0.1,\ \beta=0.005$
+  & $1/\alpha=10$ s, $1/\beta=200$ s \\
+weak   & $(\delta,\sigma)=(0.3,\ 1.0)$ & \\
+medium & $(\delta,\sigma)=(0.6,\ 0.1)$ & 既定のバースト水準 \\
+strong & $(\delta,\sigma)=(0.9,\ 0.01)$ & \\
+\code{ALPHA\_LEVELS} & $\alpha\in\{0.1,\ 1.0,\ 10.0\}$ & 実験 2,3,5,6 で走査 \\
+Predictive 既定値 & $n_{\mathrm{target}}=10,\ \gamma=5.0$ & \\
+\code{ALPHA\_GAMMA\_MAP} & $0.1\!\mapsto\!1.0,\ 1.0\!\mapsto\!100.0,\ 10.0\!\mapsto\!1000.0$
+  & \code{--alpha-gamma-map} 指定時 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+パラメータ規模は先行研究 (Le-Anh \& Phung-Duc 2025) Fig.~8/Fig.~10 に合わせている。
+$K=200$ は $cb\times4=400$ を計算コストの都合で半分にした値である。
+
+\code{--alpha-gamma-map} を指定した場合, $\alpha$ ごとに異なる $\gamma$ を使う。
+対応は厳密一致を優先し, 無い場合は $\log_{10}\alpha$ 距離最小の
+キーにフォールバックする (\code{resolve\_gamma})。
+
+\subsection{実験 0 / 0-P: 理論とシミュレーションの整合性検証}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+項目 & 設定 \\
+\midrule
+スクリプト & \code{experiment\_0\_validation.py} / \code{experiment\_0P\_validation.py} \\
+パラメータ & \code{BASELINE}, medium バースト ($\delta=0.6,\sigma=0.1$) \\
+走査 & $\rho\in[0.3,\,0.95]$ を等間隔 10 点 \\
+Predictive & $n_{\mathrm{target}}=10,\ \gamma=5.0$ \\
+DES & $n_{\mathrm{reps}}=20$, warmup $10^5$ events, measurement $10^6$ events, seed $42$ \\
+比較指標 & $P_\blk,\ E[N],\ E[W],\ \lambda_\eff,\ \rho_{\mathrm{server}},\ \mathrm{Cost}$ の 6 つ \\
+合否 & 各 $\rho$ で「理論値が 95\% CI 内」が 6 指標中 5 つ以上を目安 \\
+追加診断 & 保存則と流量バランスの最大誤差 \\
+出力 & \code{figures/experiment\_0\_validation.\{png,pdf\}} 他 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{実験 0 でこの一致を確認したうえで, 実験 1 以降は理論解析のみで図を作る}
+という方針である (走査点数が多くシミュレーションでは計算時間が過大になること,
+論文図として理論曲線の滑らかさを優先することが理由)。
+
+検証結果 (GTH 既定下): 実験 0 はベースモデルで全 10 点・全 6 指標が CI 内。
+実験 0-P は低 $\rho$ の 2 点 ($\rho=0.30,0.37$) で $E[W],E[N]$ が
+わずかに CI を外れた (例: 理論 $E[W]=1.2233$ に対し CI $[1.2161,1.2227]$, 差 0.05\%)。
+両ソルバーで理論値が機械精度で同一であることを確認済みのため,
+これは GTH 由来ではなく DES 側のバイアス (ウォームアップ長・測定長) である。
+
+\subsection{実験 1--4 / 1-P--4-P: 制御変数の走査 (理論のみ)}
+
+4 指標 $P_\blk^{\mathrm{arr}}$ (式 \eqref{eq:parr}), $E[W]$,
+$\mathrm{Cost}$, $\mathrm{ERP}$ を $2\times2$ サブプロットで出力する。
+$P_\blk^{\mathrm{arr}}$ の $y$ 軸は対数スケール。走査変数が対数格子のもの
+($\beta$: 実験 2/2-P, $\sigma$: 実験 3-B/3-P-B, $\gamma$: 実験 6) は $x$ 軸も対数スケール。
+
+\begin{longtable}{p{0.10\textwidth}p{0.40\textwidth}p{0.42\textwidth}}
+\toprule
+実験 & 走査変数 & 固定条件 \\
+\midrule
+\endhead
+1 / 1-P & $\rho\in[0.1,0.95]$ 等間隔 15 点 $\times$ 3 バースト水準
+  & \code{BASELINE}。1-P は $n_{\mathrm{target}}=10$, $\gamma\in\{5.0,\,1.0\}$ \\
+2 / 2-P & $\beta\in[10^{-2},10^{2}]$ 対数 15 点 $\times$ $\alpha\in\{0.1,1,10\}$
+  & $c=20,K=200,b=5,\mu=1,\rho=0.7$。メイン medium, 補助 strong
+    (\code{--strong-burst})。2-P は $n_{\mathrm{target}}=10$,
+    $\gamma=5.0$ または \code{--alpha-gamma-map} \\
+3-A / 3-P-A & $\delta\in[0,0.95]$ 等間隔 15 点 $\times$ $\alpha$ 3 水準
+  & \code{BASELINE} ($\beta=0.005$ 固定), $\rho=0.7$, $\sigma=0.1$ 固定 \\
+3-B / 3-P-B & $\sigma\in[10^{-3},10^{1}]$ 対数 15 点 $\times$ $\alpha$ 3 水準
+  & 同上, $\delta=0.6$ 固定 \\
+4 / 4-P & $\rho\in[0.1,0.95]$ 15 点 $\times$ $K\in\{100,200,500,1000\}$
+  & $c=20,b=5,\mu=1,\alpha=0.1,\beta=0.005$。3 バースト水準それぞれで実行。
+    4-P は $n_{\mathrm{target}}=10$, $\gamma\in\{5.0,\,1.0\}$ \\
+\bottomrule
+\end{longtable}
+
+$\delta$ の上限を $0.95$ にしているのは $\delta\to1$ で $\lambda_0\to0$ となり
+数値的な特異に近づくのを避けるためである ($\delta=0$ は Poisson 到着)。
+
+\subsection{実験 5, 6: Predictive 固有パラメータの感度 (Predictive のみ)}
+
+\begin{center}
+\begin{tabular}{p{0.08\textwidth}p{0.42\textwidth}p{0.42\textwidth}}
+\toprule
+実験 & 走査変数 & 固定条件 \\
+\midrule
+5 & $n_{\mathrm{target}}\in\{0,1,3,4,6,7,9,10,11,13,14,16,17,19,20\}$ (15 点)
+  & \code{BASELINE}, $\rho=0.7$, $\gamma=5.0$,
+    $\alpha$ 3 水準 $\times$ 3 バースト水準 \\
+6 & $\gamma$: $[1,20]$ の対数 15 点のうち $5.54$ を代表値 $5.0$ に置換
+  & \code{BASELINE}, $\rho=0.7$, $n_{\mathrm{target}}=10$,
+    $\alpha$ 3 水準 $\times$ 3 バースト水準 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+実験 6 の $\gamma$ 水準は
+$\{1.0,\,1.239,\,1.534,\,1.900,\,2.354,\,2.915,\,3.611,\,4.472,\,5.0,\,6.861,\,
+8.498,\,10.525,\,13.037,\,16.147,\,20.0\}$。
+境界 $\gamma=1$ (加速無効), $\gamma=20$ (拡張走査との接続点),
+代表値 $\gamma=5.0$ を必ず含むように構成している。
+\code{compare\_experiment\_6\_extended.py} は初期走査 ($\gamma\le20$) と
+拡張走査 ($\gamma\in\{20,50,100,500,1000\}$) の CSV を統合して
+$\gamma\in[1,1000]$ の依存性を可視化し, 最適 $\gamma$ の位置を特定する。
+
+\subsection{ベース vs Predictive の比較}
+
+\code{compare\_experiment\_\{1,2,3,4\}\_vs\_\{1P,2P,3P,4P\}.py} が
+両者の CSV を読み込み, 同一指標をベース (実線) と Predictive (破線) で
+重ね描きする。改善率は
+\begin{equation}
+  \text{improvement [\%]}=\frac{\text{base}-\text{pred}}{\text{base}}\times100
+\end{equation}
+(小さいほど良い指標を前提とした符号) として標準出力に要約される。
+
+\code{evaluate\_predictive\_comparison.py} は実験 1--4 と 1-P--4-P を
+横断的に突き合わせ, 勝率・平均改善率・条件別詳細・パターン抽出を
+Markdown で出力する (\code{evaluation\_report*.md})。
+ベース実験と Predictive 実験でグリッド密度が異なるため,
+連続変数は\textbf{最近傍マッチング} ($\beta,\sigma$ は $\log$ 距離,
+$\rho,\delta$ は線形距離), 離散変数 ($\alpha$, $K$, バースト名) は
+\textbf{厳密一致}で対応付ける。
+
+\subsection{出力ファイルの命名規約}
+
+\begin{itemize}
+  \item ベース: \code{results/experiment\_1.csv},
+        \code{experiment\_2\_\{medium,strong\}.csv},
+        \code{experiment\_3\_\{delta,sigma\}.csv},
+        \code{experiment\_4\_\{weak,medium,strong\}.csv}
+  \item Predictive: \code{experiment\_1P\_nt10\_g5.0.csv} のように
+        \code{nt}$\langle n_{\mathrm{target}}\rangle$\code{\_g}$\langle\gamma\rangle$ を接尾, \code{--alpha-gamma-map}
+        指定時は \code{\_gmap}
+  \item 図は \code{figures/} に PNG (dpi 150) と PDF (dpi 100) の両方。
+        図中に題名は付けず, 設定情報はコンソールに「キャプション用情報」として
+        出力する方針 (論文キャプション側に記載する前提)。
+  \item \code{results\_gth/}, \code{figures\_gth/} は GTH 既定化後に
+        再実行した結果で, \code{results/} (splu 時代) との突き合わせに用いた。
+\end{itemize}
+
+\subsection{補助スクリプト}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+スクリプト & 用途 \\
+\midrule
+\code{validate\_gth\_mpmath.py} & mpmath 50 桁の真値との比較 (ベース) \\
+\code{validate\_gth\_mpmath\_predictive.py} & 同 (Predictive, 小規模設定) \\
+\code{validate\_gth\_v6\_base.py} & 実験格子を直接再現して GTH/splu を同一 $Q$ 上で比較 (415 点) \\
+\code{compare\_gth\_vs\_splu\_results.py} & \code{results/} と \code{results\_gth/} の CSV 突き合わせ \\
+\code{benchmark\_gth\_vs\_splu.py} & 計算時間・帯格納メモリの計測 (\code{results\_gth/benchmark.md}) \\
+\code{make\_gth\_vs\_splu\_figures.py} & 精度比較図の生成 \\
+\code{check\_results\_integrity.py} & CSV の \code{P\_block\_arrival\_stable} 列の存在・正値性の検査 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{テストによる妥当性検証}
+% =====================================================================
+
+\code{tests/} の主要テストと, それが担保する性質。
+
+\begin{longtable}{p{0.40\textwidth}p{0.55\textwidth}}
+\toprule
+テスト & 担保する性質 \\
+\midrule
+\endhead
+\code{test\_model.py} & パラメータ検証 (符号規約, MMPP 整合性, 既約性, 警告) \\
+\code{test\_state\_space.py} & \eqref{eq:base-index} の全単射性, \code{block\_slice} \\
+\code{test\_generator.py} & 行和 $0$, 非対角 $\ge0$, 各遷移の率と行き先 \\
+\code{test\_solver.py} & $\pi Q=0$, 正規化, 非負性, 位相マージナル $=\varpi$ \\
+\code{test\_gth\_solver.py} & M/M/1/K 解析解, O'Cinneide 例, 帯格納の厳密保存, $-G=LU$ \\
+\code{test\_metrics.py} & 保存則, 流量バランス, 各指標の定義 \\
+\code{test\_stable\_blocking.py} & \eqref{eq:parr} と \eqref{eq:parr_stable} の一致 (高精度領域) と安定版の正値性 \\
+\code{test\_predictive\_state\_space.py} & \eqref{eq:pred-index} の全単射性, $\Delta_{\eff}$ \\
+\code{test\_predictive\_generator.py} & Predictive の各遷移 \\
+\code{test\_predictive\_baseline\_consistency.py}
+  & $n_{\mathrm{target}}=0,\gamma=1$ で理論がベースと一致 (最重要) \\
+\code{test\_predictive\_sim\_baseline\_consistency.py}
+  & 同じ一致を DES 側でも確認 \\
+\code{test\_gth\_predictive.py} & 縮約 $\to$ GTH 経路の正しさ, GTH と splu の一致 \\
+\code{test\_simulator.py}, \code{test\_predictive\_sim\_simulator.py}
+  & イベントメニュー, 状態遷移, 統計収集 \\
+\code{test\_experiment\_*.py} & 各実験スクリプトのパラメータ格子・CSV 列・図生成 \\
+\code{test\_alpha\_gamma\_map.py} & \code{--alpha-gamma-map} のパースとフォールバック \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\section{認識確認のためのチェックリスト}
+\label{sec:checklist}
+% =====================================================================
+
+実装上の判断が分かれうる点, あるいは「普通に読むと別の解釈をしそうな点」を
+列挙する。各項目が意図どおりかご確認いただきたい。
+
+\paragraph{モデル定義}
+\begin{enumerate}
+\item \textbf{$i$ の意味}: $i$ は「アクティブ (電源が入っていて仕事ができる) サーバー数」で,
+      Busy と Idle (Delayoff 計時中) の\emph{両方}を含む。
+      セットアップ中のサーバーは $i$ に含まれない。
+\item \textbf{フルバッチ}: $b$ 個揃わないとサービスを開始しない。
+      Busy 台数は $\min(i,\lfloor j/b\rfloor)$ であり,
+      端数 $j \bmod b$ のジョブはサーバーを占有しない。
+\item \textbf{ベースモデルのセットアップは瞬時反応}: $S(i,j)$ は関数なので,
+      $j$ が増えれば即セットアップ開始, $j$ が減れば即キャンセルされる。
+      セットアップ「開始」「中止」自体に遅延やコストはない。
+\item \textbf{Delayoff は 1 台ずつ独立タイマー}: 率 $I(i,j)\beta$ で
+      アイドル 1 台が落ちる。Delayoff 中のサーバーは即座にジョブを取れる
+      (すなわち「オフ」ではなく「低電力待機」)。
+\item \textbf{$j=K$ での到着は完全棄却}: $C_1$ が対角の本実験設定では,
+      ブロックされた到着は系の状態を一切変えない (再試行なし, キュー外待ちなし)。
+\item \textbf{Predictive は位相を完全観測できる}と仮定している。
+      予測の誤り (false positive / false negative) はモデル化していない。
+\item \textbf{(P1) は位相 $0\to1$ の瞬間のみ}発動する。バースト中に
+      $i+s$ が $n_{\mathrm{target}}$ を下回っても追加発動はしない。
+\item \textbf{(P2) は位相 $F=0$ のとき常時}有効。$\gamma\beta$ は
+      アイドル 1 台あたりの率に掛かる。
+\item \textbf{事前セットアップ分の解消}: 退去イベント (バッチサービス完了) 1 回で
+      $s$ は最大 1 台しか減らない。逆に $\Delta_{\eff}$ は一度に複数台増やせる。
+      この非対称性は意図的か。
+\item \textbf{位相番号のハードコード}: $F=0$ を通常, $F=1$ をバーストとして
+      \code{generator.py} に直接書かれている。$D_M>2$ や位相順序を変えた
+      MMPP には対応していない。
+\item \textbf{$\rho$ の定義}: $\rho=\bar\lambda/(cb\mu)$ であり, 系の実利用率ではない。
+      Delayoff/セットアップにより実測 $\rho_{\mathrm{server}}=E[B]/c$ は $\rho$ と一致しない。
+\end{enumerate}
+
+\paragraph{指標}
+\begin{enumerate}\setcounter{enumi}{11}
+\item \textbf{図にプロットしているのは引き算を含む現行式}
+      $P_\blk^{\mathrm{arr}}=1-\lambda_\eff/\bar\lambda$ であり,
+      安定版 $\widetilde{P}_\blk^{\mathrm{arr}}$ は CSV 列として併記されるのみ。
+      極小領域 ($\lesssim10^{-13}$) を図示する場合は安定版に切り替える必要がある。
+\item \textbf{図の $y$ ラベルは $P_{\blk}$ だが中身は到着平均}である
+      (\code{METRIC\_SPECS} のラベルが $P_{\mathrm{block}}$)。
+      時間平均 $P_\blk$ と混同しないよう, 論文側の記述に注意。
+\item \textbf{$E[W]$ は系内滞在時間} (待ち時間 + サービス時間) であり,
+      Little の公式 $E[W]=E[j]/\lambda_\eff$ で求めている
+      ($E[j]$ が待機中 + 処理中の双方を含むため)。
+\item \textbf{コスト関数}: 実験は \code{energy\_cost\_paper}
+      ($C_b=C_s=0.04419b+0.15503$, $C_i=0.6C_b$, Off は $0$) を使用。
+      汎用版 \code{energy\_cost} ($1.0/0.6/1.0/0.0$) は実験では使っていない。
+\item \textbf{ERP} は $E[W]\times\mathrm{Cost}$ であり, 小さいほど良い。
+\end{enumerate}
+
+\paragraph{数値解析}
+\begin{enumerate}\setcounter{enumi}{16}
+\item \textbf{既定ソルバーは GTH}。\code{solver="splu"} で旧実装に戻せるが,
+      極小ブロック確率領域では splu の値は信用できない (最悪 29 桁の誤り)。
+\item \textbf{GTH は対角成分を一切参照しない}。したがって
+      \code{build\_generator} が積む対角成分は splu 経路と事後検証
+      ($\|\pi Q\|_\infty$) のためだけに存在する。
+\item \textbf{Predictive は到達可能部分空間に縮約してから}解く。
+      縮約の起点は $\mathrm{idx}=0\Leftrightarrow(i,s,j,F)=(0,0,0,0)$。
+      名目状態空間のままでは $Q$ が可約で解けない。
+\item \textbf{Predictive の計算コスト}: 索引順序 \eqref{eq:pred-index} が
+      $(i,s)$ 最上位であるため帯幅が大きく, 標準設定で
+      $Npq\simeq1.2\times10^{10}$。ベースモデル ($0.17$ 秒/点) より
+      大幅に重い。$Npq>5\times10^8$ で警告が出る。
+\item \textbf{事後検証の許容誤差は $10^{-8}$} (絶対値基準)。
+      通過後に微小負値をクリップして再正規化している。
+\end{enumerate}
+
+\paragraph{シミュレーション}
+\begin{enumerate}\setcounter{enumi}{21}
+\item \textbf{DES の到着は $j=K$ でも自己ループを含めて生成する}
+      (ブロック率の分母を正しく数えるため)。理論側の $Q$ では自己ループが
+      消えているが, 時間重み付き統計は無記憶性により一致する。
+\item \textbf{滞在時間は FIFO 帰属の近似}。個別ジョブの滞在時間分布は
+      厳密ではないが, 平均 $E[W]$ は厳密 (全単射不変性)。
+      滞在時間の\emph{分布}や分位点を論じる場合はこの実装では不適。
+\item \textbf{終了条件はイベント数}であり実時間ではない
+      (warmup $10^5$, measurement $10^6$ イベントが既定)。
+\item \textbf{信頼区間は独立レプリケーション法} ($n=20$) +
+      $t$ 分布近似。点推定は全レプリケーション合算値であり,
+      レプリケーション平均ではない (バッチサイズが揃っていれば近いが同一ではない)。
+\item \textbf{ウォームアップの十分性}は $\mathrm{warmup\_duration}\times\beta\ge5$
+      を目安に自動診断している。$\beta=0.005$ では $1/\beta=200$ なので
+      実時間 $1000$ 以上が必要。
+\end{enumerate}
+
+\paragraph{実験手順}
+\begin{enumerate}\setcounter{enumi}{26}
+\item \textbf{実験 1 以降はシミュレーションを行っていない} (理論のみ)。
+      理論の正当性は実験 0 / 0-P で担保するという構成。
+\item \textbf{$\delta,\sigma$ を変えても $\bar\lambda$ は不変}なので,
+      実験 3 はバースト性のみを分離して見ている。
+\item \textbf{実験 5 の $n_{\mathrm{target}}=0$ 点はベースと一致しない}
+      ($\gamma=5.0$ が有効なまま)。ベースとの厳密一致は
+      $n_{\mathrm{target}}=0$ かつ $\gamma=1$ のときのみ。
+\item \textbf{ベースと Predictive のグリッド密度が異なる}ため,
+      \code{evaluate\_predictive\_comparison.py} は最近傍マッチングで
+      対応付けている。厳密同一点での比較ではない。
+      (\code{compare\_experiment\_*\_vs\_*P.py} は同一格子の CSV を
+      前提に重ね描きする。)
+\item \textbf{\code{--alpha-gamma-map} の既定対応}
+      ($\alpha=0.1\!\to\!\gamma=1$, $\alpha=1\!\to\!100$, $\alpha=10\!\to\!1000$)
+      は $\gamma$ を $\alpha$ とともに大きくする設定であり,
+      実験 2-P / 3-P の \code{\_gmap} 系 CSV・図はこの設定で生成されている。
+      一律 $\gamma=5.0$ の結果 (\code{\_g5.0}) とは別物。
+\item \textbf{ドキュメントの軽微な不整合}:
+      \code{experiment\_2P\_delayoff.py} の docstring は
+      「$\beta$ 対数走査 40 点」と書いているが, 実装の既定は 15 点
+      (\code{BETA\_N\_POINTS = 15}) であり README も 15 点。
+\end{enumerate}
+
+% =====================================================================
+\section*{参考文献 (実装が参照しているもの)}
+% =====================================================================
+\begin{itemize}
+\item O'Cinneide, C. A. (1993). Entrywise perturbation theory and error analysis
+      for Markov chains.
+\item O'Cinneide, C. A. (1996). Relative-error bounds for the LU decomposition
+      via the GTH algorithm.
+\item Fischer, W., Meier-Hellstern, K. (1993). The Markov-modulated Poisson
+      process (MMPP) cookbook.
+\item Le-Anh, T., Phung-Duc, T. (2025). (コスト関数および実験パラメータ規模の出典)
+\end{itemize}
+
+\end{document}
