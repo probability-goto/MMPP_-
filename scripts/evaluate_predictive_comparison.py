@@ -28,6 +28,16 @@ from typing import Dict, List, Optional, Tuple
 
 METRICS = ["P_block_arrival_stable", "E_W", "Cost", "ERP"]
 
+# 勝敗判定の相対許容幅: |base - pred| / |base| がこれ未満なら引き分けとする.
+# ベースと Predictive がほぼ同じ点 (Predictive の機構がほとんど働かない点) で,
+# GTH の丸め差 (相対 1e-12 程度) によって勝敗が決まるのを防ぐ.
+TIE_REL_TOL = 1e-6
+
+# P_block はベース値がこの値以上の点だけに絞った勝率も併記する
+# (極小確率の点を除いた, 実用上意味のある領域での比較).
+P_BLOCK_METRIC = "P_block_arrival_stable"
+P_BLOCK_FLOOR = 1e-6
+
 
 @dataclass
 class ComparisonPoint:
@@ -44,13 +54,22 @@ class ComparisonPoint:
     @property
     def improvement_pct(self) -> float:
         """改善率 (%). 正: Predictive が良い, 負: Predictive が悪い."""
-        if abs(self.base_value) < 1e-12:
-            return 0.0
+        if self.base_value == 0:
+            return 0.0  # 0 割りの回避のみ (全 CSV が GTH 由来で, 極小値も相対精度を持つ)
         return (self.base_value - self.pred_value) / self.base_value * 100
 
     @property
+    def is_tie(self) -> bool:
+        """相対差が TIE_REL_TOL 未満なら引き分け."""
+        return abs(self.base_value - self.pred_value) <= TIE_REL_TOL * abs(self.base_value)
+
+    @property
     def is_predictive_better(self) -> bool:
-        return self.improvement_pct > 0
+        return not self.is_tie and self.improvement_pct > 0
+
+    @property
+    def is_predictive_worse(self) -> bool:
+        return not self.is_tie and self.improvement_pct < 0
 
     @property
     def is_predictive_much_better(self) -> bool:
@@ -261,27 +280,40 @@ def summarize_overall(points: List[ComparisonPoint]) -> None:
 
     total = len(points)
     wins = sum(1 for pt in points if pt.is_predictive_better)
+    ties = sum(1 for pt in points if pt.is_tie)
     much_wins = sum(1 for pt in points if pt.is_predictive_much_better)
     much_losses = sum(1 for pt in points if pt.is_predictive_much_worse)
 
     print(f"- **総データ点数**: {total}")
-    print(f"- **Predictive 勝率**: {wins}/{total} ({wins/max(total,1)*100:.1f}%)")
+    print(f"- **Predictive 勝率**: {wins}/{total} ({wins/max(total,1)*100:.1f}%)"
+          f" (引き分け {ties} 点)")
     print(f"- **大幅改善 (>20%)**: {much_wins}/{total} ({much_wins/max(total,1)*100:.1f}%)")
     print(f"- **大幅悪化 (<-20%)**: {much_losses}/{total} ({much_losses/max(total,1)*100:.1f}%)")
 
     print("\n### 指標別勝率\n")
-    print("| 指標 | 勝率 | 平均改善率 | 中央値改善率 |")
-    print("|---|---|---|---|")
+    print("| 指標 | 勝率 | 引き分け | 平均改善率 | 中央値改善率 |")
+    print("|---|---|---|---|---|")
+    rows = []
     for metric in METRICS:
         metric_pts = [pt for pt in points if pt.metric == metric]
+        if metric == P_BLOCK_METRIC:
+            rows.append((f"{metric} (全点)", metric_pts))
+            rows.append((
+                f"{metric} (ベース >= {P_BLOCK_FLOOR:g} の点のみ)",
+                [pt for pt in metric_pts if pt.base_value >= P_BLOCK_FLOOR],
+            ))
+        else:
+            rows.append((metric, metric_pts))
+    for label, metric_pts in rows:
         if not metric_pts:
             continue
         wins_m = sum(1 for pt in metric_pts if pt.is_predictive_better)
+        ties_m = sum(1 for pt in metric_pts if pt.is_tie)
         improvements = sorted(pt.improvement_pct for pt in metric_pts)
         avg = sum(improvements) / len(improvements)
         median = improvements[len(improvements) // 2]
-        print(f"| {metric} | {wins_m}/{len(metric_pts)} ({wins_m/len(metric_pts)*100:.1f}%) "
-              f"| {avg:+.2f}% | {median:+.2f}% |")
+        print(f"| {label} | {wins_m}/{len(metric_pts)} ({wins_m/len(metric_pts)*100:.1f}%) "
+              f"| {ties_m} | {avg:+.2f}% | {median:+.2f}% |")
 
     print("\n### 実験別勝率 (ERP 基準)\n")
     print("| 実験 | 勝率 (ERP) | 平均改善率 (ERP) | 大幅改善 | 大幅悪化 |")
@@ -522,6 +554,8 @@ def main() -> None:
         f"1-P/4-P suffix={suffix_1p_4p}, 2-P/3-P suffix={suffix_2p_3p}\n"
     )
     print("**凡例**:")
+    print(f"- 勝敗判定の相対許容幅: |base - pred| / |base| < {TIE_REL_TOL:g} は引き分け"
+          " (勝ちにも負けにも数えない)")
     print("- `+X.X%`: Predictive による改善率 (正=Predictive が良い, 負=Predictive が悪い)")
     print("- `**+XX%**`: 大幅改善 (>20%)")
     print("- `_-XX%_`: 大幅悪化 (<-20%)")

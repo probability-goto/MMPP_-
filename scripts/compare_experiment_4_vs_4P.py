@@ -112,6 +112,9 @@ def plot_comparison(
                 # 安定版は 1e-12 未満でも相対精度を保つので下限で切らずに全点を描く
             ax.grid(True, alpha=0.3)
 
+    # ブロッキング確率なので上端は 1. 対数軸の自動余白で 1 を超えないようにする
+    axes[0, 0].set_ylim(top=1)
+
     # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(
