@@ -22,9 +22,10 @@ Predictive モデルの名目状態空間 (i, s, j, F) は, i + s <= c を満た
 
 縮約後の部分空間は BFS 到達集合を元のインデックス順にソートしたもの
 (np.sort(reachable)) で間引くため, 帯幅は元の名目状態空間の帯幅以下に
-留まる. ただし縮約の結果, 元の (i, j-major) 順序が想定する帯構造から
-外れて帯幅が大きくなる場合があるため, solver="gth" 利用時は実際に測定
-した帯幅 (p, q) を報告する.
+留まる. 名目状態空間は j-major 順序 (mmpp_predictive.state_space) なので,
+帯幅は K に依存しない (レベルをまたぐ遠い遷移はバッチ完了 j -> j-b のみ).
+solver="gth" 利用時は縮約後の帯幅 (p, q) を実測し, 計算量 N*p*q が大きい
+場合は警告する.
 """
 import warnings
 
@@ -38,9 +39,8 @@ from mmpp.gth_solver import bandwidths as _bandwidths
 __all__ = ["solve_stationary"]
 
 # 縮約後の計算量 N*p*q がこの値を超えたら警告する (GTH の計算量は
-# O(N*p*q) であり, predictive モデルは (i,s,j,F) の縮約状態空間が
-# ベースモデルの j-major 順序と噛み合わず, 個々の p, q が大きくなくても
-# 積が非常に大きくなりうるため, 積そのものを監視する).
+# O(N*p*q) であり, predictive モデルは 1 レベルあたりの状態数が
+# ベースモデルより多く p, q が大きいため, 積そのものを監視する).
 _COST_WARN_THRESHOLD = 5e8
 
 
@@ -53,7 +53,8 @@ def solve_stationary(
         Q: (N, N) の生成行列 (scipy.sparse.csr_matrix 等).
         start_index: 到達可能性 BFS の起点となる状態インデックス.
             既定値 0 は (i=0, s=0, j=0, F=0) に対応する
-            (mmpp_predictive.state_space のインデックス化規約による).
+            (mmpp_predictive.state_space のインデックス化規約
+            idx = (j*N_IS + iota(i,s))*D_M + F で iota(0,0)=0 による).
         solver: 'gth' (既定) or 'splu'. mmpp.solver.solve_stationary に
             そのまま渡す.
         method: solver='splu' のときのみ有効 ('sparse'/'dense').

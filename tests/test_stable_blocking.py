@@ -89,13 +89,12 @@ def direct_reference_base(params, pi):
 
 
 def direct_reference_pred(params, pi):
-    """Predictive モデル版の直接和参照値 (状態順は (i,s) -> j -> F)."""
-    from mmpp_predictive.state_space import build_is_index
+    """Predictive モデル版の直接和参照値 (状態順は j -> (i,s) -> F)."""
+    from mmpp_predictive.state_space import pi_by_level
 
-    _, is_pairs = build_is_index(params.c)
-    K, D_M = params.K, params.D_M
-    pi_4d = np.asarray(pi).reshape(len(is_pairs), K + 1, D_M)
-    lam_by_j = pi_4d.sum(axis=0) @ params.lambdas  # shape (K+1,)
+    K = params.K
+    pi_3d = pi_by_level(pi, params.c, K, params.D_M)
+    lam_by_j = pi_3d.sum(axis=1) @ params.lambdas  # shape (K+1,)
     lam_bar = float(lam_by_j.sum())
     lam_eff = float(lam_by_j[:K].sum())
     return (lam_bar - lam_eff) / lam_bar

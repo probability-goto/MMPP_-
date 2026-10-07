@@ -1,9 +1,11 @@
 """mmpp_predictive.state_space のテスト."""
+import numpy as np
 import pytest
 
 from mmpp_predictive.state_space import (
     enumerate_is_pairs, build_is_index, state_to_idx, idx_to_state,
-    num_states, busy_count, idle_count, setup_target_delta
+    num_states, num_is_pairs, level_slice, pi_by_level,
+    busy_count, idle_count, setup_target_delta
 )
 
 
@@ -30,6 +32,51 @@ def test_idx_roundtrip():
         i, s, j, F = idx_to_state(idx, c, K, D_M, is_pairs)
         idx2 = state_to_idx(i, s, j, F, c, K, D_M, is_index)
         assert idx == idx2, f"Roundtrip failed at idx={idx}"
+
+
+def test_idx_is_j_major():
+    """idx = (j * N_IS + iota(i,s)) * D_M + F (j が最上位) であること."""
+    c, K, D_M = 3, 5, 2
+    is_index, is_pairs = build_is_index(c)
+    n_is = num_is_pairs(c)
+    assert n_is == len(is_pairs)
+    expected = 0
+    for j in range(K + 1):
+        for (i, s) in is_pairs:
+            for F in range(D_M):
+                assert state_to_idx(i, s, j, F, c, K, D_M, is_index) == expected
+                assert expected == (j * n_is + is_index[(i, s)]) * D_M + F
+                expected += 1
+    assert expected == num_states(c, K, D_M)
+
+
+def test_origin_is_index_zero():
+    """BFS の起点 idx=0 が (i, s, j, F) = (0, 0, 0, 0) に対応すること.
+
+    mmpp_predictive.solver.solve_stationary の start_index=0 はこれを前提にする.
+    """
+    c, K, D_M = 20, 200, 2
+    is_index, is_pairs = build_is_index(c)
+    assert state_to_idx(0, 0, 0, 0, c, K, D_M, is_index) == 0
+    assert idx_to_state(0, c, K, D_M, is_pairs) == (0, 0, 0, 0)
+
+
+def test_level_slice_and_pi_by_level():
+    """level_slice(j) と pi_by_level(pi)[j] が同じ状態集合を指すこと."""
+    c, K, D_M = 3, 5, 2
+    is_index, is_pairs = build_is_index(c)
+    N = num_states(c, K, D_M)
+    pi = np.arange(N, dtype=float)
+    pi3 = pi_by_level(pi, c, K, D_M)
+    assert pi3.shape == (K + 1, num_is_pairs(c), D_M)
+    for j in range(K + 1):
+        sl = level_slice(j, c, D_M)
+        assert np.array_equal(pi[sl], pi3[j].ravel())
+        for idx in range(N)[sl]:
+            assert idx_to_state(idx, c, K, D_M, is_pairs)[2] == j
+        for is_idx, (i, s) in enumerate(is_pairs):
+            for F in range(D_M):
+                assert pi3[j, is_idx, F] == state_to_idx(i, s, j, F, c, K, D_M, is_index)
 
 
 def test_num_states():

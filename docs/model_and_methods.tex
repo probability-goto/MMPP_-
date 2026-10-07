@@ -260,12 +260,18 @@ $s$ を明示的な状態次元に昇格させる。
   \mathcal{S}^{P}=\{(i,s,j,F): 0\le i\le c,\ 0\le s\le c-i,\ 0\le j\le K,\ 0\le F<D_M\}.
 \end{equation}
 拘束は $i+s\le c$ のみ。$(i,s)$ の組を $i$ 昇順・同一 $i$ 内で $s$ 昇順に
-列挙して線形番号 $\iota(i,s)$ を与え,
+列挙して線形番号 $\iota(i,s)$ を与え, $N_{IS}=(c+1)(c+2)/2$ として
 \begin{equation}
-  \mathrm{idx}(i,s,j,F)=\bigl(\iota(i,s)(K+1)+j\bigr)D_M+F,\qquad
-  N^{P}=\frac{(c+1)(c+2)}{2}(K+1)D_M .
+  \mathrm{idx}(i,s,j,F)=\bigl(j\,N_{IS}+\iota(i,s)\bigr)D_M+F,\qquad
+  N^{P}=N_{IS}(K+1)D_M .
   \label{eq:pred-index}
 \end{equation}
+これはベースの \eqref{eq:base-index} の $i$ の位置に $\iota(i,s)$ を入れた
+$j$-major の順序で, レベル $j$ の状態が連続したブロック
+$[\,jN_{IS}D_M,\ (j+1)N_{IS}D_M\,)$ になる。
+番号付け・逆変換・レベル単位の取り出しは \code{mmpp\_predictive/state\_space.py}
+(\code{state\_to\_idx}, \code{idx\_to\_state}, \code{level\_slice}, \code{pi\_by\_level})
+に集約している。
 標準設定では $N^P = 231\times201\times2 = 92{,}862$。
 Busy/Idle は \eqref{eq:B}, \eqref{eq:I} と同じ $(i,j)$ の関数を用いる。
 
@@ -484,11 +490,35 @@ LU も GTH も破綻する。そこで \code{mmpp\_predictive/solver.py} は
 という手順をとる。縮約後の帯幅 $(p,q)$ を実測し,
 $N p q > 5\times10^8$ なら \code{RuntimeWarning} を出す。
 
-\textbf{注意}: Predictive の索引順序 \eqref{eq:pred-index} は $(i,s)$ が最上位,
-$j$ が中位であるため, セットアップ完了 $(i,s)\to(i+1,s-1)$ が
-$\iota$ を $c-i$ だけ跳ばす。結果として帯幅が大きく,
-標準設定では $Npq\simeq1.2\times10^{10}$ となり, ベースモデルより
-大幅に計算コストが高い。
+\textbf{帯幅についての注意}: 索引 \eqref{eq:pred-index} は $j$ が最上位なので,
+セットアップ完了 $(i,s)\to(i+1,s-1)$ と Delayoff $(i,s)\to(i-1,s)$ は
+同じレベル $j$ の中に収まり, レベルをまたぐ遷移は到着 ($j\to j+1$) と
+バッチ完了 ($j\to j-b$) だけになる。したがって帯幅は $K$ によらない。
+標準設定 ($c=20$, $b=5$, $n_{\mathrm{target}}=10$, $\gamma=5$, $\rho=0.7$) での
+縮約後の実測値は次のとおり。
+\begin{center}
+\begin{tabular}{rrrrr}
+\toprule
+$K$ & 縮約後 $N$ & $p$ & $q$ & $Npq$ \\
+\midrule
+100  & 8{,}092  & 760 & 152 & $9.3\times10^{8}$ \\
+200  & 12{,}292 & 760 & 152 & $1.4\times10^{9}$ \\
+400  & 20{,}692 & 760 & 152 & $2.4\times10^{9}$ \\
+1000 & 45{,}892 & 760 & 152 & $5.3\times10^{9}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+計算量 $O(Npq)$ は $N$ に線形 ($K$ に線形) である。
+ただし 1 レベルあたりの状態数がベースより多いため $p,q$ はベース
+($p=210$, $q=42$) より大きく, 標準設定でも $Npq>5\times10^8$ となって警告は出る。
+旧索引 ($\iota(i,s)$ 最上位, $j$ 中位) ではセットアップ完了と Delayoff が
+$(K+1)D_M$ 単位のブロックを跳び越すため帯幅が $K$ に比例して増え
+($K=200$ で $(p,q)=(1042,942)$, $Npq\simeq1.2\times10^{10}$;
+$K=1000$ で $(2642,2542)$, $Npq\simeq3.1\times10^{11}$),
+計算量は $K^3$ に比例していた。
+索引の変更による GTH の計算時間 (\code{solve\_stationary} 全体, 2 コア環境) と
+帯格納メモリは, $K=200$ で $3.3$\,s $\to$ $0.86$\,s, $186$\,MB $\to$ $86$\,MB,
+$K=1000$ で $36$\,s $\to$ $2.3$\,s, $1.8$\,GB $\to$ $320$\,MB である。
 
 \subsection{疎 LU 分解 (\code{solver="splu"}, 旧既定)}
 
@@ -938,10 +968,11 @@ $P_\blk^{\mathrm{arr}}$ は「全点」と「ベース値 $\ge10^{-6}$ の点の
 \item \textbf{Predictive は到達可能部分空間に縮約してから}解く。
       縮約の起点は $\mathrm{idx}=0\Leftrightarrow(i,s,j,F)=(0,0,0,0)$。
       名目状態空間のままでは $Q$ が可約で解けない。
-\item \textbf{Predictive の計算コスト}: 索引順序 \eqref{eq:pred-index} が
-      $(i,s)$ 最上位であるため帯幅が大きく, 標準設定で
-      $Npq\simeq1.2\times10^{10}$。ベースモデル ($0.17$ 秒/点) より
-      大幅に重い。$Npq>5\times10^8$ で警告が出る。
+\item \textbf{Predictive の計算コスト}: 索引順序 \eqref{eq:pred-index} は
+      $j$ 最上位なので縮約後の帯幅は $K$ によらず, 標準設定で
+      $(p,q)=(760,152)$, $Npq\simeq1.4\times10^9$ ($K=200$)。
+      計算量は $K$ に線形だが, $p,q$ がベース ($210, 42$) より大きいため
+      ベースモデル ($0.17$ 秒/点) よりは重く, $Npq>5\times10^8$ の警告は出る。
 \item \textbf{事後検証の許容誤差は $10^{-8}$} (絶対値基準)。
       通過後に微小負値をクリップして再正規化している。
 \end{enumerate}

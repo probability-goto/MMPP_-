@@ -116,3 +116,36 @@ class TestReducedSpacePrecondition:
         N = Q_reduced.shape[0]
         assert 0 < p < N
         assert 0 < q < N
+
+
+class TestReducedBandwidthIndependentOfK:
+    """j-major 順序では縮約後の帯幅 (p, q) が K に依存しない.
+
+    標準設定 (c=20, b=5, n_target=10, gamma=5) での実測値は
+    (p, q) = (760, 152), K=200 の縮約後 N = 12292.
+    """
+
+    @staticmethod
+    def _reduced(K):
+        from scipy.sparse.csgraph import breadth_first_order
+
+        C0, C1 = build_mmpp(rho=0.7, delta=0.6, sigma=0.1, c=20, b=5, mu=1.0)
+        params = PredictiveModelParameters(
+            c=20, K=K, b=5, mu=1.0, alpha=0.1, beta=0.005,
+            C0=C0, C1=C1, n_target=10, gamma=5.0,
+        )
+        Q = build_pred_generator(params).tocsr()
+        adj = Q.copy()
+        adj.setdiag(0)
+        adj.eliminate_zeros()
+        reach = np.sort(breadth_first_order(
+            adj, i_start=0, directed=True, return_predecessors=False))
+        return Q[reach][:, reach].tocsr()
+
+    def test_bandwidth_constant_in_K(self):
+        measured = {}
+        for K in (100, 200, 400):
+            Qr = self._reduced(K)
+            measured[K] = (Qr.shape[0], *bandwidths(Qr))
+        assert measured[200][0] == 12292
+        assert {(p, q) for _, p, q in measured.values()} == {(760, 152)}, measured
