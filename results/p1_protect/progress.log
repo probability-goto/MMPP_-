@@ -1,0 +1,13 @@
+2026-10-07T21:51:22 done=10/108 elapsed=17.4s eta=170.9s last=medium,rho=0.7,alpha=0.1,beta=0.5,gamma=5.0,mode=none
+2026-10-07T21:51:39 done=20/108 elapsed=34.7s eta=152.7s last=medium,rho=0.7,alpha=1.0,beta=0.5,gamma=1.0,mode=presetup
+2026-10-07T21:51:56 done=30/108 elapsed=51.3s eta=133.3s last=medium,rho=0.7,alpha=10.0,beta=0.005,gamma=5.0,mode=both
+2026-10-07T21:52:06 done=36/108 elapsed=61.5s eta=123.1s last=medium,rho=0.7,alpha=10.0,beta=0.5,gamma=5.0,mode=both
+2026-10-07T21:52:13 done=40/108 elapsed=68.5s eta=116.5s last=strong,rho=0.7,alpha=0.1,beta=0.005,gamma=5.0,mode=none
+2026-10-07T21:52:30 done=50/108 elapsed=85.7s eta=99.4s last=strong,rho=0.7,alpha=1.0,beta=0.005,gamma=1.0,mode=presetup
+2026-10-07T21:52:47 done=60/108 elapsed=102.4s eta=81.9s last=strong,rho=0.7,alpha=1.0,beta=0.5,gamma=5.0,mode=both
+2026-10-07T21:53:04 done=70/108 elapsed=119.4s eta=64.8s last=strong,rho=0.7,alpha=10.0,beta=0.5,gamma=5.0,mode=none
+2026-10-07T21:53:08 done=72/108 elapsed=122.8s eta=61.4s last=strong,rho=0.7,alpha=10.0,beta=0.5,gamma=5.0,mode=both
+2026-10-07T21:53:21 done=80/108 elapsed=136.7s eta=47.8s last=medium,rho=0.3,alpha=0.1,beta=0.5,gamma=1.0,mode=presetup
+2026-10-07T21:53:38 done=90/108 elapsed=153.4s eta=30.7s last=medium,rho=0.3,alpha=1.0,beta=0.005,gamma=5.0,mode=both
+2026-10-07T21:53:55 done=100/108 elapsed=170.5s eta=13.6s last=medium,rho=0.3,alpha=10.0,beta=0.005,gamma=5.0,mode=none
+2026-10-07T21:54:09 done=108/108 elapsed=183.8s eta=0.0s last=medium,rho=0.3,alpha=10.0,beta=0.5,gamma=5.0,mode=both
