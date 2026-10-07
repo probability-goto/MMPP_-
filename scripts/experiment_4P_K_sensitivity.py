@@ -276,7 +276,9 @@ def _plot(
 
         if key == "P_block_arrival_stable":
             ax.set_yscale("log")
-            # 安定版は 1e-12 未満でも相対精度を保つので下限で切らずに全点を描く
+            # 安定版は 1e-12 未満でも相対精度を保つので下限で切らずに全点を描く.
+            # ブロッキング確率なので上端は 1. 対数軸の自動余白で 1 を超えないようにする
+            ax.set_ylim(top=1)
 
         ax.set_xlabel(r"$\rho$", fontsize=16)
         ax.set_ylabel(ylabel, fontsize=16)

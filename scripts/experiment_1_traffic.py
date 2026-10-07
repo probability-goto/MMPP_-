@@ -265,6 +265,8 @@ def _plot(
 
         if key == "P_block_arrival_stable":
             ax.set_yscale("log")
+            # ブロッキング確率なので上端は 1. 対数軸の自動余白で 1 を超えないようにする
+            ax.set_ylim(top=1)
 
         ax.set_xlabel(r"$\rho$", fontsize=16)
         ax.set_ylabel(ylabel, fontsize=16)

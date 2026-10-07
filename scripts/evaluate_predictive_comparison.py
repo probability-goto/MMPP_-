@@ -23,10 +23,27 @@ import argparse
 import csv
 import math
 import os
+import statistics
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 METRICS = ["P_block_arrival_stable", "E_W", "Cost", "ERP"]
+
+# 勝敗判定の相対許容幅: |base - pred| / |base| がこれ未満なら引き分けとする.
+# ベースと Predictive がほぼ同じ点 (Predictive の機構がほとんど働かない点) で,
+# GTH の丸め差 (相対 1e-12 程度) によって勝敗が決まるのを防ぐ.
+TIE_REL_TOL = 1e-6
+
+# P_block はベース値がこの値以上の点だけに絞った勝率も併記する
+# (極小確率の点を除いた, 実用上意味のある領域での比較).
+P_BLOCK_METRIC = "P_block_arrival_stable"
+P_BLOCK_FLOOR = 1e-6
+
+# 実験 1/1-P/4/4-P は alpha を走査せず BASELINE の 0.1 に固定している
+# (これらの CSV には alpha 列がない). alpha 水準別の集計ではこの値を使う.
+FIXED_ALPHA_1P_4P = 0.1
+
+ALPHA_LEVELS = [0.1, 1.0, 10.0]
 
 
 @dataclass
@@ -40,17 +57,35 @@ class ComparisonPoint:
     base_value: float
     pred_value: float
     match_error: float = 0.0  # 最近傍マッチングの誤差 (相対 or 絶対)
+    alpha: float = FIXED_ALPHA_1P_4P  # セットアップ率 (ベース・Predictive 共通)
+    gamma: float = float("nan")  # Predictive 側の Delayoff 加速係数
+
+    @property
+    def log10_ratio(self) -> float:
+        """log10(pred / base). 負: Predictive の値が小さい (P_block なら改善)."""
+        if self.base_value <= 0 or self.pred_value <= 0:
+            return float("nan")
+        return math.log10(self.pred_value / self.base_value)
 
     @property
     def improvement_pct(self) -> float:
         """改善率 (%). 正: Predictive が良い, 負: Predictive が悪い."""
-        if abs(self.base_value) < 1e-12:
-            return 0.0
+        if self.base_value == 0:
+            return 0.0  # 0 割りの回避のみ (全 CSV が GTH 由来で, 極小値も相対精度を持つ)
         return (self.base_value - self.pred_value) / self.base_value * 100
 
     @property
+    def is_tie(self) -> bool:
+        """相対差が TIE_REL_TOL 未満なら引き分け."""
+        return abs(self.base_value - self.pred_value) <= TIE_REL_TOL * abs(self.base_value)
+
+    @property
     def is_predictive_better(self) -> bool:
-        return self.improvement_pct > 0
+        return not self.is_tie and self.improvement_pct > 0
+
+    @property
+    def is_predictive_worse(self) -> bool:
+        return not self.is_tie and self.improvement_pct < 0
 
     @property
     def is_predictive_much_better(self) -> bool:
@@ -156,6 +191,8 @@ def build_comparison_points(
         if not isinstance(burst_name, str):
             burst_name = str(burst_name)
         control_vars = {f: base_row[f] for f in control_var_fields if f in base_row}
+        alpha = float(base_row.get("alpha", FIXED_ALPHA_1P_4P))
+        gamma = float(pred_row.get("gamma", float("nan")))
         for metric in metrics:
             if metric not in base_row or metric not in pred_row:
                 continue
@@ -167,6 +204,8 @@ def build_comparison_points(
                 base_value=base_row[metric],
                 pred_value=pred_row[metric],
                 match_error=err,
+                alpha=alpha,
+                gamma=gamma,
             ))
     return points
 
@@ -255,33 +294,141 @@ def format_pct(v: float) -> str:
         return f"{v:+.1f}%"
 
 
+def _metric_groups(points: List[ComparisonPoint]) -> List[Tuple[str, List[ComparisonPoint]]]:
+    """指標ごとの点の集合. P_block は全点とベース >= P_BLOCK_FLOOR の 2 通り."""
+    groups = []
+    for metric in METRICS:
+        metric_pts = [pt for pt in points if pt.metric == metric]
+        if metric == P_BLOCK_METRIC:
+            groups.append((f"{metric} (全点)", metric_pts))
+            groups.append((
+                f"{metric} (ベース >= {P_BLOCK_FLOOR:g} の点のみ)",
+                [pt for pt in metric_pts if pt.base_value >= P_BLOCK_FLOOR],
+            ))
+        else:
+            groups.append((metric, metric_pts))
+    return groups
+
+
+def _wlt(points: List[ComparisonPoint]) -> Tuple[int, int, int]:
+    """(勝ち, 負け, 引き分け) の数."""
+    wins = sum(1 for pt in points if pt.is_predictive_better)
+    losses = sum(1 for pt in points if pt.is_predictive_worse)
+    ties = sum(1 for pt in points if pt.is_tie)
+    return wins, losses, ties
+
+
+def _quartiles(values: List[float]) -> Tuple[float, float, float]:
+    """(Q1, 中央値, Q3)."""
+    if len(values) == 1:
+        return values[0], values[0], values[0]
+    q1, med, q3 = statistics.quantiles(values, n=4, method="inclusive")
+    return q1, med, q3
+
+
+def _wlt_table(points: List[ComparisonPoint], row_label: str, rows) -> None:
+    """rows = [(行ラベル, 点の絞り込み条件)] ごとに 4 指標の 勝/負/分 を出力する."""
+    labels = [label for label, _ in _metric_groups(points)]
+    print(f"| {row_label} | γ | " + " | ".join(labels) + " |")
+    print("|---|---|" + "---|" * len(labels))
+    for name, pred in rows:
+        sub = [pt for pt in points if pred(pt)]
+        if not sub:
+            continue
+        gammas = sorted({pt.gamma for pt in sub if not math.isnan(pt.gamma)})
+        gamma_str = ", ".join(f"{g:g}" for g in gammas)
+        cells = []
+        for _, metric_pts in _metric_groups(sub):
+            w, l, t = _wlt(metric_pts)
+            cells.append(f"{w}/{l}/{t}")
+        print(f"| {name} | {gamma_str} | " + " | ".join(cells) + " |")
+
+
+def summarize_by_alpha_and_burst(points: List[ComparisonPoint]) -> None:
+    """alpha 水準別・バースト水準別の 勝ち/負け/引き分け."""
+    print("## alpha 水準別・バースト水準別の勝敗\n")
+    print("各セルは `勝/負/引き分け`。γ 列はその行に含まれる Predictive 側の γ の値。"
+          "実験 1-P/4-P は alpha=0.1 固定なので alpha=0.1 の行に入る。\n")
+
+    print("### alpha 水準別\n")
+    _wlt_table(points, "alpha", [
+        (f"{a:g}", lambda pt, a=a: abs(pt.alpha - a) < 1e-9) for a in ALPHA_LEVELS
+    ])
+    p1_only = [
+        a for a in ALPHA_LEVELS
+        if {pt.gamma for pt in points if abs(pt.alpha - a) < 1e-9} == {1.0}
+    ]
+    if p1_only:
+        levels = ", ".join(f"alpha={a:g}" for a in p1_only)
+        print(f"\n{levels} の行は全点で γ=1 (Delayoff 加速 P2 が無効) なので, "
+              "事前セットアップ (P1) 単独の効果として読める。")
+
+    print("\n### バースト水準別\n")
+    print("実験 3-P は delta または sigma を連続的に走査しておりバースト水準を持たないため, "
+          "走査ごとに別の行にしている。\n")
+    _wlt_table(points, "バースト", [
+        ("weak", lambda pt: pt.burst_name == "weak"),
+        ("medium", lambda pt: pt.burst_name == "medium"),
+        ("strong", lambda pt: pt.burst_name == "strong"),
+        ("3-P delta 走査", lambda pt: pt.experiment == "3P-delta"),
+        ("3-P sigma 走査", lambda pt: pt.experiment == "3P-sigma"),
+    ])
+    print()
+
+
 def summarize_overall(points: List[ComparisonPoint]) -> None:
     """全体サマリを Markdown で出力."""
     print("## 全体サマリ\n")
 
     total = len(points)
     wins = sum(1 for pt in points if pt.is_predictive_better)
+    ties = sum(1 for pt in points if pt.is_tie)
     much_wins = sum(1 for pt in points if pt.is_predictive_much_better)
     much_losses = sum(1 for pt in points if pt.is_predictive_much_worse)
 
     print(f"- **総データ点数**: {total}")
-    print(f"- **Predictive 勝率**: {wins}/{total} ({wins/max(total,1)*100:.1f}%)")
+    print(f"- **Predictive 勝率**: {wins}/{total} ({wins/max(total,1)*100:.1f}%)"
+          f" (引き分け {ties} 点)")
     print(f"- **大幅改善 (>20%)**: {much_wins}/{total} ({much_wins/max(total,1)*100:.1f}%)")
     print(f"- **大幅悪化 (<-20%)**: {much_losses}/{total} ({much_losses/max(total,1)*100:.1f}%)")
 
-    print("\n### 指標別勝率\n")
-    print("| 指標 | 勝率 | 平均改善率 | 中央値改善率 |")
+    print("\n### 指標別の勝敗\n")
+    print("| 指標 | 勝 | 負 | 引き分け | 勝率 |")
+    print("|---|---|---|---|---|")
+    for label, metric_pts in _metric_groups(points):
+        if not metric_pts:
+            continue
+        w, l, t = _wlt(metric_pts)
+        print(f"| {label} | {w} | {l} | {t} | {w}/{len(metric_pts)} ({w/len(metric_pts)*100:.1f}%) |")
+
+    print("\n### 効果量: P_block\n")
+    print("平均改善率は極小確率どうしの比で支配されるため出力しない。代わりに "
+          "log10(P_pred / P_base) の中央値と四分位範囲で要約する "
+          "(負: Predictive の方がブロッキング確率が小さい。-1 で 1 桁小さい)。\n")
+    print("| 対象 | 点数 | log10(P_pred/P_base) 中央値 | 四分位範囲 [Q1, Q3] |")
     print("|---|---|---|---|")
+    for label, metric_pts in _metric_groups(points):
+        if not label.startswith(P_BLOCK_METRIC):
+            continue
+        ratios = [pt.log10_ratio for pt in metric_pts if not math.isnan(pt.log10_ratio)]
+        if not ratios:
+            continue
+        q1, med, q3 = _quartiles(ratios)
+        print(f"| {label} | {len(ratios)} | {med:+.3g} | [{q1:+.3g}, {q3:+.3g}] |")
+
+    print("\n### 効果量: E_W, Cost, ERP\n")
+    print("| 指標 | 平均改善率 | 中央値改善率 |")
+    print("|---|---|---|")
     for metric in METRICS:
+        if metric == P_BLOCK_METRIC:
+            continue
         metric_pts = [pt for pt in points if pt.metric == metric]
         if not metric_pts:
             continue
-        wins_m = sum(1 for pt in metric_pts if pt.is_predictive_better)
         improvements = sorted(pt.improvement_pct for pt in metric_pts)
         avg = sum(improvements) / len(improvements)
         median = improvements[len(improvements) // 2]
-        print(f"| {metric} | {wins_m}/{len(metric_pts)} ({wins_m/len(metric_pts)*100:.1f}%) "
-              f"| {avg:+.2f}% | {median:+.2f}% |")
+        print(f"| {metric} | {avg:+.2f}% | {median:+.2f}% |")
 
     print("\n### 実験別勝率 (ERP 基準)\n")
     print("| 実験 | 勝率 (ERP) | 平均改善率 (ERP) | 大幅改善 | 大幅悪化 |")
@@ -522,6 +669,8 @@ def main() -> None:
         f"1-P/4-P suffix={suffix_1p_4p}, 2-P/3-P suffix={suffix_2p_3p}\n"
     )
     print("**凡例**:")
+    print(f"- 勝敗判定の相対許容幅: |base - pred| / |base| < {TIE_REL_TOL:g} は引き分け"
+          " (勝ちにも負けにも数えない)")
     print("- `+X.X%`: Predictive による改善率 (正=Predictive が良い, 負=Predictive が悪い)")
     print("- `**+XX%**`: 大幅改善 (>20%)")
     print("- `_-XX%_`: 大幅悪化 (<-20%)")
@@ -532,6 +681,8 @@ def main() -> None:
         return
 
     summarize_overall(points)
+    print()
+    summarize_by_alpha_and_burst(points)
     summarize_by_condition(points)
     summarize_patterns(points)
     summarize_match_quality(points)

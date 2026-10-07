@@ -60,8 +60,10 @@
 \code{mmpp\_predictive\_sim/}& Predictive モデルの DES \\
 \code{scripts/}              & 数値実験スクリプト (実験 0--6, 比較・検証) \\
 \code{tests/}                & pytest による単体・結合テスト \\
-\code{results/}, \code{results\_gth/} & 実験結果 CSV \\
-\code{figures/}, \code{figures\_gth/} & 出力図 (PNG/PDF) \\
+\code{results/}              & 実験結果 CSV (GTH, 正本) \\
+\code{results\_gth/}          & \code{results/} と同一内容の重複 (検証レポートを含む) \\
+\code{figures/}              & 出力図 (PNG/PDF, 正本) \\
+\code{figures\_gth/}          & 引き算版の式で描いた旧図 (論文には使わない) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -718,7 +720,9 @@ DES & $n_{\mathrm{reps}}=20$, warmup $10^5$ events, measurement $10^6$ events, s
 CSV 列 \code{P\_block\_arrival\_stable}), $E[W]$,
 $\mathrm{Cost}$, $\mathrm{ERP}$ を $2\times2$ サブプロットで出力する。
 $P_\blk^{\mathrm{arr}}$ の $y$ 軸は対数スケールで, 下限は設けない
-(実験 4/4-P の低 $\rho$・大 $K$ では $10^{-77}$ 程度まで描かれる)。走査変数が対数格子のもの
+(実験 4/4-P の低 $\rho$・大 $K$ では $10^{-77}$ 程度まで描かれる)。
+値の範囲が広い図 (実験 1/1-P/4/4-P と比較図 1 vs 1-P, 4 vs 4-P) では,
+対数軸の自動余白で上端が 1 を超えないよう上端を 1 に固定している。走査変数が対数格子のもの
 ($\beta$: 実験 2/2-P, $\sigma$: 実験 3-B/3-P-B, $\gamma$: 実験 6) は $x$ 軸も対数スケール。
 
 \begin{longtable}{p{0.10\textwidth}p{0.40\textwidth}p{0.42\textwidth}}
@@ -788,6 +792,26 @@ Markdown で出力する (\code{evaluation\_report*.md})。
 連続変数は\textbf{最近傍マッチング} ($\beta,\sigma$ は $\log$ 距離,
 $\rho,\delta$ は線形距離), 離散変数 ($\alpha$, $K$, バースト名) は
 \textbf{厳密一致}で対応付ける。
+勝敗は相対差 $|\text{base}-\text{pred}|/|\text{base}|<10^{-6}$
+(\code{TIE\_REL\_TOL}) なら\textbf{引き分け}とする。
+Predictive の機構がほとんど働かない点 (弱バースト, $\gamma=1$ など) では
+両者の差が丸め誤差 ($\sim10^{-12}$) しかなく, 引き分けにしないと
+勝敗が数値誤差で決まるためである。改善率の 0 除算回避以外の足切りは設けず,
+$P_\blk^{\mathrm{arr}}$ は「全点」と「ベース値 $\ge10^{-6}$ の点のみ」の
+2 通りの勝敗を併記する。$P_\blk^{\mathrm{arr}}$ の効果量は, 平均改善率が極小値どうしの
+比で支配されるため出力せず, $\log_{10}(P_{\mathrm{pred}}/P_{\mathrm{base}})$ の中央値と
+四分位範囲で要約する (負なら Predictive の方が小さい)。
+さらに勝ち・負け・引き分けの数を $\alpha$ 水準別 ($0.1, 1, 10$) とバースト水準別に分けて出力する
+(実験 1-P/4-P は $\alpha=0.1$ 固定, 3-P はバースト水準を持たないので走査ごとに別の行)。
+\code{\_gmap} と \code{g1.0} を組み合わせた比較 (\code{evaluation\_report\_optimal\_gamma.md}) では
+$\alpha=0.1$ の点がすべて $\gamma=1$ (P2 無効) なので, その行は P1 単独の効果として読める。
+
+\code{ALPHA\_GAMMA\_MAP} ($0.1\!\mapsto\!1,\ 1\!\mapsto\!100,\ 10\!\mapsto\!1000$) の
+決め方はコミット履歴・スクリプト・コメントのいずれにも記録がない。
+実験 6 (初期 + 拡張走査) で ERP を最小にする $\gamma$ は
+$\alpha=0.1$: 1 (weak, medium), 20 (strong);
+$\alpha=1$: 46 (weak), 187 (medium, strong);
+$\alpha=10$: 1000 (全バースト, 走査上端) であり, 桁としては対応するが一致はしない。
 
 \subsection{出力ファイルの命名規約}
 
@@ -802,8 +826,22 @@ $\rho,\delta$ は線形距離), 離散変数 ($\alpha$, $K$, バースト名) �
   \item 図は \code{figures/} に PNG (dpi 150) と PDF (dpi 100) の両方。
         図中に題名は付けず, 設定情報はコンソールに「キャプション用情報」として
         出力する方針 (論文キャプション側に記載する前提)。
-  \item \code{results\_gth/}, \code{figures\_gth/} は GTH 既定化後に
-        再実行した結果で, \code{results/} (splu 時代) との突き合わせに用いた。
+  \item \code{results/} と \code{results\_gth/} の CSV は\textbf{どちらも GTH 法で計算したもの}で,
+        対応する 30 ファイルは全指標・全行が完全に同一である
+        (\code{results/experiment\_6\_extended/} の 3 ファイルは \code{results/} にのみある)。
+        経緯: \code{results\_gth/} は GTH 既定化直後 (2026-09-25, コミット
+        \code{8f3cb6f}, \code{f9594ff}) に全実験を再計算した結果で, その時点の
+        \code{results/} は splu で計算した旧結果だった。GTH と splu の突き合わせ
+        (\code{compare\_gth\_vs\_splu\_results.py}, \code{VALIDATION\_REPORT.md}) は
+        この時点の両者で行った。その後 2026-09-28 のコミット \code{186a895} で
+        \code{results/} が GTH の結果で上書きされ, \code{results\_gth/} と同一になった。
+        したがって \code{results\_gth/} は現在は\textbf{重複}であり, 数値実験の正本は
+        \code{results/} である (ディレクトリは検証の記録として残している)。
+        現在の両ディレクトリで \code{compare\_gth\_vs\_splu\_results.py} を実行しても
+        差は 0 になる。splu 時代の CSV は \code{git show 186a895\^{}:results/<ファイル名>}
+        で取り出せる。
+  \item \code{figures\_gth/} は到着平均ブロッキング確率を引き算版の式で描いた旧図であり,
+        論文・スライドには \code{figures/} を使う (\code{figures\_gth/README.md})。
 \end{itemize}
 
 \subsection{補助スクリプト}
@@ -816,7 +854,7 @@ $\rho,\delta$ は線形距離), 離散変数 ($\alpha$, $K$, バースト名) �
 \code{validate\_gth\_mpmath.py} & mpmath 50 桁の真値との比較 (ベース) \\
 \code{validate\_gth\_mpmath\_predictive.py} & 同 (Predictive, 小規模設定) \\
 \code{validate\_gth\_v6\_base.py} & 実験格子を直接再現して GTH/splu を同一 $Q$ 上で比較 (415 点) \\
-\code{compare\_gth\_vs\_splu\_results.py} & \code{results/} と \code{results\_gth/} の CSV 突き合わせ \\
+\code{compare\_gth\_vs\_splu\_results.py} & \code{results/} (splu 時代) と \code{results\_gth/} の CSV 突き合わせ (現在は両者同一のため差 0) \\
 \code{benchmark\_gth\_vs\_splu.py} & 計算時間・帯格納メモリの計測 (\code{results\_gth/benchmark.md}) \\
 \code{make\_gth\_vs\_splu\_figures.py} & 精度比較図の生成 \\
 \code{check\_results\_integrity.py} & CSV の \code{P\_block\_arrival\_stable} 列の存在・正値性の検査 \\
