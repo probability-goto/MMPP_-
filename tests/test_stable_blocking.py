@@ -121,8 +121,11 @@ class TestPositivityOnExperimentGrids:
         with open(path, encoding="utf-8") as f:
             rows = list(csv.DictReader(f))
         assert rows, f"空の CSV: {path}"
-        assert "P_block_arrival_stable" in rows[0], f"列がない: {path}"
-        vals = [float(r["P_block_arrival_stable"]) for r in rows]
+        # DES 照合の CSV は理論値を theory_P_block_arrival_stable 列に持つ
+        col = ("P_block_arrival_stable" if "P_block_arrival_stable" in rows[0]
+               else "theory_P_block_arrival_stable")
+        assert col in rows[0], f"列がない: {path}"
+        vals = [float(r[col]) for r in rows]
         bad = [v for v in vals if not (0.0 < v <= 1.0)]
         assert not bad, f"{path}: 非正または 1 超の値 {bad[:5]}"
 

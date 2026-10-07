@@ -83,10 +83,11 @@ METRIC_COLUMNS = []
 for name, _, _ in METRICS + EXTRA + [("setup_cancel_rate", None, None)]:
     METRIC_COLUMNS += [f"{name}_theory", f"{name}_sim", f"{name}_lo",
                        f"{name}_hi", f"{name}_in_ci"]
-# P_block_arrival_stable は理論値 (P_block_arrival_theory と同じ値). results/ の
-# CSV に共通の列名 (tests/test_stable_blocking.py が正値性を検査する).
+# theory_P_block_arrival_stable は理論値 (P_block_arrival_theory と同じ値) で,
+# DES の推定値ではない. tests/test_stable_blocking.py と
+# scripts/check_results_integrity.py は DES 照合の CSV ではこの列の正値性を検査する.
 FIELDNAMES = KEY_FIELDS + ["delta", "sigma", "c", "K", "b", "alpha", "beta",
-                           "P_block_arrival_stable"] + \
+                           "theory_P_block_arrival_stable"] + \
     METRIC_COLUMNS + ["n_in_ci_6", "min_pi", "elapsed_s", "check"]
 
 
@@ -182,7 +183,7 @@ def run_point(policy, rho):
                 "setup_cancel_rate_sim": mean, "setup_cancel_rate_lo": lo,
                 "setup_cancel_rate_hi": hi, "setup_cancel_rate_in_ci": inside})
     row["n_in_ci_6"] = n_in
-    row["P_block_arrival_stable"] = m.P_block_arrival_stable
+    row["theory_P_block_arrival_stable"] = m.P_block_arrival_stable
 
     checks = []
     total = m.E_B + m.E_I + m.E_S + m.E_off
