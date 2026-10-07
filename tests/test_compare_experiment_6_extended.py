@@ -15,7 +15,7 @@ def _make_dummy_csv(path: Path, gammas: list, alpha: float = 1.0) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
         "burst_name", "delta", "sigma", "alpha", "beta", "rho",
-        "n_target", "gamma", "P_block_arrival", "E_W", "Cost", "ERP",
+        "n_target", "gamma", "P_block_arrival_stable", "E_W", "Cost", "ERP",
         "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off", "N_states",
     ]
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -26,7 +26,7 @@ def _make_dummy_csv(path: Path, gammas: list, alpha: float = 1.0) -> None:
                 "burst_name": "medium", "delta": 0.6, "sigma": 0.1,
                 "alpha": alpha, "beta": 0.005, "rho": 0.7,
                 "n_target": 10, "gamma": gamma,
-                "P_block_arrival": 0.05, "E_W": 1.5,
+                "P_block_arrival_stable": 0.05, "E_W": 1.5,
                 "Cost": 6.0, "ERP": 10.0 - 0.1 * gamma,  # γ 増で ERP 減
                 "E_N": 60, "lambda_eff": 40, "E_B": 15, "E_S": 2,
                 "E_I": 1, "E_off": 2, "N_states": 90000,

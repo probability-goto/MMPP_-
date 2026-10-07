@@ -75,7 +75,7 @@ RHO_N_POINTS = 15
 
 # (指標キー, Metrics 共通メソッド名, 表示ラベル)
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}$"),
+    ("P_block_arrival_stable", "arrival_blocking_probability_stable", r"$P_{\mathrm{block}}$"),
     ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("Cost", "energy_cost_paper", "Cost"),
     ("ERP", "erp_paper", "ERP"),
@@ -153,7 +153,7 @@ def main() -> None:
     for level_name, delta, sigma in _burst_levels_to_run(args.burst):
         # 結果格納: theory_vals[K][metric_key] = [値, ...] (rho 順)
         theory_vals: Dict[int, Dict[str, List[float]]] = {
-            K: {**{k: [] for k, _, _ in METRIC_SPECS}, "P_block_arrival_stable": []} for K in K_LEVELS
+            K: {k: [] for k, _, _ in METRIC_SPECS} for K in K_LEVELS
         }
 
         cv_mid = compute_interarrival_cv(
@@ -179,8 +179,6 @@ def main() -> None:
                     theory_val = getattr(theory, method_name)()
                     theory_vals[K][key].append(theory_val)
                     print(f"  {key:<18}{theory_val:>14.5g}")
-                theory_vals[K]["P_block_arrival_stable"].append(
-                    theory.arrival_blocking_probability_stable())
 
                 cons_err, flow_err = _conservation_and_flow_balance(
                     params.c, params.b, params.mu,
@@ -257,9 +255,9 @@ def _plot(
                 label=f"K={K}" if ax is axes.flat[0] else None,
             )
 
-        if key == "P_block_arrival":
+        if key == "P_block_arrival_stable":
             ax.set_yscale("log")
-            ax.set_ylim(bottom=1e-12)
+            # 安定版は 1e-12 未満でも相対精度を保つので下限で切らずに全点を描く
 
         ax.set_xlabel(r"$\rho$", fontsize=16)
         ax.set_ylabel(ylabel, fontsize=16)
@@ -306,7 +304,7 @@ def _save_csv(
 
     fieldnames = [
         "burst_name", "delta", "sigma", "K", "rho",
-        "P_block_arrival", "P_block_arrival_stable", "E_W", "Cost", "ERP",
+        "P_block_arrival_stable", "E_W", "Cost", "ERP",
     ]
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -319,7 +317,6 @@ def _save_csv(
                     "sigma": sigma,
                     "K": K,
                     "rho": float(rho),
-                    "P_block_arrival": theory_vals[K]["P_block_arrival"][i],
                     "P_block_arrival_stable": theory_vals[K]["P_block_arrival_stable"][i],
                     "E_W": theory_vals[K]["E[W]"][i],
                     "Cost": theory_vals[K]["Cost"][i],

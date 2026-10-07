@@ -71,7 +71,7 @@ RHO_RANGE: Tuple[float, float] = (0.1, 0.95)
 
 # (指標キー, Metrics 共通メソッド名, 表示ラベル)
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}$"),
+    ("P_block_arrival_stable", "arrival_blocking_probability_stable", r"$P_{\mathrm{block}}$"),
     ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("Cost", "energy_cost_paper", "Cost"),
     ("ERP", "erp_paper", "ERP"),
@@ -181,8 +181,7 @@ def main() -> None:
                 "delta": delta,
                 "sigma": sigma,
                 "rho": rho,
-                "P_block_arrival": theory_vals[level_name]["P_block_arrival"][-1],
-                "P_block_arrival_stable": theory.arrival_blocking_probability_stable(),
+                "P_block_arrival_stable": theory_vals[level_name]["P_block_arrival_stable"][-1],
                 "E_W": theory_vals[level_name]["E[W]"][-1],
                 "Cost": theory_vals[level_name]["Cost"][-1],
                 "ERP": theory_vals[level_name]["ERP"][-1],
@@ -210,7 +209,7 @@ def _save_csv(args: argparse.Namespace, rows: List[Dict[str, object]]) -> None:
     csv_path = os.path.join(args.csv_dir, "experiment_1.csv")
     fieldnames = [
         "burst_name", "delta", "sigma", "rho",
-        "P_block_arrival", "P_block_arrival_stable", "E_W", "Cost", "ERP",
+        "P_block_arrival_stable", "E_W", "Cost", "ERP",
         "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
         "N_states",
     ]
@@ -264,7 +263,7 @@ def _plot(
                 label=label if ax is axes.flat[0] else None,
             )
 
-        if key == "P_block_arrival":
+        if key == "P_block_arrival_stable":
             ax.set_yscale("log")
 
         ax.set_xlabel(r"$\rho$", fontsize=16)

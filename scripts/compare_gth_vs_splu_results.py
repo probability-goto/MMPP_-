@@ -14,6 +14,9 @@ import glob
 import os
 import sys
 
+# P_block_arrival (引き算版 1 - lambda_eff/lambda_bar) はライブラリから削除済みで,
+# 新しく生成する CSV には出力されない。ここでは既存 CSV の旧列を読んで
+# 桁落ちの比較のためだけに残している (列がない CSV では自動的に比較対象外)。
 METRIC_COLS = [
     "P_block", "P_block_arrival", "P_block_arrival_stable",
     "E_W", "Cost", "ERP",

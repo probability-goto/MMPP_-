@@ -161,7 +161,7 @@ class TestEnergyCost:
         m, _ = small_metrics
         d = m.all_metrics()
         expected_keys = {
-            "P_block", "P_block_arrival", "P_block_arrival_stable",
+            "P_block", "P_block_arrival_stable",
             "E[j]", "E[B]", "E[I]", "E[S]", "E[Off]",
             "lambda_eff", "E[W]", "rho", "energy_cost",
             "cost_paper", "ERP_paper",
@@ -209,13 +209,17 @@ class TestBlockingProbability:
     def test_arrival_blocking_in_unit(self, small_metrics):
         """0 ≤ P_block^arrival ≤ 1."""
         m, _ = small_metrics
-        p_arr = m.arrival_blocking_probability()
+        p_arr = m.arrival_blocking_probability_stable()
         assert 0 <= p_arr <= 1
 
     def test_arrival_blocking_consistent_with_lambda_eff(self, small_metrics):
-        """P_block^arrival = 1 - λ_eff / λ_bar (定義との整合)."""
+        """P_block^arrival = 1 - λ_eff / λ_bar (定義との整合).
+
+        小規模モデルで P_block^arrival が大きく桁落ちしない領域なので,
+        定義式をここで直接計算して参照値に使う.
+        """
         m, p = small_metrics
-        p_arr = m.arrival_blocking_probability()
+        p_arr = m.arrival_blocking_probability_stable()
         lam_eff = m.effective_arrival_rate()
         expected = 1.0 - lam_eff / p.lambda_bar
         assert abs(p_arr - expected) < 1e-12
@@ -233,6 +237,6 @@ class TestBlockingProbability:
         pi = solve_stationary(Q)
         m = Metrics(params, pi)
         p_time = m.blocking_probability()
-        p_arr = m.arrival_blocking_probability()
+        p_arr = m.arrival_blocking_probability_stable()
         # Poisson 到着なので PASTA により両者一致
         assert abs(p_time - p_arr) < 1e-10

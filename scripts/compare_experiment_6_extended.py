@@ -84,7 +84,7 @@ def plot_extended(
     }
 
     metrics_config = [
-        (axes[0, 0], "P_block_arrival", r"$P_{\mathrm{block}}$", True),
+        (axes[0, 0], "P_block_arrival_stable", r"$P_{\mathrm{block}}$", True),
         (axes[0, 1], "E_W", r"$E[W]$", False),
         (axes[1, 0], "Cost", "Cost", False),
         (axes[1, 1], "ERP", "ERP", False),
@@ -185,7 +185,7 @@ def check_gamma_20_consistency(
             print(f"  α={alpha}: γ=20 の点が片方に存在しないためスキップ")
             continue
         max_rel_diff = 0.0
-        for metric in ["P_block_arrival", "E_W", "Cost", "ERP"]:
+        for metric in ["P_block_arrival_stable", "E_W", "Cost", "ERP"]:
             init_val = init_pt[metric]
             ext_val = ext_pt[metric]
             if abs(init_val) > 1e-12:

@@ -116,7 +116,6 @@ class ExperimentResult:
     rho: float
     n_target: int
     gamma: float
-    P_block_arrival: float
     P_block_arrival_stable: float
     E_W: float
     Cost: float
@@ -172,7 +171,6 @@ def run_single_point(
         rho=rho,
         n_target=n_target,
         gamma=gamma,
-        P_block_arrival=m.arrival_blocking_probability(),
         P_block_arrival_stable=m.arrival_blocking_probability_stable(),
         E_W=m.mean_waiting_time(),
         Cost=m.energy_cost_paper(),
@@ -252,7 +250,7 @@ def save_csv(results: List[ExperimentResult], filepath: str) -> None:
         "delta", "sigma",
         "alpha", "beta", "rho",
         "n_target", "gamma",
-        "P_block_arrival", "P_block_arrival_stable", "E_W", "Cost", "ERP",
+        "P_block_arrival_stable", "E_W", "Cost", "ERP",
         "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
         "N_states",
     ]
@@ -294,7 +292,7 @@ def plot_delta_sweep(
     }
 
     metrics_config = [
-        (axes[0, 0], "P_block_arrival", r"$P_{\mathrm{block}}$", True),
+        (axes[0, 0], "P_block_arrival_stable", r"$P_{\mathrm{block}}$", True),
         (axes[0, 1], "E_W", r"$E[W]$", False),
         (axes[1, 0], "Cost", "Cost", False),
         (axes[1, 1], "ERP", "ERP", False),
@@ -359,7 +357,7 @@ def plot_sigma_sweep(
     }
 
     metrics_config = [
-        (axes[0, 0], "P_block_arrival", r"$P_{\mathrm{block}}$", True),
+        (axes[0, 0], "P_block_arrival_stable", r"$P_{\mathrm{block}}$", True),
         (axes[0, 1], "E_W", r"$E[W]$", False),
         (axes[1, 0], "Cost", "Cost", False),
         (axes[1, 1], "ERP", "ERP", False),
@@ -512,7 +510,7 @@ def main() -> None:
             if zero_delta_result is not None:
                 print(
                     f"  alpha={alpha}, delta=0: "
-                    f"P_block^arrival={zero_delta_result.P_block_arrival:.6g}, "
+                    f"P_block^arrival={zero_delta_result.P_block_arrival_stable:.6g}, "
                     f"E[W]={zero_delta_result.E_W:.6g}"
                 )
 

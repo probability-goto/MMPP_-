@@ -72,7 +72,7 @@ def plot_comparison(
     print(f"\nキャプション用情報: {_caption}")
 
     metrics_config = [
-        (axes[0, 0], "P_block_arrival", r"$P_{\mathrm{block}}$", True),
+        (axes[0, 0], "P_block_arrival_stable", r"$P_{\mathrm{block}}$", True),
         (axes[0, 1], "E_W", r"$E[W]$", False),
         (axes[1, 0], "Cost", "Cost", False),
         (axes[1, 1], "ERP", "ERP", False),
@@ -109,7 +109,7 @@ def plot_comparison(
             ax.set_ylabel(ylabel, fontsize=16)
             if log_y:
                 ax.set_yscale("log")
-                ax.set_ylim(bottom=1e-12)
+                # 安定版は 1e-12 未満でも相対精度を保つので下限で切らずに全点を描く
             ax.grid(True, alpha=0.3)
 
     # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
@@ -147,7 +147,7 @@ def print_improvement_summary(
         for rho_target in rho_targets:
             base_pt = min(base_candidates, key=lambda r: abs(r["rho"] - rho_target))
             pred_pt = min(pred_candidates, key=lambda r: abs(r["rho"] - rho_target))
-            for metric in ["P_block_arrival", "E_W", "Cost", "ERP"]:
+            for metric in ["P_block_arrival_stable", "E_W", "Cost", "ERP"]:
                 base_val = base_pt[metric]
                 pred_val = pred_pt[metric]
                 if base_val > 0:

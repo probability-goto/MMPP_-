@@ -77,7 +77,7 @@ BETA_RANGE: Tuple[float, float] = (1e-2, 1e2)
 
 # (指標キー, Metrics 共通メソッド名, 表示ラベル)
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival", "arrival_blocking_probability", r"$P_{\mathrm{block}}$"),
+    ("P_block_arrival_stable", "arrival_blocking_probability_stable", r"$P_{\mathrm{block}}$"),
     ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("Cost", "energy_cost_paper", "Cost"),
     ("ERP", "erp_paper", "ERP"),
@@ -200,8 +200,7 @@ def main() -> None:
                 "alpha": alpha,
                 "beta": beta,
                 "rho": RHO_FIXED,
-                "P_block_arrival": theory_vals[level_name]["P_block_arrival"][-1],
-                "P_block_arrival_stable": theory.arrival_blocking_probability_stable(),
+                "P_block_arrival_stable": theory_vals[level_name]["P_block_arrival_stable"][-1],
                 "E_W": theory_vals[level_name]["E[W]"][-1],
                 "Cost": theory_vals[level_name]["Cost"][-1],
                 "ERP": theory_vals[level_name]["ERP"][-1],
@@ -229,7 +228,7 @@ def _save_csv(args: argparse.Namespace, rows: List[Dict[str, object]], burst_nam
     csv_path = os.path.join(args.csv_dir, f"experiment_2_{burst_name}.csv")
     fieldnames = [
         "burst_name", "delta", "sigma", "alpha", "beta", "rho",
-        "P_block_arrival", "P_block_arrival_stable", "E_W", "Cost", "ERP",
+        "P_block_arrival_stable", "E_W", "Cost", "ERP",
         "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
         "N_states",
     ]
@@ -265,7 +264,7 @@ def _print_caption_summary(
     print("\n[各 alpha 水準での最適 beta (指標最小)]")
     for level_name, _ in ALPHA_LEVELS:
         for key, _, _ in METRIC_SPECS:
-            if key == "P_block_arrival":
+            if key == "P_block_arrival_stable":
                 continue  # 最小化対象外 (単調)
             beta_opt, val_opt = _find_optimal_beta(beta_values, theory_vals[level_name][key])
             print(f"  {level_name}: min({key}) = {val_opt:.4g} at beta = {beta_opt:.4g}")
@@ -293,7 +292,7 @@ def _plot(
             )
 
         ax.set_xscale("log")
-        if key == "P_block_arrival":
+        if key == "P_block_arrival_stable":
             ax.set_yscale("log")
 
         ax.set_xlabel(r"$\beta$", fontsize=16)
