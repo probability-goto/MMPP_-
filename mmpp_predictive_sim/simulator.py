@@ -195,8 +195,11 @@ class PredictiveSimulator:
             avg_sojourn = sum(sojourns) / b
             departure_count = b
             j_new = j - b
-            s_needed = required_setup_count(i, j_new, p.b, p.c)
-            s_new = s - 1 if s_needed < s else s
+            cancel = required_setup_count(i, j_new, p.b, p.c) < s
+            # 事前セットアップの保護: バースト位相で i+s <= n_target の間は取り消さない
+            if p.protect_presetup and F == 1 and i + s <= p.n_target:
+                cancel = False
+            s_new = s - 1 if cancel else s
             new_state = (i, s_new, j_new, F)
         elif event_type == EventType.SETUP_COMPLETION:
             new_state = (i + 1, s - 1, j, F)
@@ -244,11 +247,14 @@ class PredictiveSimulator:
             SimStats: 記録期間の統計 (mmpp_sim.stats.SimStats をそのまま再利用.
                 状態タプルの長さに依存しない実装のため互換). 事前セットアップ
                 の発動回数・平均台数は self.proactive_setup_count /
-                self.proactive_setup_delta_sum に別途集計する.
+                self.proactive_setup_delta_sum に, バッチ完了による
+                セットアップの取り消し回数は self.setup_cancel_count に
+                別途集計する (いずれも本計測期間のみ).
         """
         stats = SimStats()
         self.proactive_setup_count = 0
         self.proactive_setup_delta_sum = 0
+        self.setup_cancel_count = 0
 
         # ウォームアップ (統計は記録しない)
         for _ in range(warmup_events):
@@ -265,6 +271,8 @@ class PredictiveSimulator:
                 stats.record_arrival_attempt(result.blocked)
             elif result.event_type == EventType.SERVICE_COMPLETION:
                 stats.record_departure(result.avg_sojourn, result.departure_count)
+                if result.new_state[1] < result.old_state[1]:
+                    self.setup_cancel_count += 1
             elif result.event_type == EventType.PHASE_TRANSITION and result.proactive_setup_delta > 0:
                 self.proactive_setup_count += 1
                 self.proactive_setup_delta_sum += result.proactive_setup_delta

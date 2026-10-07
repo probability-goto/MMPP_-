@@ -28,6 +28,11 @@ class PredictiveModelParameters:
             beta -> gamma*beta に加速される. gamma >= 1.
         C_b, C_s, C_i: コスト関数の係数. None ならば先行研究
             (Le-Anh & Phung-Duc 2025) のデフォルト式を用いる.
+        protect_presetup: 事前セットアップの保護. True ならバースト位相
+            (F=1) の間, i+s <= n_target のときバッチ完了によるセットアップの
+            取り消しを行わない (P1 で揃えた稼働+起動中の台数を n_target 未満に
+            落とさない). 既定値 False は従来の規則 (需要 S(i,j-b) を超えた分を
+            バッチ完了ごとに 1 台取り消す).
     """
     c: int
     K: int
@@ -44,6 +49,8 @@ class PredictiveModelParameters:
     C_b: Optional[float] = None
     C_s: Optional[float] = None
     C_i: Optional[float] = None
+
+    protect_presetup: bool = False
 
     def __post_init__(self):
         # ベースモデルの妥当性検証 (符号規約, MMPP 整合性, 既約性等) と
@@ -107,5 +114,6 @@ class PredictiveModelParameters:
             f"PredictiveModelParameters(c={self.c}, K={self.K}, b={self.b}, "
             f"mu={self.mu}, alpha={self.alpha}, beta={self.beta}, "
             f"n_target={self.n_target}, gamma={self.gamma}, "
+            f"protect_presetup={self.protect_presetup}, "
             f"D_M={self.D_M}, N={self.N}, lambda_bar={self.lambda_bar:.4g})"
         )

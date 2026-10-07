@@ -27,6 +27,8 @@ from typing import List, Tuple
 
 import numpy as np
 
+from mmpp.generator import setup_servers as compute_required_s
+
 
 def enumerate_is_pairs(c: int) -> List[Tuple[int, int]]:
     """拘束条件 i + s <= c を満たす (i, s) の組を列挙する.
@@ -114,3 +116,18 @@ def setup_target_delta(i: int, s: int, n_target: int, c: int) -> int:
     delta = max(n_target - i - s, 0)
     delta_eff = min(delta, c - i - s)
     return delta_eff
+
+
+def setup_cancelled(i: int, s: int, j_new: int, F: int,
+                    b: int, c: int, n_target: int,
+                    protect_presetup: bool) -> bool:
+    """バッチ完了 (j -> j_new = j-b) でセットアップが 1 台取り消されるか.
+
+    既定 (protect_presetup=False): 需要 S(i, j_new) が s を下回れば取り消す.
+    protect_presetup=True: バースト位相 F=1 で i+s <= n_target の間は
+    取り消さない (事前セットアップで揃えた台数を n_target 未満に落とさない).
+    """
+    cancel = compute_required_s(i, j_new, b, c) < s
+    if protect_presetup and F == 1 and i + s <= n_target:
+        cancel = False
+    return cancel

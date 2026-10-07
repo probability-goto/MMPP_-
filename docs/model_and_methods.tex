@@ -318,6 +318,7 @@ Busy/Idle は \eqref{eq:B}, \eqref{eq:I} と同じ $(i,j)$ の関数を用いる
   すなわち需要が下がると\textbf{最大 1 台だけ}セットアップを取り消す。
   これは事前セットアップで積んだ分にも適用される
   (事前セットアップは退去イベントごとに 1 台ずつ解消されていく)。
+  ただし選択肢 \code{protect\_presetup} が真のときは \S\ref{sec:protect} の規則に置き換わる。
 \item \textbf{MMPP 位相遷移} ($F'\ne F$, 率 $C_0[F,F']$):
   \begin{equation}
     (i,s,j,F)\to
@@ -348,6 +349,40 @@ $s=S(i,j)$ を帰納的に保存する。したがって Predictive モデルは
 なお $n_{\mathrm{target}}=0$ だけでは $\gamma$ が効くため一致しない。
 実験 5 で $n_{\mathrm{target}}=0$ の点を取っているが, そこは
 $\gamma=5.0$ が有効な状態である。
+
+\subsection{選択肢: 事前セットアップの保護 (\code{protect\_presetup})}
+\label{sec:protect}
+
+上の規則 4 では, バッチ完了のたびに需要 $S(i,j-b)$ を超えたセットアップが
+1 台取り消される。これは (P1) で起動を始めた分にも適用されるため,
+バースト中に $i+s$ が $n_{\mathrm{target}}$ を下回りうる。
+これは (P1) の意図 (稼働中+起動中を $n_{\mathrm{target}}$ にそろえる) と合わないので,
+\code{PredictiveModelParameters} に真偽値の選択肢 \code{protect\_presetup} を設けた。
+\textbf{既定値は偽}で, そのときは規則 4 のまま (既存の結果は変わらない)。
+真のときはバッチ完了の取り消し判定を次のように変える。
+\begin{equation}
+  \mathrm{cancel}(i,s,j,F)=
+  \begin{cases}
+    \text{偽} & \text{if } F=1 \text{ かつ } i+s\le n_{\mathrm{target}},\\
+    \bigl[\,s_{\mathrm{need}}(i,j-b)<s\,\bigr] & \text{otherwise,}
+  \end{cases}
+  \qquad s''=s-\mathbf{1}[\mathrm{cancel}(i,s,j,F)].
+  \label{eq:protect}
+\end{equation}
+すなわちバースト位相の間は, 稼働中+起動中が $n_{\mathrm{target}}$ 以下である限り
+セットアップを取り消さない。通常位相 $F=0$ では規則 4 と同じである。
+判定は \code{mmpp\_predictive/state\_space.py} の \code{setup\_cancelled} に
+まとめ, 生成行列と指標 (\code{setup\_cancel\_rate}) の両方がこれを使う。
+DES (\code{mmpp\_predictive\_sim/simulator.py}) には同じ規則を独立に実装した。
+
+\paragraph{ベースモデルへの帰着が保たれる理由}
+$n_{\mathrm{target}}=0$ のとき, 保護の条件 $i+s\le 0$ は $(i,s)=(0,0)$ でしか
+成り立たない。$s=0$ では $s_{\mathrm{need}}\ge0=s$ なので取り消しはもともと起こらず,
+\eqref{eq:protect} は規則 4 と同じ遷移を与える。したがって
+$n_{\mathrm{target}}=0$ では \code{protect\_presetup} の値によらず
+$Q^P$ は同一であり, $\gamma=1$ と合わせてベースモデルに厳密に一致する。
+\code{tests/test\_protect\_presetup.py} で, $n_{\mathrm{target}}=0$ での $Q^P$ の
+完全一致と, $\gamma=1$ でのベースモデルとの指標の一致 (相対誤差 $10^{-10}$) を確認している。
 
 % =====================================================================
 \section{性能指標}
@@ -424,6 +459,24 @@ CSV の出力列は \code{P\_block\_arrival\_stable} のみで,
 \code{erp\_paper} を用いている} ($b=5$ では $C_b=C_s=0.37598$, $C_i=0.225588$)。
 Predictive モデルでは $C_b,C_s,C_i$ をパラメータとして上書き可能
 (既定値は上式と同一)。
+
+\paragraph{事前セットアップ (P1) の診断指標}
+Predictive モデルでは次も計算する (\code{all\_metrics} のキー名)。
+位相 $0\to1$ の率 $\sigma_{01}$ は $C_0[0,1]$ から取る。
+\begin{align}
+  \code{p1\_fire\_rate} &= \sigma_{01}\sum_{i,s,j}\pi(i,s,j,0)\,\mathbf{1}[\Delta_\eff(i,s)>0]
+  &&\text{(P1 の発動率)}\\
+  \code{p1\_launch\_rate} &= \sigma_{01}\sum_{i,s,j}\pi(i,s,j,0)\,\Delta_\eff(i,s)
+  &&\text{(P1 で起動を始める台数の率)}\\
+  \code{setup\_completion\_rate} &= \sum \pi(i,s,j,F)\,s\,\alpha = \alpha E[S]\\
+  \code{setup\_cancel\_rate} &= \sum \pi(i,s,j,F)\,B(i,j)\,\mu\,
+     \mathbf{1}[\mathrm{cancel}(i,s,j,F)]
+  &&\text{(取り消しの判定は \eqref{eq:protect})}\\
+  \code{rho\_B} &= \lambda_1/(c\,b\,\mu)
+  &&\text{(バースト位相の負荷; \code{build\_mmpp} では } \rho(1+\delta))
+\end{align}
+セットアップの開始 (到着による反応的開始と P1) と終了 (完了と取り消し) の率は
+定常状態で釣り合う。この恒等式もテストで確認している。
 
 \paragraph{検証恒等式}
 実験スクリプトは各点で次の 2 つを診断出力する。
@@ -918,6 +971,10 @@ $\alpha=10$: 1000 (全バースト, 走査上端) であり, 桁としては対�
 \code{test\_predictive\_sim\_baseline\_consistency.py}
   & 同じ一致を DES 側でも確認 \\
 \code{test\_gth\_predictive.py} & 縮約 $\to$ GTH 経路の正しさ, GTH と splu の一致 \\
+\code{test\_protect\_presetup.py}
+  & \code{protect\_presetup} が偽で既存の結果が不変, 真でも $n_{\mathrm{target}}=0,\gamma=1$ で
+    ベースと一致, 保護でバースト中の $i+s<n_{\mathrm{target}}$ の確率が減ること,
+    P1 診断指標 (セットアップの流量保存, DES の発動・取り消し回数との一致) \\
 \code{test\_simulator.py}, \code{test\_predictive\_sim\_simulator.py}
   & イベントメニュー, 状態遷移, 統計収集 \\
 \code{test\_experiment\_*.py} & 各実験スクリプトのパラメータ格子・CSV 列・図生成 \\

@@ -3,6 +3,9 @@
 ベース (mmpp/metrics.py) と同じ指標を計算する. E[S] (平均セットアップ中
 サーバー数) はベースでは S(i,j) 関数から導出するが, Predictive モデルで
 は s が明示的な状態変数であるため, その期待値として直接計算する.
+
+あわせて事前セットアップ (P1) の診断指標 (発動率, 起動台数の率,
+セットアップ完了率, セットアップ取り消し率, バースト期の負荷) を計算する.
 """
 from typing import Dict
 
@@ -14,6 +17,8 @@ from mmpp_predictive.state_space import (
     busy_count,
     idle_count,
     pi_by_level,
+    setup_target_delta,
+    setup_cancelled,
 )
 
 
@@ -44,6 +49,11 @@ class Metrics:
         # j=K のブロック状態における到着率の重み付き質量。
         # P_block^arrival を引き算なしで求めるために使う (下記参照)。
         block_arrival_mass = 0.0
+        # P1 の診断用: F=0 の質量のうち Delta_eff > 0 の部分と Delta_eff の重み付き和,
+        # およびバッチ完了でセットアップが取り消される率 (mu 倍する前).
+        fire_mass = 0.0
+        launch_mass = 0.0
+        cancel_mass = 0.0
 
         for is_idx, (i, s) in enumerate(is_pairs):
             for j in range(K + 1):
@@ -59,6 +69,17 @@ class Metrics:
                 E_S += s * pi_sum
                 E_I += I * pi_sum
                 E_N += j * pi_sum
+
+                delta_eff = setup_target_delta(i, s, p.n_target, c)
+                if delta_eff > 0:
+                    fire_mass += float(pi_slice[0])
+                    launch_mass += delta_eff * float(pi_slice[0])
+
+                if B > 0 and j >= b:
+                    for F in range(D_M):
+                        if setup_cancelled(i, s, j - b, F, b, c,
+                                           p.n_target, p.protect_presetup):
+                            cancel_mass += B * float(pi_slice[F])
 
                 if j == K:
                     P_block_time += pi_sum
@@ -83,6 +104,18 @@ class Metrics:
         # これにより P_block^arrival が極小の領域でも桁落ちしない。
         self.P_block_arrival_stable = (
             block_arrival_mass / lambda_bar if lambda_bar > 0 else 0.0
+        )
+
+        # P1 の診断指標. 位相 0 -> 1 の率は C0[0, 1] から取る.
+        sigma_01 = float(p.C0[0, 1]) if D_M >= 2 else 0.0
+        self.p1_fire_rate = sigma_01 * fire_mass
+        self.p1_launch_rate = sigma_01 * launch_mass
+        self.setup_completion_rate = p.alpha * E_S
+        self.setup_cancel_rate = p.mu * cancel_mass
+        # バースト位相 (F=1) の負荷 lambda_1 / (c b mu).
+        # build_mmpp で作った MMPP では rho * (1 + delta) に等しい.
+        self.rho_B = (
+            float(lambdas[1]) / (c * b * p.mu) if D_M >= 2 else float("nan")
         )
 
     # ---------- ブロック確率 ----------
@@ -139,6 +172,31 @@ class Metrics:
         """rho = E[B] / c."""
         return self.E_B / self.params.c
 
+    # ---------- 事前セットアップ (P1) の診断 ----------
+
+    def p1_fire_count_rate(self) -> float:
+        """P1 の発動率 sigma_01 * sum_{i,s,j} pi(i,s,j,0) 1[Delta_eff(i,s) > 0].
+
+        単位時間あたりに F: 0 -> 1 で事前セットアップが 1 台以上起動される回数.
+        """
+        return self.p1_fire_rate
+
+    def p1_launch_count_rate(self) -> float:
+        """P1 で起動を始める台数の率 sigma_01 * sum pi(i,s,j,0) Delta_eff(i,s)."""
+        return self.p1_launch_rate
+
+    def setup_completion_count_rate(self) -> float:
+        """セットアップ完了率 sum pi(i,s,j,F) s alpha (= alpha E[S])."""
+        return self.setup_completion_rate
+
+    def setup_cancel_count_rate(self) -> float:
+        """セットアップ取り消し率 sum pi(i,s,j,F) B(i,j) mu 1[取り消しが起こる]."""
+        return self.setup_cancel_rate
+
+    def burst_load(self) -> float:
+        """バースト位相の負荷 rho_B = lambda_1 / (c b mu) (D_M < 2 なら nan)."""
+        return self.rho_B
+
     # ---------- コスト ----------
 
     def energy_cost_paper(self) -> float:
@@ -167,4 +225,9 @@ class Metrics:
             "rho": self.utilization(),
             "cost_paper": self.energy_cost_paper(),
             "ERP_paper": self.erp_paper(),
+            "p1_fire_rate": self.p1_fire_count_rate(),
+            "p1_launch_rate": self.p1_launch_count_rate(),
+            "setup_completion_rate": self.setup_completion_count_rate(),
+            "setup_cancel_rate": self.setup_cancel_count_rate(),
+            "rho_B": self.burst_load(),
         }

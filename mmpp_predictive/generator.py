@@ -15,6 +15,9 @@ mmpp/generator.py と同じ COO -> CSR の組み立て方針).
                               最大 1 だけ減る (compute_required_s が
                               下がった分だけベースモデルと同じく「不要になった
                               反応的セットアップ」を 1 単位取り消す).
+                              protect_presetup=True なら F=1 かつ
+                              i+s <= n_target の間は取り消さない
+                              (setup_cancelled).
     4. Delayoff:              (i, s, j, F) -> (i-1, s, j, F)     率 I(i,j) * beta_F
                               beta_F は F=0 (通常位相) で gamma 倍に加速.
     5. MMPP 位相遷移 (F=0 以外の宛先, または F=0 -> F=1 以外):
@@ -27,6 +30,9 @@ n_target=0 のとき Delta_eff は常に 0 になり, かつ 1. と 3. の s
 帰納的に一致し続けるため (s は常に compute_required_s(i,j,b,c) と
 一致する), Predictive モデルはベースモデルに厳密に一致する
 (tests/test_predictive_baseline_consistency.py で検証).
+protect_presetup=True でも n_target=0 なら保護の条件 i+s <= 0 は
+s=0 の状態でしか成り立たず, s=0 では取り消しがもともと起こらないので,
+同じくベースモデルに一致する.
 """
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -41,6 +47,7 @@ from mmpp_predictive.state_space import (
     busy_count,
     idle_count,
     setup_target_delta,
+    setup_cancelled,
 )
 
 
@@ -54,6 +61,7 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
     c, K, b = params.c, params.K, params.b
     mu, alpha, beta = params.mu, params.alpha, params.beta
     n_target, gamma = params.n_target, params.gamma
+    protect = params.protect_presetup
     C0, C1 = params.C0, params.C1
     D_M = params.D_M
 
@@ -112,8 +120,9 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
                 B = busy_count(i, j, b)
                 if B > 0 and j >= b:
                     j_new = j - b
-                    s_needed = compute_required_s(i, j_new, b, c)
-                    s_new = s - 1 if s_needed < s else s
+                    cancel = setup_cancelled(i, s, j_new, F, b, c,
+                                             n_target, protect)
+                    s_new = s - 1 if cancel else s
                     dst = idx(i, s_new, j_new, F)
                     add_transition(src, dst, B * mu)
 
