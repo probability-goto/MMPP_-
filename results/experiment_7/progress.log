@@ -1,0 +1,120 @@
+2026-10-07T23:55:20 done=10/4225 elapsed=10.1s eta=4242.8s last=C1,Check,beta=0.0009283,n_target=0,gamma=1,protect=False,never_cancel=False
+2026-10-07T23:55:29 done=20/4225 elapsed=19.2s eta=4034.7s last=C1,Check,beta=0.1125,n_target=0,gamma=1,protect=False,never_cancel=False
+2026-10-07T23:55:52 done=30/4225 elapsed=41.3s eta=5777.2s last=C1,P2 only,beta=2e-05,n_target=0,gamma=30,protect=False,never_cancel=False
+2026-10-07T23:56:50 done=40/4225 elapsed=100.2s eta=10478.4s last=C1,P1 only (protect),beta=2e-05,n_target=15,gamma=1,protect=True,never_cancel=False
+2026-10-07T23:57:11 done=50/4225 elapsed=120.8s eta=10086.5s last=C1,P1+P2,beta=2e-05,n_target=10,gamma=30,protect=False,never_cancel=False
+2026-10-07T23:58:44 done=60/4225 elapsed=214.0s eta=14854.6s last=C1,P1+P2,beta=2e-05,n_target=20,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:00:04 done=62/4225 elapsed=293.5s eta=19704.0s last=C1,P1+P2,beta=2e-05,n_target=20,gamma=30,protect=False,never_cancel=False
+2026-10-08T00:01:23 done=64/4225 elapsed=373.1s eta=24260.1s last=C1,P1+P2,beta=2e-05,n_target=20,gamma=300,protect=False,never_cancel=False
+2026-10-08T00:02:08 done=70/4225 elapsed=418.2s eta=24823.4s last=C1,P1+P2 (protect),beta=2e-05,n_target=5,gamma=300,protect=True,never_cancel=False
+2026-10-08T00:02:25 done=80/4225 elapsed=435.0s eta=22540.8s last=C1,P1+P2 (protect),beta=2e-05,n_target=15,gamma=30,protect=True,never_cancel=False
+2026-10-08T00:03:34 done=90/4225 elapsed=503.9s eta=23150.4s last=C1,NoCancel,beta=5.22e-05,n_target=0,gamma=1,protect=False,never_cancel=True
+2026-10-08T00:04:31 done=100/4225 elapsed=561.0s eta=23139.9s last=C1,P1 only,beta=5.22e-05,n_target=20,gamma=1,protect=False,never_cancel=False
+2026-10-08T00:04:51 done=110/4225 elapsed=580.9s eta=21731.0s last=C1,P1+P2,beta=5.22e-05,n_target=5,gamma=1000,protect=False,never_cancel=False
+2026-10-08T00:05:34 done=120/4225 elapsed=623.4s eta=21325.1s last=C1,P1+P2,beta=5.22e-05,n_target=15,gamma=100,protect=False,never_cancel=False
+2026-10-08T00:07:09 done=124/4225 elapsed=718.4s eta=23758.7s last=C1,P1+P2,beta=5.22e-05,n_target=20,gamma=10,protect=False,never_cancel=False
+2026-10-08T00:08:28 done=126/4225 elapsed=797.3s eta=25938.2s last=C1,P1+P2,beta=5.22e-05,n_target=20,gamma=100,protect=False,never_cancel=False
+2026-10-08T00:09:47 done=128/4225 elapsed=876.4s eta=28052.5s last=C1,P1+P2,beta=5.22e-05,n_target=20,gamma=1000,protect=False,never_cancel=False
+2026-10-08T00:09:49 done=130/4225 elapsed=878.6s eta=27676.1s last=C1,P1+P2 (protect),beta=5.22e-05,n_target=5,gamma=10,protect=True,never_cancel=False
+2026-10-08T00:10:01 done=140/4225 elapsed=890.9s eta=25995.4s last=C1,P1+P2 (protect),beta=5.22e-05,n_target=10,gamma=1000,protect=True,never_cancel=False
+2026-10-08T00:10:49 done=150/4225 elapsed=938.9s eta=25506.5s last=C1,P1+P2 (protect),beta=5.22e-05,n_target=20,gamma=100,protect=True,never_cancel=False
+2026-10-08T00:11:26 done=160/4225 elapsed=975.5s eta=24783.8s last=C1,P1 only,beta=0.0001363,n_target=5,gamma=1,protect=False,never_cancel=False
+2026-10-08T00:12:28 done=167/4225 elapsed=1038.0s eta=25222.6s last=C1,P1 only (protect),beta=0.0001363,n_target=20,gamma=1,protect=True,never_cancel=False
+2026-10-08T00:12:32 done=170/4225 elapsed=1041.4s eta=24841.3s last=C1,P1+P2,beta=0.0001363,n_target=5,gamma=30,protect=False,never_cancel=False
+2026-10-08T00:12:54 done=180/4225 elapsed=1063.8s eta=23905.4s last=C1,P1+P2,beta=0.0001363,n_target=15,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:14:13 done=186/4225 elapsed=1142.8s eta=24815.7s last=C1,P1+P2,beta=0.0001363,n_target=20,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:15:32 done=188/4225 elapsed=1222.1s eta=26242.8s last=C1,P1+P2,beta=0.0001363,n_target=20,gamma=30,protect=False,never_cancel=False
+2026-10-08T00:16:52 done=190/4225 elapsed=1301.5s eta=27640.4s last=C1,P1+P2,beta=0.0001363,n_target=20,gamma=300,protect=False,never_cancel=False
+2026-10-08T00:17:42 done=200/4225 elapsed=1351.4s eta=27196.7s last=C1,P1+P2 (protect),beta=0.0001363,n_target=10,gamma=30,protect=True,never_cancel=False
+2026-10-08T00:18:09 done=210/4225 elapsed=1378.7s eta=26359.2s last=C1,P1+P2 (protect),beta=0.0001363,n_target=20,gamma=3,protect=True,never_cancel=False
+2026-10-08T00:19:06 done=220/4225 elapsed=1436.0s eta=26142.5s last=C1,P2 only,beta=0.0003557,n_target=0,gamma=100,protect=False,never_cancel=False
+2026-10-08T00:20:12 done=230/4225 elapsed=1502.0s eta=26088.7s last=C1,P1 only (protect),beta=0.0003557,n_target=20,gamma=1,protect=True,never_cancel=False
+2026-10-08T00:20:26 done=240/4225 elapsed=1516.2s eta=25174.8s last=C1,P1+P2,beta=0.0003557,n_target=10,gamma=100,protect=False,never_cancel=False
+2026-10-08T00:21:57 done=249/4225 elapsed=1606.4s eta=25650.3s last=C1,P1+P2,beta=0.0003557,n_target=20,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:22:36 done=250/4225 elapsed=1646.2s eta=26174.6s last=C1,P1+P2,beta=0.0003557,n_target=20,gamma=10,protect=False,never_cancel=False
+2026-10-08T00:23:55 done=252/4225 elapsed=1725.1s eta=27198.3s last=C1,P1+P2,beta=0.0003557,n_target=20,gamma=100,protect=False,never_cancel=False
+2026-10-08T00:30:48 done=260/4225 elapsed=43.9s eta=24838.3s last=C1,P1+P2 (protect),beta=0.0003557,n_target=5,gamma=1000,protect=True,never_cancel=False
+2026-10-08T00:31:04 done=270/4225 elapsed=60.2s eta=13994.8s last=C1,P1+P2 (protect),beta=0.0003557,n_target=15,gamma=100,protect=True,never_cancel=False
+2026-10-08T00:32:04 done=279/4225 elapsed=120.4s eta=18270.6s last=C1,NoCancel,beta=0.0009283,n_target=0,gamma=1,protect=False,never_cancel=True
+2026-10-08T00:32:05 done=280/4225 elapsed=121.4s eta=17736.9s last=C1,P2 only,beta=0.0009283,n_target=0,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:32:57 done=290/4225 elapsed=172.6s eta=18351.2s last=C1,P1 only (protect),beta=0.0009283,n_target=5,gamma=1,protect=True,never_cancel=False
+2026-10-08T00:33:15 done=300/4225 elapsed=191.0s eta=15949.7s last=C1,P1+P2,beta=0.0009283,n_target=10,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:33:58 done=310/4225 elapsed=234.1s eta=16076.5s last=C1,P1+P2,beta=0.0009283,n_target=15,gamma=300,protect=False,never_cancel=False
+2026-10-08T00:35:23 done=313/4225 elapsed=319.1s eta=20805.7s last=C1,P1+P2,beta=0.0009283,n_target=20,gamma=10,protect=False,never_cancel=False
+2026-10-08T00:36:34 done=315/4225 elapsed=390.2s eta=24610.8s last=C1,P1+P2,beta=0.0009283,n_target=20,gamma=100,protect=False,never_cancel=False
+2026-10-08T00:37:46 done=317/4225 elapsed=461.6s eta=28186.4s last=C1,P1+P2,beta=0.0009283,n_target=20,gamma=1000,protect=False,never_cancel=False
+2026-10-08T00:37:48 done=320/4225 elapsed=464.5s eta=27072.8s last=C1,P1+P2 (protect),beta=0.0009283,n_target=5,gamma=30,protect=True,never_cancel=False
+2026-10-08T00:38:01 done=330/4225 elapsed=476.9s eta=24121.3s last=C1,P1+P2 (protect),beta=0.0009283,n_target=15,gamma=3,protect=True,never_cancel=False
+2026-10-08T00:38:48 done=340/4225 elapsed=524.4s eta=23416.0s last=C1,P1+P2 (protect),beta=0.0009283,n_target=20,gamma=300,protect=True,never_cancel=False
+2026-10-08T00:39:16 done=350/4225 elapsed=551.9s eta=22045.8s last=C1,P1 only,beta=0.002423,n_target=10,gamma=1,protect=False,never_cancel=False
+2026-10-08T00:40:14 done=360/4225 elapsed=610.4s eta=22047.3s last=C1,P1+P2,beta=0.002423,n_target=5,gamma=100,protect=False,never_cancel=False
+2026-10-08T00:40:40 done=370/4225 elapsed=636.2s eta=20960.9s last=C1,P1+P2,beta=0.002423,n_target=15,gamma=10,protect=False,never_cancel=False
+2026-10-08T00:41:48 done=375/4225 elapsed=703.7s eta=22206.1s last=C1,P1+P2,beta=0.002423,n_target=20,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:43:00 done=377/4225 elapsed=775.7s eta=24072.4s last=C1,P1+P2,beta=0.002423,n_target=20,gamma=30,protect=False,never_cancel=False
+2026-10-08T00:44:12 done=379/4225 elapsed=847.8s eta=25879.2s last=C1,P1+P2,beta=0.002423,n_target=20,gamma=300,protect=False,never_cancel=False
+2026-10-08T00:44:48 done=380/4225 elapsed=883.7s eta=26754.1s last=C1,P1+P2,beta=0.002423,n_target=20,gamma=1000,protect=False,never_cancel=False
+2026-10-08T00:44:58 done=390/4225 elapsed=894.4s eta=25037.8s last=C1,P1+P2 (protect),beta=0.002423,n_target=10,gamma=100,protect=True,never_cancel=False
+2026-10-08T00:45:30 done=400/4225 elapsed=925.6s eta=24084.7s last=C1,P1+P2 (protect),beta=0.002423,n_target=20,gamma=10,protect=True,never_cancel=False
+2026-10-08T00:46:15 done=410/4225 elapsed=971.5s eta=23607.1s last=C1,P2 only,beta=0.006325,n_target=0,gamma=300,protect=False,never_cancel=False
+2026-10-08T00:47:15 done=420/4225 elapsed=1031.3s eta=23498.6s last=C1,P1+P2,beta=0.006325,n_target=5,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:47:29 done=430/4225 elapsed=1044.9s eta=22404.4s last=C1,P1+P2,beta=0.006325,n_target=10,gamma=300,protect=False,never_cancel=False
+2026-10-08T00:48:49 done=438/4225 elapsed=1125.3s eta=23035.5s last=C1,P1+P2,beta=0.006325,n_target=20,gamma=3,protect=False,never_cancel=False
+2026-10-08T00:50:01 done=440/4225 elapsed=1197.3s eta=24233.9s last=C1,P1+P2,beta=0.006325,n_target=20,gamma=30,protect=False,never_cancel=False
+2026-10-08T00:51:13 done=442/4225 elapsed=1268.7s eta=25394.6s last=C1,P1+P2,beta=0.006325,n_target=20,gamma=300,protect=False,never_cancel=False
+2026-10-08T00:51:56 done=450/4225 elapsed=1311.6s eta=25134.4s last=C1,P1+P2 (protect),beta=0.006325,n_target=10,gamma=3,protect=True,never_cancel=False
+2026-10-08T00:52:13 done=460/4225 elapsed=1329.5s eta=24181.5s last=C1,P1+P2 (protect),beta=0.006325,n_target=15,gamma=300,protect=True,never_cancel=False
+2026-10-08T00:53:14 done=470/4225 elapsed=1389.8s eta=24050.2s last=C1,P2 only,beta=0.01651,n_target=0,gamma=10,protect=False,never_cancel=False
+2026-10-08T00:54:05 done=480/4225 elapsed=1441.5s eta=23781.5s last=C1,P1 only (protect),beta=0.01651,n_target=10,gamma=1,protect=True,never_cancel=False
+2026-10-08T00:54:25 done=490/4225 elapsed=1460.6s eta=23019.0s last=C1,P1+P2,beta=0.01651,n_target=10,gamma=10,protect=False,never_cancel=False
+2026-10-08T00:55:14 done=500/4225 elapsed=1510.2s eta=22775.2s last=C1,P1+P2,beta=0.01651,n_target=15,gamma=1000,protect=False,never_cancel=False
+2026-10-08T00:56:26 done=502/4225 elapsed=1582.0s eta=23653.5s last=C1,P1+P2,beta=0.01651,n_target=20,gamma=10,protect=False,never_cancel=False
+2026-10-08T00:57:38 done=504/4225 elapsed=1654.0s eta=24520.7s last=C1,P1+P2,beta=0.01651,n_target=20,gamma=100,protect=False,never_cancel=False
+2026-10-08T00:58:50 done=506/4225 elapsed=1725.5s eta=25364.7s last=C1,P1+P2,beta=0.01651,n_target=20,gamma=1000,protect=False,never_cancel=False
+2026-10-08T00:58:54 done=510/4225 elapsed=1729.7s eta=25002.9s last=C1,P1+P2 (protect),beta=0.01651,n_target=5,gamma=100,protect=True,never_cancel=False
+2026-10-08T00:59:08 done=520/4225 elapsed=1743.7s eta=24196.3s last=C1,P1+P2 (protect),beta=0.01651,n_target=15,gamma=10,protect=True,never_cancel=False
+2026-10-08T01:00:01 done=530/4225 elapsed=1796.7s eta=23967.4s last=C1,P1+P2 (protect),beta=0.01651,n_target=20,gamma=1000,protect=True,never_cancel=False
+2026-10-08T01:00:29 done=540/4225 elapsed=1825.0s eta=23432.6s last=C1,P1 only,beta=0.04309,n_target=15,gamma=1,protect=False,never_cancel=False
+2026-10-08T01:01:22 done=550/4225 elapsed=1877.8s eta=23235.1s last=C1,P1+P2,beta=0.04309,n_target=5,gamma=300,protect=False,never_cancel=False
+2026-10-08T01:01:54 done=560/4225 elapsed=1910.2s eta=22804.1s last=C1,P1+P2,beta=0.04309,n_target=15,gamma=30,protect=False,never_cancel=False
+2026-10-08T01:03:28 done=565/4225 elapsed=2003.6s eta=23504.0s last=C1,P1+P2,beta=0.04309,n_target=20,gamma=10,protect=False,never_cancel=False
+2026-10-08T01:04:39 done=567/4225 elapsed=2075.0s eta=24173.0s last=C1,P1+P2,beta=0.04309,n_target=20,gamma=100,protect=False,never_cancel=False
+2026-10-08T01:05:51 done=569/4225 elapsed=2147.0s eta=24839.9s last=C1,P1+P2,beta=0.04309,n_target=20,gamma=1000,protect=False,never_cancel=False
+2026-10-08T01:05:52 done=570/4225 elapsed=2148.0s eta=24766.5s last=C1,P1+P2 (protect),beta=0.04309,n_target=5,gamma=3,protect=True,never_cancel=False
+2026-10-08T01:06:03 done=580/4225 elapsed=2159.0s eta=24065.6s last=C1,P1+P2 (protect),beta=0.04309,n_target=10,gamma=300,protect=True,never_cancel=False
+2026-10-08T01:06:40 done=590/4225 elapsed=2196.0s eta=23686.4s last=C1,P1+P2 (protect),beta=0.04309,n_target=20,gamma=30,protect=True,never_cancel=False
+2026-10-08T01:07:19 done=600/4225 elapsed=2235.5s eta=23353.4s last=C1,P2 only,beta=0.1125,n_target=0,gamma=1000,protect=False,never_cancel=False
+2026-10-08T01:08:19 done=610/4225 elapsed=2295.3s eta=23242.7s last=C1,P1+P2,beta=0.1125,n_target=5,gamma=10,protect=False,never_cancel=False
+2026-10-08T01:08:33 done=620/4225 elapsed=2309.3s eta=22684.4s last=C1,P1+P2,beta=0.1125,n_target=10,gamma=1000,protect=False,never_cancel=False
+2026-10-08T01:09:52 done=627/4225 elapsed=2387.7s eta=22970.8s last=C1,P1+P2,beta=0.1125,n_target=20,gamma=3,protect=False,never_cancel=False
+2026-10-08T02:11:30 done=630/4225 elapsed=78.4s eta=140897.0s last=C1,P1+P2,beta=0.1125,n_target=20,gamma=100,protect=False,never_cancel=False
+2026-10-08T02:12:45 done=632/4225 elapsed=153.0s eta=137456.0s last=C1,P1+P2,beta=0.1125,n_target=20,gamma=1000,protect=False,never_cancel=False
+2026-10-08T02:12:53 done=640/4225 elapsed=161.5s eta=48244.0s last=C1,P1+P2 (protect),beta=0.1125,n_target=10,gamma=10,protect=True,never_cancel=False
+2026-10-08T02:13:12 done=650/4225 elapsed=180.1s eta=29267.8s last=C1,P1+P2 (protect),beta=0.1125,n_target=15,gamma=1000,protect=True,never_cancel=False
+2026-10-08T02:14:13 done=659/4225 elapsed=240.7s eta=27690.6s last=C1,P2 only,beta=0.2936,n_target=0,gamma=10,protect=False,never_cancel=False
+2026-10-08T02:14:13 done=660/4225 elapsed=241.7s eta=26923.4s last=C1,P2 only,beta=0.2936,n_target=0,gamma=30,protect=False,never_cancel=False
+2026-10-08T02:15:09 done=670/4225 elapsed=297.5s eta=25178.1s last=C1,P1 only (protect),beta=0.2936,n_target=15,gamma=1,protect=True,never_cancel=False
+2026-10-08T02:15:29 done=680/4225 elapsed=317.7s eta=21657.7s last=C1,P1+P2,beta=0.2936,n_target=10,gamma=30,protect=False,never_cancel=False
+2026-10-08T02:16:54 done=690/4225 elapsed=402.1s eta=22928.8s last=C1,P1+P2,beta=0.2936,n_target=20,gamma=3,protect=False,never_cancel=False
+2026-10-08T02:18:07 done=692/4225 elapsed=475.2s eta=26233.6s last=C1,P1+P2,beta=0.2936,n_target=20,gamma=30,protect=False,never_cancel=False
+2026-10-08T02:19:19 done=694/4225 elapsed=547.7s eta=29301.5s last=C1,P1+P2,beta=0.2936,n_target=20,gamma=300,protect=False,never_cancel=False
+2026-10-08T02:20:01 done=700/4225 elapsed=589.2s eta=28844.7s last=C1,P1+P2 (protect),beta=0.2936,n_target=5,gamma=300,protect=True,never_cancel=False
+2026-10-08T02:20:17 done=710/4225 elapsed=604.8s eta=25927.1s last=C1,P1+P2 (protect),beta=0.2936,n_target=15,gamma=30,protect=True,never_cancel=False
+2026-10-08T02:21:20 done=720/4225 elapsed=668.7s eta=25474.3s last=C1,NoCancel,beta=0.7662,n_target=0,gamma=1,protect=False,never_cancel=True
+2026-10-08T02:22:13 done=730/4225 elapsed=721.4s eta=24720.2s last=C1,P1 only,beta=0.7662,n_target=20,gamma=1,protect=False,never_cancel=False
+2026-10-08T02:22:32 done=740/4225 elapsed=739.7s eta=23017.4s last=C1,P1+P2,beta=0.7662,n_target=5,gamma=1000,protect=False,never_cancel=False
+2026-10-08T02:23:11 done=750/4225 elapsed=779.1s eta=22192.3s last=C1,P1+P2,beta=0.7662,n_target=15,gamma=100,protect=False,never_cancel=False
+2026-10-08T02:24:38 done=754/4225 elapsed=866.6s eta=23872.5s last=C1,P1+P2,beta=0.7662,n_target=20,gamma=10,protect=False,never_cancel=False
+2026-10-08T02:25:51 done=756/4225 elapsed=939.6s eta=25463.3s last=C1,P1+P2,beta=0.7662,n_target=20,gamma=100,protect=False,never_cancel=False
+2026-10-08T02:27:05 done=758/4225 elapsed=1012.7s eta=27008.6s last=C1,P1+P2,beta=0.7662,n_target=20,gamma=1000,protect=False,never_cancel=False
+2026-10-08T02:27:07 done=760/4225 elapsed=1014.8s eta=26639.7s last=C1,P1+P2 (protect),beta=0.7662,n_target=5,gamma=10,protect=True,never_cancel=False
+2026-10-08T02:27:18 done=770/4225 elapsed=1026.1s eta=24966.4s last=C1,P1+P2 (protect),beta=0.7662,n_target=10,gamma=1000,protect=True,never_cancel=False
+2026-10-08T02:28:01 done=780/4225 elapsed=1069.7s eta=24244.3s last=C1,P1+P2 (protect),beta=0.7662,n_target=20,gamma=100,protect=True,never_cancel=False
+2026-10-08T02:28:36 done=790/4225 elapsed=1104.2s eta=23413.0s last=C1,P1 only,beta=2,n_target=5,gamma=1,protect=False,never_cancel=False
+2026-10-08T02:29:37 done=800/4225 elapsed=1164.8s eta=23195.2s last=C1,P1+P2,beta=2,n_target=5,gamma=30,protect=False,never_cancel=False
+2026-10-08T02:29:57 done=810/4225 elapsed=1185.4s eta=22241.9s last=C1,P1+P2,beta=2,n_target=15,gamma=3,protect=False,never_cancel=False
+2026-10-08T02:31:09 done=816/4225 elapsed=1257.6s eta=22803.3s last=C1,P1+P2,beta=2,n_target=20,gamma=3,protect=False,never_cancel=False
+2026-10-08T02:32:22 done=818/4225 elapsed=1330.5s eta=23857.2s last=C1,P1+P2,beta=2,n_target=20,gamma=30,protect=False,never_cancel=False
+2026-10-08T02:33:35 done=820/4225 elapsed=1403.0s eta=24880.7s last=C1,P1+P2,beta=2,n_target=20,gamma=300,protect=False,never_cancel=False
+2026-10-08T02:34:21 done=830/4225 elapsed=1448.9s eta=24350.8s last=C1,P1+P2 (protect),beta=2,n_target=10,gamma=30,protect=True,never_cancel=False
+2026-10-08T02:34:46 done=840/4225 elapsed=1474.2s eta=23538.0s last=C1,P1+P2 (protect),beta=2,n_target=20,gamma=3,protect=True,never_cancel=False
+2026-10-08T02:35:23 done=845/4225 elapsed=1511.5s eta=23543.7s last=C1,P1+P2 (protect),beta=2,n_target=20,gamma=1000,protect=True,never_cancel=False
