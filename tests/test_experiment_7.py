@@ -107,3 +107,33 @@ def test_consistency_failure_stops(small_setup, tmp_path, monkeypatch):
     # 最初の beta の Check と Base だけが書かれて止まる
     assert [r["series"] for r in rows] == ["Check", "Base"]
     assert "consistency" in rows[0]["check"]
+
+
+def test_small_refine_and_report(small_setup, tmp_path, monkeypatch):
+    """補足 (β を細かくした Base と NoCancel) の計算とレポート."""
+    monkeypatch.setattr(e7, "N_BETA_DENSE", 7)
+    monkeypatch.setattr(e7, "N_REFINE", 3)
+    out = str(tmp_path / "res")
+    e7.run(["C1"], out_dir=out)
+    pts = e7.refine_points("C1", out)
+    assert [p[0] for p in pts].count("Base (dense)") == 7
+    assert [p[0] for p in pts].count("NoCancel (refine)") == 3
+    e7.run_refine(["C1"], out_dir=out)
+    e7.run_refine(["C1"], out_dir=out)  # 再実行しても追記されない
+    with open(e7.refine_csv_path("C1", out), newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert len(rows) == 10
+    assert all(r["check"] == "ok" for r in rows)
+    # β を細かくした Base の 13 点相当の β は本計算の Base と同じ値になる
+    with open(e7.csv_path("C1", out), newline="", encoding="utf-8") as f:
+        base = {float(r["beta"]): float(r["ERP"]) for r in csv.DictReader(f)
+                if r["series"] == "Base"}
+    dense = {float(r["beta"]): float(r["ERP"]) for r in rows if r["series"] == "Base (dense)"}
+    for b, v in base.items():
+        match = [d for d in dense if abs(d / b - 1) < 1e-12]
+        assert match and dense[match[0]] == pytest.approx(v, rel=1e-12)
+
+    text, summaries = e7.report(["C1"], out_dir=out, fig_dir=str(tmp_path / "fig"))
+    assert "補足: β を細かくした Base" in text
+    assert "5 条件を通した要約" in text
+    assert "dom_dense" in summaries["C1"]

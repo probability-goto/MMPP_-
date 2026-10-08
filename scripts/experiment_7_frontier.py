@@ -27,9 +27,16 @@ Base 行の診断指標 (setup_completion_rate 等) は, 同じ beta の Check �
 再実行時は計算済みの点 (パラメータの組がキー) を飛ばして再開する.
 進捗は results/experiment_7/progress.log に追記する.
 
+補足 (--refine): Base の β 13 点は Predictive の系列 (γ, n_target の組み合わせで
+点が多い) より粗いので, フロンティアの差が格子の粗さによるものでないかを確かめる.
+Base を同じ範囲の β 121 点 (10 倍細かい) で, NoCancel を 13 点での ERP 最小点の
+両隣の β の間を 21 点で計算し, results/experiment_7/experiment_7_refine_<条件名>.csv
+に保存する (本計算の CSV は変えない).
+
 使用例:
     python scripts/experiment_7_frontier.py                 # 全条件を計算
     python scripts/experiment_7_frontier.py --condition C1  # 1 条件だけ計算
+    python scripts/experiment_7_frontier.py --refine        # 補足: β を細かくした Base / NoCancel
     python scripts/experiment_7_frontier.py --report        # 図とレポートを作る
     python scripts/experiment_7_frontier.py --count         # 点数だけ表示
 """
@@ -248,23 +255,31 @@ def predictive_row(cond, pt, elapsed, pi, m) -> dict:
     return row
 
 
-def base_row(cond, beta, elapsed, pi, mb, check_row: dict) -> dict:
+def base_row(cond, beta, elapsed, pi, mb, check_row: Optional[dict],
+             series: str = "Base") -> dict:
     row = _base_row(cond)
     d = mb.all_metrics()
     row.update({
-        "model": "base", "series": "Base", "beta": beta, "n_target": 0,
+        "model": "base", "series": series, "beta": beta, "n_target": 0,
         "gamma": 1.0, "protect_presetup": False, "protect_delayoff": False,
         "never_cancel_setup": False,
         "P_block": d["P_block"], "P_block_arrival_stable": d["P_block_arrival_stable"],
         "E_N": d["E[j]"], "E_B": d["E[B]"], "E_I": d["E[I]"], "E_S": d["E[S]"],
         "E_off": d["E[Off]"], "lambda_eff": d["lambda_eff"], "E_W": d["E[W]"],
         "rho_server": d["rho"], "Cost": d["cost_paper"], "ERP": d["ERP_paper"],
-        "diag_source": "Check",
-        "consistency_max_relerr": check_row["consistency_max_relerr"],
+        "diag_source": "Check" if check_row is not None else "none",
+        "consistency_max_relerr": (check_row["consistency_max_relerr"]
+                                   if check_row is not None else ""),
         "min_pi": float(pi.min()), "elapsed_s": elapsed,
     })
     for f in DIAG_FIELDS:
-        row[f] = check_row[f]
+        # 診断指標はベースモデルの Metrics にはないので Check 行から写す (なければ空)
+        row[f] = check_row[f] if check_row is not None else ""
+    if check_row is None:
+        rho, delta = row["rho"], row["delta"]
+        row["rho_B"] = rho * (1 + delta)
+        row["p1_fire_rate"] = 0.0
+        row["p1_launch_rate"] = 0.0
     row["check"] = _checks(d["E[B]"], d["E[I]"], d["E[S]"], d["E[Off]"],
                            d["lambda_eff"], d["P_block_arrival_stable"], float(pi.min()))
     return row
@@ -381,6 +396,79 @@ def run(conds: List[str], out_dir: str = OUT_DIR) -> None:
 
 
 # ============================================================
+# 補足: β の格子の粗さの影響
+# ============================================================
+
+N_BETA_DENSE = 121
+N_REFINE = 21
+
+
+def refine_csv_path(cond: str, out_dir: str = OUT_DIR) -> str:
+    return os.path.join(out_dir, f"experiment_7_refine_{cond}.csv")
+
+
+def dense_beta_levels(sigma: float) -> List[float]:
+    """beta_levels と同じ範囲の対数等間隔 N_BETA_DENSE 点 (13 点を含む)."""
+    return [float(x) for x in np.logspace(np.log10(sigma / 1000),
+                                          np.log10(sigma * 100), N_BETA_DENSE)]
+
+
+def refine_points(cond: str, out_dir: str = OUT_DIR) -> List[Tuple]:
+    """補足計算の点 (系列名, beta, n_target, gamma, pp, pd, nc).
+
+    NoCancel (refine) は本計算の 13 点での ERP 最小点の両隣の β の間を細かくとるので,
+    本計算の NoCancel 13 点が揃っていることを前提とする.
+    """
+    _, _, sigma, _, _ = CONDITIONS[cond]
+    pts = [("Base (dense)", b, 0, 1.0, False, False, False)
+           for b in dense_beta_levels(sigma)]
+    nc = [r for r in read_rows(csv_path(cond, out_dir)) if r["series"] == "NoCancel"]
+    betas = beta_levels(sigma)
+    if len(nc) == len(betas):
+        best = min(nc, key=lambda r: float(r["ERP"]))
+        k = int(np.argmin([abs(np.log(float(best["beta"]) / b)) for b in betas]))
+        lo, hi = betas[max(k - 1, 0)], betas[min(k + 1, len(betas) - 1)]
+        pts += [("NoCancel (refine)", float(b), 0, 1.0, False, False, True)
+                for b in np.logspace(np.log10(lo), np.log10(hi), N_REFINE)]
+    return pts
+
+
+def run_refine(conds: List[str], out_dir: str = OUT_DIR) -> None:
+    os.makedirs(out_dir, exist_ok=True)
+    plan = {c: refine_points(c, out_dir) for c in conds}
+    done_keys = {c: {row_key(r) for r in read_rows(refine_csv_path(c, out_dir))}
+                 for c in conds}
+    total = sum(len(v) for v in plan.values())
+    done = sum(len([p for p in plan[c] if point_key(p) in done_keys[c]]) for c in conds)
+    print(f"[refine] 総点数 {total} (計算済み {done}, 今回計算 {total - done})", flush=True)
+    t0 = time.time()
+    last_log = t0
+    n_new = 0
+    for cond in conds:
+        todo = [p for p in plan[cond] if point_key(p) not in done_keys[cond]]
+        for k, pt in enumerate(todo):
+            t = time.time()
+            if pt[0] == "Base (dense)":
+                _, pi, mb = solve_base_model(cond, pt[1])
+                row = base_row(cond, pt[1], time.time() - t, pi, mb, None,
+                               series="Base (dense)")
+            else:
+                _, pi, m = solve_predictive(cond, *pt[1:])
+                row = predictive_row(cond, pt, time.time() - t, pi, m)
+            append_row(refine_csv_path(cond, out_dir), row)
+            done += 1
+            n_new += 1
+            last = f"[refine] {cond},{pt[0]},beta={pt[1]:.4g}"
+            if row["check"] != "ok":
+                print(f"  検査違反: {last}: {row['check']}", flush=True)
+            cond_end = k + 1 == len(todo)
+            if done % 10 == 0 or time.time() - last_log >= 60 or cond_end:
+                log_progress(out_dir, done, total, t0, (time.time() - t0) / n_new, last)
+                last_log = time.time()
+        print(f"[refine] 条件 {cond} 完了", flush=True)
+
+
+# ============================================================
 # フロンティアと集計
 # ============================================================
 
@@ -449,25 +537,35 @@ SERIES_STYLE = {
 }
 
 
-def load_condition(cond: str, out_dir: str = OUT_DIR) -> List[dict]:
-    rows = read_rows(csv_path(cond, out_dir))
+def _to_float(v) -> float:
+    return float(v) if str(v).strip() != "" else float("nan")
+
+
+def _convert(rows: List[dict]) -> List[dict]:
     for r in rows:
         for k in METRIC_FIELDS + DIAG_FIELDS + ["beta", "gamma"]:
-            r[k] = float(r[k])
+            r[k] = _to_float(r[k])
         r["n_target"] = int(r["n_target"])
-    return [r for r in rows if r["series"] != "Check"]
+    return rows
 
 
-def fronts_for(rows, xkey, ykey) -> Dict[str, List[Tuple[float, float, int]]]:
+def load_condition(cond: str, out_dir: str = OUT_DIR) -> Tuple[List[dict], List[dict]]:
+    """本計算の行 (Check を除く) と補足計算の行を返す."""
+    rows = _convert(read_rows(csv_path(cond, out_dir)))
+    refine = _convert(read_rows(refine_csv_path(cond, out_dir)))
+    return [r for r in rows if r["series"] != "Check"], refine
+
+
+def fronts_for(rows, xkey, ykey, series=None) -> Dict[str, List[Tuple[float, float, int]]]:
     out = {}
-    for s in SERIES_ORDER:
+    for s in (series or SERIES_ORDER):
         pts = [(r[xkey], r[ykey], i) for i, r in enumerate(rows) if r["series"] == s]
         if pts:
             out[s] = pareto_front(pts)
     return out
 
 
-def plot_condition(cond, rows, fig_dir=FIG_DIR) -> List[str]:
+def plot_condition(cond, rows, refine=(), fig_dir=FIG_DIR) -> List[str]:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -476,37 +574,70 @@ def plot_condition(cond, rows, fig_dir=FIG_DIR) -> List[str]:
     print(f"キャプション用情報 ({cond}): {desc}, c={BASELINE['c']}, K={BASELINE['K']}, "
           f"b={BASELINE['b']}, mu={BASELINE['mu']}, rho={rho}, delta={delta}, "
           f"sigma={sigma}, alpha={alpha}, rho_B={rho * (1 + delta):.2f}, "
-          f"beta in [{sigma / 1000:g}, {sigma * 100:g}] (対数 {N_BETA} 点)")
+          f"beta in [{sigma / 1000:g}, {sigma * 100:g}] (対数 {N_BETA} 点). "
+          f"点線は Base を β {N_BETA_DENSE} 点で計算したフロンティア. "
+          "E[W]-Cost の図の下段は, 各系列のフロンティアの点の Cost の, 点線 (β を細かくした "
+          "Base のフロンティア) を線形補間した Cost に対する差 (%)")
+    dense = [r for r in refine if r["series"] == "Base (dense)"]
     files = []
     for xkey, ykey, xlabel, ylabel, logy, stem in [
         ("E_W", "Cost", r"$E[W]$", "Cost", False, "EW_cost"),
         ("Cost", "P_block_arrival_stable", "Cost", r"$P_{\mathrm{block}}$", True,
          "cost_pblock"),
     ]:
-        fig, ax = plt.subplots(figsize=(9, 6.5))
+        rel_panel = stem == "EW_cost"
+        if rel_panel:
+            fig, (ax, ax2) = plt.subplots(2, 1, figsize=(9, 9.5), sharex=True,
+                                          gridspec_kw={"height_ratios": [2, 1]})
+        else:
+            fig, ax = plt.subplots(figsize=(9, 6.5))
         fronts = fronts_for(rows, xkey, ykey)
+        ref = pareto_front([(r[xkey], r[ykey], i) for i, r in enumerate(dense)]) \
+            if dense else fronts["Base"]
+        ys_all = []
         for s in SERIES_ORDER:
             if s not in fronts:
                 continue
             st = SERIES_STYLE[s]
             xs = [r[xkey] for r in rows if r["series"] == s]
             ys = [r[ykey] for r in rows if r["series"] == s]
+            ys_all += ys
             ax.scatter(xs, ys, s=8, color=st["color"], marker=st["marker"], alpha=0.25,
                        linewidths=0.6)
             fx = [p[0] for p in fronts[s]]
             fy = [p[1] for p in fronts[s]]
             ax.plot(fx, fy, color=st["color"], linestyle=st["linestyle"],
                     marker=st["marker"], markersize=5, linewidth=1.8, label=s)
-        ax.set_xlabel(xlabel, fontsize=16)
+            if rel_panel:
+                pairs = [(x, 100 * (y / interp_cost(ref, x) - 1)) for x, y in zip(fx, fy)
+                         if interp_cost(ref, x) is not None and x <= ref[-1][0]]
+                if pairs:
+                    ax2.plot([p[0] for p in pairs], [p[1] for p in pairs],
+                             color=st["color"], linestyle=st["linestyle"],
+                             marker=st["marker"], markersize=4, linewidth=1.4)
+        if dense:
+            ax.plot([p[0] for p in ref], [p[1] for p in ref], color="black",
+                    linestyle=":", linewidth=1.5, label=f"Base ($\\beta$ {N_BETA_DENSE} points)")
         ax.set_ylabel(ylabel, fontsize=16)
         if logy:
             ax.set_yscale("log")
-            ax.set_ylim(top=1)
+            # ブロッキング確率なので上端は 1 を超えないが, データより大きく空けない
+            ax.set_ylim(top=min(1.0, 3 * max(ys_all)))
         ax.grid(True, alpha=0.3)
+        if rel_panel:
+            ax2.axhline(0, color="black", linestyle=":", linewidth=1.2)
+            ax2.set_ylabel(r"$\Delta$Cost [%]", fontsize=16)
+            ax2.set_xlabel(xlabel, fontsize=16)
+            ax2.grid(True, alpha=0.3)
+            # 横軸は参照フロンティアの範囲に合わせる (散布の右側の遠い点は上段で見る)
+            ax2.set_xlim(ref[0][0] - 0.02 * (ref[-1][0] - ref[0][0]),
+                         ref[-1][0] + 0.02 * (ref[-1][0] - ref[0][0]))
+        else:
+            ax.set_xlabel(xlabel, fontsize=16)
         handles, labels = ax.get_legend_handles_labels()
         fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
                    ncol=4, fontsize=12)
-        fig.tight_layout(rect=(0, 0, 1, 0.88))
+        fig.tight_layout(rect=(0, 0, 1, 0.9 if rel_panel else 0.88))
         os.makedirs(fig_dir, exist_ok=True)
         png = os.path.join(fig_dir, f"experiment_7_{cond}_{stem}.png")
         pdf = os.path.splitext(png)[0] + ".pdf"
@@ -518,13 +649,35 @@ def plot_condition(cond, rows, fig_dir=FIG_DIR) -> List[str]:
 
 
 def _fmt_params(r) -> str:
-    if r["series"] == "Base":
+    if r["series"].startswith("Base"):
         return f"β={r['beta']:.4g}"
     return f"β={r['beta']:.4g}, n_target={r['n_target']}, γ={r['gamma']:g}"
 
 
-def report_condition(cond, rows) -> Tuple[List[str], dict]:
-    """1 条件の (a)〜(e) の表 (Markdown の行) と, 要約用の数値を返す."""
+def _cost_reduction_table(fronts, ref, names) -> Tuple[List[str], List[float], dict]:
+    xmin, xmax = ref[0][0], ref[-1][0]
+    levels = [xmin + f * (xmax - xmin) for f in (0.1, 0.3, 0.5, 0.7, 0.9)]
+    lines = ["| 系列 | " + " | ".join(f"E[W]={x:.4f}" for x in levels) + " |",
+             "|---|" + "---|" * len(levels)]
+    red = {}
+    for s in names:
+        if s not in fronts:
+            continue
+        cells, red[s] = [], []
+        for x in levels:
+            cb, cs = interp_cost(ref, x), interp_cost(fronts[s], x)
+            if cs is None:
+                cells.append("—")
+                red[s].append(None)
+            else:
+                red[s].append(1 - cs / cb)
+                cells.append(f"{100 * (1 - cs / cb):+.2f}%")
+        lines.append(f"| {s} | " + " | ".join(cells) + " |")
+    return lines, levels, red
+
+
+def report_condition(cond, rows, refine=()) -> Tuple[List[str], dict]:
+    """1 条件の (a)〜(e) の表と補足の表 (Markdown の行) と, 要約用の数値を返す."""
     rho, delta, sigma, alpha, desc = CONDITIONS[cond]
     lines = [f"## {cond} {desc}", "",
              f"ρ={rho}, δ={delta}, σ={sigma}, α={alpha}, ρ_B={rho * (1 + delta):.2f}, "
@@ -541,9 +694,7 @@ def report_condition(cond, rows) -> Tuple[List[str], dict]:
               "| 系列 | パラメータ | E[W] | Cost | P_block_arrival_stable | ERP | 備考 |",
               "|---|---|---|---|---|---|---|"]
     for s, r in best.items():
-        edge = ""
-        if r["beta"] in (betas[0], betas[-1]):
-            edge = "β が走査範囲の端"
+        edge = "β が走査範囲の端" if r["beta"] in (betas[0], betas[-1]) else ""
         lines.append(f"| {s} | {_fmt_params(r)} | {r['E_W']:.4f} | {r['Cost']:.4f} | "
                      f"{r['P_block_arrival_stable']:.4e} | {r['ERP']:.4f} | {edge} |")
 
@@ -560,33 +711,12 @@ def report_condition(cond, rows) -> Tuple[List[str], dict]:
     # (c)
     fronts = fronts_for(rows, "E_W", "Cost")
     fb = fronts["Base"]
-    xmin, xmax = fb[0][0], fb[-1][0]
-    levels = [xmin + f * (xmax - xmin) for f in (0.1, 0.3, 0.5, 0.7, 0.9)]
+    tbl, _, red = _cost_reduction_table(fronts, fb, [s for s in SERIES_ORDER if s != "Base"])
     lines += ["", "### (c) 同じ E[W] での Cost の削減率 (Base のフロンティアに対して)", "",
-              "Base のフロンティアの E[W] の範囲 "
-              f"[{xmin:.4f}, {xmax:.4f}] の 10, 30, 50, 70, 90% の位置で, "
-              "各系列のフロンティアを線形補間した Cost を比べる "
+              f"Base のフロンティアの E[W] の範囲 [{fb[0][0]:.4f}, {fb[-1][0]:.4f}] の "
+              "10, 30, 50, 70, 90% の位置で, 各系列のフロンティアを線形補間した Cost を比べる "
               "(正の値が削減. — はその E[W] に系列のフロンティアが届かないこと. "
-              "系列のフロンティアの最大 E[W] より右では, その点の Cost を用いる).", "",
-              "| 系列 | " + " | ".join(f"E[W]={x:.4f}" for x in levels) + " |",
-              "|---|" + "---|" * len(levels)]
-    red = {}
-    for s in SERIES_ORDER:
-        if s not in fronts or s == "Base":
-            continue
-        cells = []
-        red[s] = []
-        for x in levels:
-            cb = interp_cost(fb, x)
-            cs = interp_cost(fronts[s], x)
-            if cs is None:
-                cells.append("—")
-                red[s].append(None)
-            else:
-                v = 1 - cs / cb
-                red[s].append(v)
-                cells.append(f"{100 * v:+.2f}%")
-        lines.append(f"| {s} | " + " | ".join(cells) + " |")
+              "系列のフロンティアの最大 E[W] より右では, その点の Cost を用いる).", ""] + tbl
     summary["cost_red"] = red
 
     # (d)
@@ -596,20 +726,18 @@ def report_condition(cond, rows) -> Tuple[List[str], dict]:
               "k/n は支配される参照点の数.", "",
               "| 系列 | 対 Base | 対 NoCancel |", "|---|---|---|"]
     dom = {}
+    fmt = lambda d: d[0] if d[0] == "—" else f"{d[0]} ({d[1]}/{d[2]})"
     for s in SERIES_ORDER:
         if s not in fronts:
             continue
         d_base = dominance(fronts[s], fb) if s != "Base" else ("—", 0, 0)
         d_nc = dominance(fronts[s], fronts["NoCancel"]) if s != "NoCancel" else ("—", 0, 0)
         dom[s] = (d_base, d_nc)
-        fmt = lambda d: d[0] if d[0] == "—" else f"{d[0]} ({d[1]}/{d[2]})"
         lines.append(f"| {s} | {fmt(d_base)} | {fmt(d_nc)} |")
-    # NoCancel を Base と比べる逆向き (Base が NoCancel を支配するか) も示す
-    d_rev = dominance(fb, fronts["NoCancel"])
-    lines += ["", f"参考: Base のフロンティアが NoCancel のフロンティアを支配するか: "
-              f"{d_rev[0]} ({d_rev[1]}/{d_rev[2]})."]
+    lines += ["", "NoCancel と Base の比較: NoCancel のフロンティアが Base のフロンティアを支配するか "
+              f"= {fmt(dom['NoCancel'][0])}, Base のフロンティアが NoCancel のフロンティアを支配するか "
+              f"= {fmt(dom['Base'][1])}."]
     summary["dom"] = dom
-    summary["dom_base_over_nc"] = d_rev
 
     # (e)
     lines += ["", "### (e) フロンティア上の点での p1_fire_rate と setup_cancel_rate の範囲", "",
@@ -623,29 +751,137 @@ def report_condition(cond, rows) -> Tuple[List[str], dict]:
         cr = [r["setup_cancel_rate"] for r in rs]
         lines.append(f"| {s} | {len(rs)} | [{min(f):.3e}, {max(f):.3e}] | "
                      f"[{min(cr):.3e}, {max(cr):.3e}] |")
+
+    # 補足: β を細かくした Base と NoCancel
+    dense = [r for r in refine if r["series"] == "Base (dense)"]
+    nc_ref = [r for r in refine if r["series"] == "NoCancel (refine)"]
+    if dense:
+        # NoCancel は本計算の 13 点と ERP 最小点の近くの 21 点を合わせる
+        fd = pareto_front([(r["E_W"], r["Cost"], i) for i, r in enumerate(dense)])
+        f_all = dict(fronts)
+        nc_rows = [r for r in rows if r["series"] == "NoCancel"] + nc_ref
+        f_all["NoCancel"] = pareto_front([(r["E_W"], r["Cost"], i)
+                                          for i, r in enumerate(nc_rows)])
+        best_d = min(dense, key=lambda r: r["ERP"])
+        best_nc = min(nc_rows, key=lambda r: r["ERP"])
+        erp_d = best_d["ERP"]
+        lines += ["", f"### 補足: β を細かくした Base ({N_BETA_DENSE} 点) と NoCancel "
+                  f"(ERP 最小点の両隣の間を {N_REFINE} 点)", "",
+                  "Base の β 13 点は, γ や n_target の組み合わせで点の多い Predictive の系列より "
+                  "粗い. 差が格子の粗さによるものでないかを確かめるため, Base を同じ範囲の "
+                  f"β {N_BETA_DENSE} 点で, NoCancel を 13 点での ERP 最小点の両隣の β の間を "
+                  f"{N_REFINE} 点で計算した (experiment_7_refine_{cond}.csv). "
+                  "Predictive の系列は 13 点のままなので, この比較は Predictive に不利な側に寄る.", "",
+                  "| 系列 | ERP 最小値 | パラメータ | 対 Base (13 点) | 対 Base (β を細かく) |",
+                  "|---|---|---|---|---|",
+                  f"| Base (β を細かく) | {erp_d:.4f} | β={best_d['beta']:.4g} | "
+                  f"{100 * (erp_d / erp_base - 1):+.2f}% | +0.00% |",
+                  f"| NoCancel (β を細かく) | {best_nc['ERP']:.4f} | β={best_nc['beta']:.4g} | "
+                  f"{100 * (best_nc['ERP'] / erp_base - 1):+.2f}% | "
+                  f"{100 * (best_nc['ERP'] / erp_d - 1):+.2f}% |"]
+        rel_d = {"NoCancel": best_nc["ERP"] / erp_d - 1}
+        for s, r in best.items():
+            if s in ("Base", "NoCancel"):
+                continue
+            rel_d[s] = r["ERP"] / erp_d - 1
+            lines.append(f"| {s} | {r['ERP']:.4f} | {_fmt_params(r)} | "
+                         f"{100 * rel[s]:+.2f}% | {100 * rel_d[s]:+.2f}% |")
+        tbl, _, red_d = _cost_reduction_table(
+            f_all, fd, [s for s in SERIES_ORDER if s != "Base"])
+        lines += ["", f"同じ E[W] での Cost の削減率 (β を細かくした Base のフロンティア "
+                  f"[{fd[0][0]:.4f}, {fd[-1][0]:.4f}] に対して, (c) と同じ方法):", ""] + tbl
+        lines += ["", "β を細かくした Base のフロンティアに対する支配関係 ((d) と同じ判定):", "",
+                  "| 系列 | 対 Base (β を細かく) |", "|---|---|"]
+        dom_d = {}
+        for s in SERIES_ORDER:
+            if s == "Base" or s not in f_all:
+                continue
+            dom_d[s] = dominance(f_all[s], fd)
+            lines.append(f"| {s} | {fmt(dom_d[s])} |")
+        d_rev = dominance(fd, f_all["NoCancel"])
+        lines += ["", f"β を細かくした Base のフロンティアが NoCancel のフロンティアを支配するか: "
+                  f"{fmt(d_rev)}."]
+        summary.update({"erp_rel_dense": rel_d, "cost_red_dense": red_d,
+                        "dom_dense": dom_d, "dense_over_nc": d_rev,
+                        "best_dense": best_d, "best_nc_all": best_nc})
     lines.append("")
     return lines, summary
 
 
-def report(conds: List[str], out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
+SUMMARY_SERIES = ["NoCancel", "P2 only", "P1 only", "P1 only (protect)", "P1+P2",
+                  "P1+P2 (protect)"]
+
+
+def cross_condition_summary(summaries: dict) -> List[str]:
+    """5 条件を通した要約の表."""
+    fmt = lambda d: f"{d[0]} ({d[1]}/{d[2]})"
+    lines = ["## 5 条件を通した要約", "",
+             "### ERP 最小値の Base に対する相対差 (上: Base 13 点, 下: β を細かくした Base)", "",
+             "| 条件 | " + " | ".join(SUMMARY_SERIES) + " |",
+             "|---|" + "---|" * len(SUMMARY_SERIES)]
+    for c, sm in summaries.items():
+        lines.append(f"| {c} (13 点) | " + " | ".join(
+            f"{100 * sm['erp_rel'][s]:+.2f}%" for s in SUMMARY_SERIES) + " |")
+        if "erp_rel_dense" in sm:
+            lines.append(f"| {c} (細かく) | " + " | ".join(
+                f"{100 * sm['erp_rel_dense'][s]:+.2f}%" for s in SUMMARY_SERIES) + " |")
+    lines += ["", "### Base のフロンティアに対する支配関係 (上: Base 13 点, 下: β を細かくした Base)", "",
+              "| 条件 | " + " | ".join(SUMMARY_SERIES) + " |",
+              "|---|" + "---|" * len(SUMMARY_SERIES)]
+    for c, sm in summaries.items():
+        lines.append(f"| {c} (13 点) | " + " | ".join(
+            fmt(sm["dom"][s][0]) for s in SUMMARY_SERIES) + " |")
+        if "dom_dense" in sm:
+            lines.append(f"| {c} (細かく) | " + " | ".join(
+                fmt(sm["dom_dense"][s]) for s in SUMMARY_SERIES) + " |")
+    lines += ["", "### 同じ E[W] での Cost の削減率の最大値 (5 水準のうち; β を細かくした Base に対して)", "",
+              "| 条件 | " + " | ".join(SUMMARY_SERIES) + " |",
+              "|---|" + "---|" * len(SUMMARY_SERIES)]
+    for c, sm in summaries.items():
+        if "cost_red_dense" not in sm:
+            continue
+        cells = []
+        for s in SUMMARY_SERIES:
+            v = [x for x in sm["cost_red_dense"].get(s, []) if x is not None]
+            cells.append(f"{100 * max(v):+.2f}%" if v else "—")
+        lines.append(f"| {c} | " + " | ".join(cells) + " |")
+    lines.append("")
+    return lines
+
+
+def report(conds: List[str], out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR):
     lines = ["# 実験 7: ベースモデルと Predictive の最良の設定どうしの比較", "",
-             f"results/experiment_7/experiment_7_<条件>.csv から生成. "
+             f"results/experiment_7/experiment_7_<条件>.csv (と補足の "
+             f"experiment_7_refine_<条件>.csv) から生成. "
              f"固定: c={BASELINE['c']}, K={BASELINE['K']}, b={BASELINE['b']}, "
              f"mu={BASELINE['mu']}. 系列: Base (ベースモデル), NoCancel "
              "(n_target=0, γ=1, never_cancel_setup=True), P2 only (n_target=0, "
              f"γ∈{{{', '.join(f'{g:g}' for g in GAMMAS)}}}), P1 only (n_target∈"
              f"{{{', '.join(map(str, N_TARGETS))}}}, γ=1), P1+P2 (n_target × γ). "
-             "(protect) は (protect_presetup, protect_delayoff)=(True, True).", ""]
+             "(protect) は (protect_presetup, protect_delayoff)=(True, True). "
+             "整合性の検査 (各 β で Predictive (n_target=0, γ=1, 保護なし) とベースモデルの "
+             "全指標の一致) の結果は各 CSV の Check 行の consistency_max_relerr 列.", ""]
     figs = []
     summaries = {}
+    checks = []
     for cond in conds:
-        rows = load_condition(cond, out_dir)
+        rows, refine = load_condition(cond, out_dir)
         if not rows:
             continue
-        ls, sm = report_condition(cond, rows)
+        ch = [r for r in read_rows(csv_path(cond, out_dir)) if r["series"] == "Check"]
+        checks.append((cond, len(ch), max(float(r["consistency_max_relerr"]) for r in ch)))
+        ls, sm = report_condition(cond, rows, refine)
         lines += ls
         summaries[cond] = sm
-        figs += plot_condition(cond, rows, fig_dir)
+        figs += plot_condition(cond, rows, refine, fig_dir)
+    lines += ["## 整合性の検査", "",
+              "| 条件 | 点数 | 最大の相対誤差 |", "|---|---|---|"] + \
+        [f"| {c} | {n} | {m:.2e} |" for c, n, m in checks] + [""]
+    lines += cross_condition_summary(summaries)
+    concl = os.path.join(out_dir, "conclusion.md")
+    if os.path.exists(concl):
+        with open(concl, encoding="utf-8") as f:
+            lines += [f.read().rstrip(), ""]
     lines += ["## 図", ""] + [f"- {f}" for f in figs] + [""]
     text = "\n".join(lines)
     with open(os.path.join(out_dir, "report.md"), "w", encoding="utf-8") as f:
@@ -658,12 +894,17 @@ def main():
     parser.add_argument("--condition", choices=list(CONDITIONS) + ["all"], default="all")
     parser.add_argument("--report", action="store_true", help="図とレポートを作る")
     parser.add_argument("--count", action="store_true", help="点数だけ表示する")
+    parser.add_argument("--refine", action="store_true",
+                        help="補足: β を細かくした Base と NoCancel を計算する")
     args = parser.parse_args()
     conds = list(CONDITIONS) if args.condition == "all" else [args.condition]
     if args.count:
         for c in conds:
             print(c, len(condition_points(c)))
         print("合計", total_points(conds))
+        return
+    if args.refine:
+        run_refine(conds)
         return
     if args.report:
         text, _ = report(conds)
