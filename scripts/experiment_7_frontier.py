@@ -33,10 +33,15 @@ Base を同じ範囲の β 121 点 (10 倍細かい) で, NoCancel を 13 点で
 両隣の β の間を 21 点で計算し, results/experiment_7/experiment_7_refine_<条件名>.csv
 に保存する (本計算の CSV は変えない).
 
+補足 2 (--extend): 最良点が走査範囲の端にあった系列について範囲を広げ, 本計算の CSV
+に追記する (EXTENSIONS). C4 では β の下限を広げるので, 比較の基準である β を細かくした
+Base も同じ下限まで広げ, 補足の CSV に追記する.
+
 使用例:
     python scripts/experiment_7_frontier.py                 # 全条件を計算
     python scripts/experiment_7_frontier.py --condition C1  # 1 条件だけ計算
     python scripts/experiment_7_frontier.py --refine        # 補足: β を細かくした Base / NoCancel
+    python scripts/experiment_7_frontier.py --extend        # 補足 2: 端にあった最良点の範囲を広げる
     python scripts/experiment_7_frontier.py --report        # 図とレポートを作る
     python scripts/experiment_7_frontier.py --count         # 点数だけ表示
 """
@@ -469,6 +474,135 @@ def run_refine(conds: List[str], out_dir: str = OUT_DIR) -> None:
 
 
 # ============================================================
+# 補足 2: 最良点が走査範囲の端にあった系列の範囲を広げる
+# ============================================================
+
+# 条件 -> (広げる量, 系列の一覧, 追加する値)
+#   beta: 追加する β (n_target と γ は本計算の ERP 最小点の値とその前後の格子点)
+#   gamma: 追加する γ (β は ERP 最小点を中心とする 5 点, n_target は最小点の値と前後)
+#   n_target: 追加する n_target (β と γ は ERP 最小点の値とその前後の格子点)
+EXTENSIONS: Dict[str, Tuple[str, List[str], List[float]]] = {
+    "C4": ("beta", ["P2 only", "P1+P2", "P1+P2 (protect)"],
+           [float(x) for x in np.logspace(-8, -6, 7)[:-1]]),
+    "C2": ("gamma", ["P2 only", "P1+P2", "P1+P2 (protect)"], [3000.0, 10000.0, 30000.0]),
+    "C5": ("n_target", ["P1 only", "P1 only (protect)", "P1+P2", "P1+P2 (protect)"],
+           [1, 2, 3, 4]),
+}
+# β を下に広げる条件では, β を細かくした Base も同じ間隔で同じ下限まで広げる
+DENSE_EXTENSIONS: Dict[str, List[float]] = {
+    "C4": [float(x) for x in np.logspace(-8, -6, 49)[:-1]],
+}
+
+
+def _index_of(levels: List[float], v: float) -> int:
+    i = int(np.argmin([abs(np.log(v / x)) if x > 0 and v > 0 else abs(v - x)
+                       for x in levels]))
+    return i
+
+
+def _neighbors(levels: List[float], v: float) -> List[float]:
+    """格子 levels 上の v とその両隣 (端ならある側だけ)."""
+    i = _index_of(levels, v)
+    return list(levels[max(i - 1, 0): i + 2])
+
+
+def _window5(levels: List[float], v: float) -> List[float]:
+    """v を中心とする 5 点 (端にかかるときは 5 点を保つよう窓をずらす)."""
+    i = _index_of(levels, v)
+    lo = max(0, min(i - 2, len(levels) - 5))
+    return list(levels[lo: lo + 5])
+
+
+def grid_best(cond: str, series: str, out_dir: str = OUT_DIR) -> dict:
+    """本計算の格子 (condition_points) の点だけで見た系列の ERP 最小点."""
+    keys = {point_key(p) for p in condition_points(cond)}
+    rows = [r for r in read_rows(csv_path(cond, out_dir))
+            if r["series"] == series and row_key(r) in keys]
+    return min(rows, key=lambda r: float(r["ERP"]))
+
+
+def _series_flags(name: str) -> Tuple[bool, bool]:
+    protect = name.endswith("(protect)")
+    return protect, protect
+
+
+def extension_points(cond: str, out_dir: str = OUT_DIR) -> List[Tuple]:
+    """補足 2 の点 (系列名, beta, n_target, gamma, pp, pd, nc).
+
+    基準にする ERP 最小点は本計算の格子の点だけから選ぶので, 追記後に再実行しても
+    同じ点の一覧になる.
+    """
+    if cond not in EXTENSIONS:
+        return []
+    kind, series, values = EXTENSIONS[cond]
+    betas = beta_levels(CONDITIONS[cond][2])
+    pts = []
+    for name in series:
+        b = grid_best(cond, name, out_dir)
+        beta0, nt0, g0 = float(b["beta"]), int(b["n_target"]), float(b["gamma"])
+        pp, pd = _series_flags(name)
+        has_p1 = name.startswith("P1")
+        has_p2 = name.startswith("P2") or name.startswith("P1+P2")
+        nts = _neighbors(N_TARGETS, nt0) if has_p1 else [0]
+        gs = _neighbors(GAMMAS, g0) if has_p2 else [1.0]
+        if kind == "beta":
+            grid = [(beta, nt, g) for beta in values for nt in nts for g in gs]
+        elif kind == "gamma":
+            grid = [(beta, nt, g) for beta in _window5(betas, beta0) for nt in nts
+                    for g in values]
+        else:  # n_target
+            grid = [(beta, nt, g) for beta in _neighbors(betas, beta0) for g in gs
+                    for nt in values]
+        pts += [(name, beta, int(nt), float(g), pp, pd, False) for beta, nt, g in grid]
+    return pts
+
+
+def dense_extension_points(cond: str) -> List[Tuple]:
+    return [("Base (dense)", b, 0, 1.0, False, False, False)
+            for b in DENSE_EXTENSIONS.get(cond, [])]
+
+
+def run_extension(conds: List[str], out_dir: str = OUT_DIR) -> None:
+    os.makedirs(out_dir, exist_ok=True)
+    conds = [c for c in conds if c in EXTENSIONS or c in DENSE_EXTENSIONS]
+    plan = {c: [(p, "main") for p in extension_points(c, out_dir)] +
+            [(p, "refine") for p in dense_extension_points(c)] for c in conds}
+    done_keys = {c: {row_key(r) for r in read_rows(csv_path(c, out_dir))} |
+                 {row_key(r) for r in read_rows(refine_csv_path(c, out_dir))}
+                 for c in conds}
+    total = sum(len(v) for v in plan.values())
+    done = sum(len([p for p, _ in plan[c] if point_key(p) in done_keys[c]]) for c in conds)
+    print(f"[extend] 総点数 {total} (計算済み {done}, 今回計算 {total - done})", flush=True)
+    t0 = time.time()
+    last_log = t0
+    n_new = 0
+    for cond in conds:
+        todo = [(p, dest) for p, dest in plan[cond] if point_key(p) not in done_keys[cond]]
+        for k, (pt, dest) in enumerate(todo):
+            t = time.time()
+            if pt[0] == "Base (dense)":
+                _, pi, mb = solve_base_model(cond, pt[1])
+                row = base_row(cond, pt[1], time.time() - t, pi, mb, None,
+                               series="Base (dense)")
+            else:
+                _, pi, m = solve_predictive(cond, *pt[1:])
+                row = predictive_row(cond, pt, time.time() - t, pi, m)
+            path = csv_path(cond, out_dir) if dest == "main" else refine_csv_path(cond, out_dir)
+            append_row(path, row)
+            done += 1
+            n_new += 1
+            last = (f"[extend] {cond},{pt[0]},beta={pt[1]:.4g},n_target={pt[2]},"
+                    f"gamma={pt[3]:g}")
+            if row["check"] != "ok":
+                print(f"  検査違反: {last}: {row['check']}", flush=True)
+            cond_end = k + 1 == len(todo)
+            if done % 10 == 0 or time.time() - last_log >= 60 or cond_end:
+                log_progress(out_dir, done, total, t0, (time.time() - t0) / n_new, last)
+                last_log = time.time()
+        print(f"[extend] 条件 {cond} 完了", flush=True)
+
+
+# ============================================================
 # フロンティアと集計
 # ============================================================
 
@@ -676,6 +810,28 @@ def _cost_reduction_table(fronts, ref, names) -> Tuple[List[str], List[float], d
     return lines, levels, red
 
 
+def edge_note(r: dict, series_rows: List[dict]) -> str:
+    """最良点のパラメータが, その系列で計算した範囲の端にあるかを書く."""
+    notes = []
+    for key, label in [("beta", "β"), ("gamma", "γ"), ("n_target", "n_target")]:
+        vals = sorted({x[key] for x in series_rows})
+        if key == "n_target":
+            vals = [v for v in vals if v > 0]
+        if len(vals) < 2 or r[key] not in vals:
+            continue
+        if r[key] == vals[0]:
+            if key == "gamma" and r[key] == GAMMAS[0]:
+                notes.append(f"{label} が下端 (より小さい γ=1 は P1 only の系列)")
+            else:
+                notes.append(f"{label} が下端")
+        elif r[key] == vals[-1]:
+            if key == "n_target" and r[key] == BASELINE["c"]:
+                notes.append(f"{label} が上端 (=c, 取りうる最大)")
+            else:
+                notes.append(f"{label} が上端")
+    return ", ".join(notes)
+
+
 def report_condition(cond, rows, refine=()) -> Tuple[List[str], dict]:
     """1 条件の (a)〜(e) の表と補足の表 (Markdown の行) と, 要約用の数値を返す."""
     rho, delta, sigma, alpha, desc = CONDITIONS[cond]
@@ -694,7 +850,7 @@ def report_condition(cond, rows, refine=()) -> Tuple[List[str], dict]:
               "| 系列 | パラメータ | E[W] | Cost | P_block_arrival_stable | ERP | 備考 |",
               "|---|---|---|---|---|---|---|"]
     for s, r in best.items():
-        edge = "β が走査範囲の端" if r["beta"] in (betas[0], betas[-1]) else ""
+        edge = edge_note(r, by[s])
         lines.append(f"| {s} | {_fmt_params(r)} | {r['E_W']:.4f} | {r['Cost']:.4f} | "
                      f"{r['P_block_arrival_stable']:.4e} | {r['ERP']:.4f} | {edge} |")
 
@@ -894,6 +1050,8 @@ def main():
     parser.add_argument("--condition", choices=list(CONDITIONS) + ["all"], default="all")
     parser.add_argument("--report", action="store_true", help="図とレポートを作る")
     parser.add_argument("--count", action="store_true", help="点数だけ表示する")
+    parser.add_argument("--extend", action="store_true",
+                        help="補足 2: 最良点が走査範囲の端にあった系列の範囲を広げる")
     parser.add_argument("--refine", action="store_true",
                         help="補足: β を細かくした Base と NoCancel を計算する")
     args = parser.parse_args()
@@ -902,6 +1060,9 @@ def main():
         for c in conds:
             print(c, len(condition_points(c)))
         print("合計", total_points(conds))
+        return
+    if args.extend:
+        run_extension(conds)
         return
     if args.refine:
         run_refine(conds)

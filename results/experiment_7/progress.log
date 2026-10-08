@@ -704,3 +704,51 @@
 2026-10-08T12:27:35 done=700/710 elapsed=1552.1s eta=22.2s last=[refine] C5,NoCancel (refine),beta=11.25
 2026-10-08T12:28:47 done=705/710 elapsed=1624.6s eta=11.5s last=[refine] C5,NoCancel (refine),beta=18.17
 2026-10-08T12:30:00 done=710/710 elapsed=1696.8s eta=0.0s last=[refine] C5,NoCancel (refine),beta=29.36
+2026-10-08T12:46:20 done=10/297 elapsed=10.3s eta=294.3s last=[extend] C2,P2 only,beta=0.0003557,n_target=0,gamma=3000
+2026-10-08T12:47:36 done=19/297 elapsed=86.1s eta=1259.5s last=[extend] C2,P1+P2,beta=2e-05,n_target=20,gamma=3000
+2026-10-08T12:48:17 done=20/297 elapsed=127.0s eta=1759.5s last=[extend] C2,P1+P2,beta=2e-05,n_target=20,gamma=10000
+2026-10-08T12:49:17 done=24/297 elapsed=187.2s eta=2128.9s last=[extend] C2,P1+P2,beta=5.22e-05,n_target=15,gamma=30000
+2026-10-08T12:50:41 done=26/297 elapsed=270.5s eta=2819.2s last=[extend] C2,P1+P2,beta=5.22e-05,n_target=20,gamma=10000
+2026-10-08T12:51:48 done=30/297 elapsed=337.7s eta=3005.2s last=[extend] C2,P1+P2,beta=0.0001363,n_target=15,gamma=30000
+2026-10-08T12:53:11 done=32/297 elapsed=420.5s eta=3482.4s last=[extend] C2,P1+P2,beta=0.0001363,n_target=20,gamma=10000
+2026-10-08T12:54:15 done=36/297 elapsed=484.9s eta=3515.3s last=[extend] C2,P1+P2,beta=0.0003557,n_target=15,gamma=30000
+2026-10-08T12:55:48 done=38/297 elapsed=577.5s eta=3935.9s last=[extend] C2,P1+P2,beta=0.0003557,n_target=20,gamma=10000
+2026-10-08T12:56:31 done=40/297 elapsed=621.2s eta=3991.3s last=[extend] C2,P1+P2,beta=0.0009283,n_target=15,gamma=3000
+2026-10-08T12:58:06 done=44/297 elapsed=715.9s eta=4116.3s last=[extend] C2,P1+P2,beta=0.0009283,n_target=20,gamma=10000
+2026-10-08T12:59:09 done=50/297 elapsed=778.9s eta=3847.8s last=[extend] C2,P1+P2 (protect),beta=0.002423,n_target=20,gamma=10000
+2026-10-08T12:59:53 done=60/297 elapsed=823.1s eta=3251.2s last=[extend] C2,P1+P2 (protect),beta=0.01651,n_target=15,gamma=30000
+2026-10-08T13:00:48 done=70/297 elapsed=878.2s eta=2847.8s last=[extend] C2,P1+P2 (protect),beta=0.1125,n_target=15,gamma=3000
+2026-10-08T13:01:15 done=75/297 elapsed=905.1s eta=2679.0s last=[extend] C2,P1+P2 (protect),beta=0.1125,n_target=20,gamma=30000
+2026-10-08T13:01:21 done=80/297 elapsed=910.6s eta=2469.9s last=[extend] C4,P2 only,beta=2.154e-08,n_target=0,gamma=100
+2026-10-08T13:01:31 done=90/297 elapsed=921.0s eta=2118.3s last=[extend] C4,P2 only,beta=2.154e-07,n_target=0,gamma=300
+2026-10-08T13:02:36 done=97/297 elapsed=985.9s eta=2032.7s last=[extend] C4,P1+P2,beta=1e-08,n_target=20,gamma=30
+2026-10-08T13:03:51 done=99/297 elapsed=1060.9s eta=2121.8s last=[extend] C4,P1+P2,beta=1e-08,n_target=20,gamma=300
+2026-10-08T13:03:58 done=100/297 elapsed=1068.0s eta=2104.0s last=[extend] C4,P1+P2,beta=2.154e-08,n_target=15,gamma=30
+2026-10-08T13:05:34 done=104/297 elapsed=1164.3s eta=2160.7s last=[extend] C4,P1+P2,beta=2.154e-08,n_target=20,gamma=100
+2026-10-08T13:06:37 done=108/297 elapsed=1226.9s eta=2147.1s last=[extend] C4,P1+P2,beta=4.642e-08,n_target=15,gamma=300
+2026-10-08T13:07:54 done=110/297 elapsed=1303.8s eta=2216.4s last=[extend] C4,P1+P2,beta=4.642e-08,n_target=20,gamma=100
+2026-10-08T13:08:59 done=114/297 elapsed=1368.7s eta=2197.1s last=[extend] C4,P1+P2,beta=1e-07,n_target=15,gamma=300
+2026-10-08T13:10:12 done=116/297 elapsed=1442.0s eta=2250.0s last=[extend] C4,P1+P2,beta=1e-07,n_target=20,gamma=100
+2026-10-08T13:11:10 done=120/297 elapsed=1500.2s eta=2212.8s last=[extend] C4,P1+P2,beta=2.154e-07,n_target=15,gamma=300
+2026-10-08T13:12:24 done=122/297 elapsed=1573.9s eta=2257.6s last=[extend] C4,P1+P2,beta=2.154e-07,n_target=20,gamma=100
+2026-10-08T13:13:58 done=127/297 elapsed=1667.4s eta=2232.0s last=[extend] C4,P1+P2,beta=4.642e-07,n_target=20,gamma=30
+2026-10-08T13:15:10 done=129/297 elapsed=1740.0s eta=2266.0s last=[extend] C4,P1+P2,beta=4.642e-07,n_target=20,gamma=300
+2026-10-08T13:15:13 done=130/297 elapsed=1742.4s eta=2238.3s last=[extend] C4,P1+P2 (protect),beta=1e-08,n_target=15,gamma=3
+2026-10-08T13:16:01 done=140/297 elapsed=1791.2s eta=2008.7s last=[extend] C4,P1+P2 (protect),beta=4.642e-08,n_target=20,gamma=3
+2026-10-08T13:16:51 done=150/297 elapsed=1840.8s eta=1804.0s last=[extend] C4,P1+P2 (protect),beta=4.642e-07,n_target=15,gamma=3
+2026-10-08T13:17:11 done=160/297 elapsed=1861.3s eta=1593.7s last=[extend] C4,Base (dense),beta=1.778e-08,n_target=0,gamma=1
+2026-10-08T13:17:16 done=170/297 elapsed=1865.4s eta=1393.6s last=[extend] C4,Base (dense),beta=4.642e-08,n_target=0,gamma=1
+2026-10-08T13:17:20 done=180/297 elapsed=1869.6s eta=1215.2s last=[extend] C4,Base (dense),beta=1.212e-07,n_target=0,gamma=1
+2026-10-08T13:17:24 done=190/297 elapsed=1874.1s eta=1055.4s last=[extend] C4,Base (dense),beta=3.162e-07,n_target=0,gamma=1
+2026-10-08T13:17:29 done=200/297 elapsed=1878.4s eta=911.0s last=[extend] C4,Base (dense),beta=8.254e-07,n_target=0,gamma=1
+2026-10-08T13:17:29 done=201/297 elapsed=1878.9s eta=897.4s last=[extend] C4,Base (dense),beta=9.085e-07,n_target=0,gamma=1
+2026-10-08T13:17:38 done=210/297 elapsed=1888.2s eta=782.2s last=[extend] C5,P1 only,beta=29.36,n_target=1,gamma=1
+2026-10-08T13:17:49 done=220/297 elapsed=1898.5s eta=664.5s last=[extend] C5,P1 only (protect),beta=11.25,n_target=3,gamma=1
+2026-10-08T13:17:59 done=230/297 elapsed=1908.8s eta=556.0s last=[extend] C5,P1+P2,beta=0.6325,n_target=1,gamma=30
+2026-10-08T13:18:09 done=240/297 elapsed=1919.0s eta=455.8s last=[extend] C5,P1+P2,beta=1.651,n_target=3,gamma=10
+2026-10-08T13:18:20 done=250/297 elapsed=1929.5s eta=362.7s last=[extend] C5,P1+P2,beta=4.309,n_target=1,gamma=10
+2026-10-08T13:18:30 done=260/297 elapsed=1939.7s eta=276.0s last=[extend] C5,P1+P2,beta=4.309,n_target=3,gamma=100
+2026-10-08T13:18:40 done=270/297 elapsed=1949.7s eta=195.0s last=[extend] C5,P1+P2 (protect),beta=0.6325,n_target=1,gamma=100
+2026-10-08T13:18:50 done=280/297 elapsed=1960.2s eta=119.0s last=[extend] C5,P1+P2 (protect),beta=1.651,n_target=3,gamma=30
+2026-10-08T13:19:00 done=290/297 elapsed=1970.1s eta=47.6s last=[extend] C5,P1+P2 (protect),beta=4.309,n_target=1,gamma=30
+2026-10-08T13:19:07 done=297/297 elapsed=1977.2s eta=0.0s last=[extend] C5,P1+P2 (protect),beta=4.309,n_target=4,gamma=100

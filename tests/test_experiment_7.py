@@ -137,3 +137,36 @@ def test_small_refine_and_report(small_setup, tmp_path, monkeypatch):
     assert "補足: β を細かくした Base" in text
     assert "5 条件を通した要約" in text
     assert "dom_dense" in summaries["C1"]
+
+
+def test_small_extension(small_setup, tmp_path, monkeypatch):
+    """補足 2 (範囲を広げた点) は本計算の CSV に, Base の延長は補足の CSV に追記される."""
+    monkeypatch.setattr(e7, "EXTENSIONS", {"C1": ("gamma", ["P2 only"], [10.0])})
+    monkeypatch.setattr(e7, "DENSE_EXTENSIONS", {"C1": [1e-7]})
+    out = str(tmp_path / "res")
+    e7.run(["C1"], out_dir=out)
+    pts = e7.extension_points("C1", out)
+    # β は ERP 最小点を中心に 5 点 (格子が 3 点しかないので 3 点), γ は追加する値
+    assert len(pts) == 3 and all(p[3] == 10.0 and p[0] == "P2 only" for p in pts)
+    e7.run_extension(["C1"], out_dir=out)
+    e7.run_extension(["C1"], out_dir=out)  # 再実行しても追記されない
+    with open(e7.csv_path("C1", out), newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert len(rows) == len(e7.condition_points("C1")) + 3
+    assert all(r["check"] == "ok" for r in rows)
+    with open(e7.refine_csv_path("C1", out), newline="", encoding="utf-8") as f:
+        assert [r["series"] for r in csv.DictReader(f)] == ["Base (dense)"]
+    # 追記後も基準の ERP 最小点 (本計算の格子のみ) は変わらない
+    assert e7.extension_points("C1", out) == pts
+
+
+def test_edge_note():
+    rows = [{"beta": b, "gamma": g, "n_target": n} for b in (1.0, 2.0) for g in (3.0, 10.0)
+            for n in (0, 5, 10)]
+    assert e7.edge_note({"beta": 1.0, "gamma": 10.0, "n_target": 5}, rows) == \
+        "β が下端, γ が上端, n_target が下端"
+    assert e7.edge_note({"beta": 2.0, "gamma": 3.0, "n_target": 0}, rows) == \
+        "β が上端, γ が下端 (より小さい γ=1 は P1 only の系列)"
+    rows20 = [dict(r, n_target=20) if r["n_target"] == 10 else r for r in rows]
+    assert e7.edge_note({"beta": 1.5, "gamma": 5.0, "n_target": 20}, rows20) == \
+        "n_target が上端 (=c, 取りうる最大)"
