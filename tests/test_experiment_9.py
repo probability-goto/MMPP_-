@@ -20,3 +20,14 @@ def test_category():
 def test_point_counts():
     assert len(e9.points_B()) == 35 * 4
     assert len(e9.points_A()) == 12 * (11 + 9 + 7)
+
+
+def test_category5():
+    assert e9.category5(-0.002, 1.04) == "改善"
+    assert e9.category5(-0.002, 0.5) == "改善"
+    assert e9.category5(0.0005, 1.0) == "同等"
+    assert e9.category5(0.0005, 0.9) == "棄却のみ改善"
+    assert e9.category5(-0.002, 1.2) == "引き換え"
+    assert e9.category5(0.002, 0.9) == "引き換え"
+    assert e9.category5(0.002, 1.0) == "悪化"
+    assert e9.category5(0.0, 1.2) == "悪化"

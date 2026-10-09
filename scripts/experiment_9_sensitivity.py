@@ -466,6 +466,153 @@ def plot_B(rows, rows_order, which, metric, label, logp, fig_dir) -> List[str]:
     return [png, os.path.splitext(png)[0] + ".pdf"]
 
 
+# ============================================================
+# しきい値付きの判定 (集計のし直し)
+# ============================================================
+
+# ERP の相対差は |差| <= 0.1% を「同等」, P の比は 0.95〜1.05 を「同等」とする.
+ERP_TIE = 0.001
+P_LO, P_HI = 0.95, 1.05
+CATEGORIES5 = ["改善", "同等", "棄却のみ改善", "引き換え", "悪化"]
+
+
+def erp_state(rel_erp: float) -> str:
+    if rel_erp < -ERP_TIE:
+        return "better"
+    if rel_erp > ERP_TIE:
+        return "worse"
+    return "equal"
+
+
+def p_state(p_ratio: float) -> str:
+    if p_ratio < P_LO:
+        return "better"
+    if p_ratio > P_HI:
+        return "worse"
+    return "equal"
+
+
+def category5(rel_erp: float, p_ratio: float) -> str:
+    """しきい値付きの 5 区分.
+
+    改善: ERP が 0.1% 以上下がり, P が 5% 以上上がらない.
+    同等: ERP も P も同等.
+    棄却のみ改善: ERP は同等で, P が 5% 以上下がる.
+    引き換え: 片方が改善し, もう片方が悪化する.
+    悪化: どちらかが悪化し, どちらも改善しない.
+    """
+    e, p = erp_state(rel_erp), p_state(p_ratio)
+    if e == "better" and p != "worse":
+        return "改善"
+    if e == "equal" and p == "equal":
+        return "同等"
+    if e == "equal" and p == "better":
+        return "棄却のみ改善"
+    if (e == "better" and p == "worse") or (e == "worse" and p == "better"):
+        return "引き換え"
+    return "悪化"
+
+
+def report_A_thr(rows: List[dict]) -> List[str]:
+    lines = ["## パート A (しきい値付きの判定)", "",
+             f"「Base より悪い」を, ERP の相対差 > +{100 * ERP_TIE:g}% または P の比 > {P_HI:g} とする "
+             f"(|ERP の差| ≤ {100 * ERP_TIE:g}% と P の比 {P_LO:g}〜{P_HI:g} は同等). "
+             "各値の下に ERP の相対差 (%) と P の比を併記し, 悪い値に * を付ける.", ""]
+    fmts = {"n_target": lambda v: f"{int(v)}", "gamma": lambda v: f"{v:g}",
+            "beta_mult": lambda v: f"×{v:g}"}
+    names = {"n_target": "n_target", "gamma": "γ", "beta_mult": "β"}
+    beta2 = []
+    summary = ["### 悪くなる範囲 (しきい値付き)", "",
+               "| マス | 系列 | パラメータ | ERP のみで悪い | P のみで悪い | どちらかで悪い |",
+               "|---|---|---|---|---|---|"]
+    detail = []
+    for row, r1 in A_CELLS:
+        cr = [r for r in rows if r["row"] == row and abs(_f(r, "r1") / r1 - 1) < 1e-9]
+        if not cr:
+            continue
+        detail += [f"### {_cell_label(row, r1)}", ""]
+        for s in A_SERIES:
+            sr = [r for r in cr if r["series"] == s]
+            if not sr:
+                continue
+            for sw in ("n_target", "gamma", "beta_mult"):
+                pts = sorted([r for r in sr if r["sweep"] == sw], key=lambda r: _f(r, "value"))
+                vals = [_f(r, "value") for r in pts]
+                fe = [erp_state(_f(r, "erp_rel")) == "worse" for r in pts]
+                fp = [p_state(_f(r, "p_ratio")) == "worse" for r in pts]
+                fa = [a or b for a, b in zip(fe, fp)]
+                summary.append(f"| {_cell_label(row, r1)} | {s} | {names[sw]} | "
+                               f"{intervals(vals, fe, fmts[sw])} | {intervals(vals, fp, fmts[sw])} | "
+                               f"{intervals(vals, fa, fmts[sw])} |")
+                detail += [f"{s}, {names[sw]}:", "",
+                           "| | " + " | ".join(fmts[sw](v) for v in vals) + " |",
+                           "|---|" + "---|" * len(vals),
+                           "| ERP の相対差 | " + " | ".join(
+                               f"{100 * _f(r, 'erp_rel'):+.2f}%{'*' if a else ''}"
+                               for r, a in zip(pts, fe)) + " |",
+                           "| P の比 | " + " | ".join(
+                               f"{_f(r, 'p_ratio'):.3f}{'*' if b else ''}"
+                               for r, b in zip(pts, fp)) + " |", ""]
+                if sw == "beta_mult":
+                    r2 = next(r for r in pts if _f(r, "value") == 2.0)
+                    r1x = next(r for r in pts if _f(r, "value") == 1.0)
+                    beta2.append((_cell_label(row, r1), s, _f(r1x, "p_ratio"),
+                                  _f(r2, "p_ratio"), _f(r2, "erp_rel")))
+    lines += summary + [""]
+    lines += ["### β を 2 倍にしたときの P の比", "",
+              "基準点 (β×1) と β×2 での P の比 (対 P_ref) と, β×2 での ERP の相対差.", "",
+              "| マス | 系列 | P の比 (β×1) | P の比 (β×2) | P_ref を超える量 (β×2) | ERP の相対差 (β×2) |",
+              "|---|---|---|---|---|---|"]
+    for cell, s, p1, p2, e2 in beta2:
+        over = f"{100 * (p2 - 1):+.1f}%" if p2 > 1 else "超えない"
+        lines.append(f"| {cell} | {s} | {p1:.3f} | {p2:.3f} | {over} | {100 * e2:+.2f}% |")
+    lines += ["", "### 各値の ERP の相対差と P の比", ""] + detail
+    return lines
+
+
+def report_B_thr(rows: List[dict]) -> List[str]:
+    lines = ["## パート B (しきい値付きの 5 区分)", "",
+             f"改善 = ERP が {100 * ERP_TIE:g}% 以上下がり, P が {100 * (P_HI - 1):g}% 以上上がらない. "
+             "同等 = ERP も P も同等. 棄却のみ改善 = ERP は同等で, P が "
+             f"{100 * (1 - P_LO):g}% 以上下がる. 引き換え = 片方が改善し, もう片方が悪化する. "
+             "悪化 = どちらかが悪化し, どちらも改善しない. 比較の相手は同じ β* の Base.", "",
+             "| 設定 | " + " | ".join(CATEGORIES5) + " |", "|---|" + "---|" * len(CATEGORIES5)]
+    per = {}
+    for name, *_ in B_CONFIGS:
+        cr = [r for r in rows if r["value"] == name]
+        cats = {c: [] for c in CATEGORIES5}
+        for r in cr:
+            cats[category5(_f(r, "rel_ERP"), 1 + _f(r, "rel_P"))].append(r)
+        per[name] = cats
+        lines.append(f"| {name} | " + " | ".join(str(len(cats[c])) for c in CATEGORIES5) + " |")
+    lines.append("")
+    for name, cats in per.items():
+        lines += [f"### {name}", ""]
+        for c in CATEGORIES5:
+            if cats[c]:
+                lines.append(f"- {c} ({len(cats[c])}): " + ", ".join(
+                    _cell_label(r["row"], r["r1"]) for r in
+                    sorted(cats[c], key=lambda r: (r["row"], _f(r, "r1")))))
+        allr = [r for c in CATEGORIES5 for r in cats[c]]
+        if cats["改善"]:
+            b = min(cats["改善"], key=lambda r: _f(r, "rel_ERP"))
+            lines.append(f"- 最大の改善 (改善の区分の中で ERP が最も下がるマス): "
+                         f"{_cell_label(b['row'], b['r1'])} で ERP {100 * _f(b, 'rel_ERP'):+.2f}%, "
+                         f"P の比 {1 + _f(b, 'rel_P'):.3f}.")
+        bad = cats["悪化"] + cats["引き換え"]
+        if bad:
+            w = max(bad, key=lambda r: _f(r, "rel_ERP"))
+            wp = max(bad, key=lambda r: _f(r, "rel_P"))
+            lines.append(f"- ERP の最大の悪化: {_cell_label(w['row'], w['r1'])} で ERP "
+                         f"{100 * _f(w, 'rel_ERP'):+.2f}%, P の比 {1 + _f(w, 'rel_P'):.3f} "
+                         f"({category5(_f(w, 'rel_ERP'), 1 + _f(w, 'rel_P'))}).")
+            lines.append(f"- P の比の最大: {_cell_label(wp['row'], wp['r1'])} で P の比 "
+                         f"{1 + _f(wp, 'rel_P'):.3f}, ERP {100 * _f(wp, 'rel_ERP'):+.2f}% "
+                         f"({category5(_f(wp, 'rel_ERP'), 1 + _f(wp, 'rel_P'))}).")
+        lines.append("")
+    return lines
+
+
 def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
     rows_a, rows_b = read_rows(csv_path("A", out_dir)), read_rows(csv_path("B", out_dir))
     lines = ["# 実験 9: Predictive のパラメータが最適でないとき, ベースモデルより悪くなる範囲", "",
@@ -491,6 +638,14 @@ def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
     concl = os.path.join(out_dir, "conclusion.md")
     if os.path.exists(concl):
         lines += [open(concl, encoding="utf-8").read().rstrip(), ""]
+    # しきい値付きの判定 (集計のし直し). 上の節はそのまま残す
+    if rows_a:
+        lines += report_A_thr(rows_a)
+    if rows_b:
+        lines += report_B_thr(rows_b)
+    concl2 = os.path.join(out_dir, "conclusion_threshold.md")
+    if os.path.exists(concl2):
+        lines += [open(concl2, encoding="utf-8").read().rstrip(), ""]
     lines += ["## 図", ""] + [f"- {f}" for f in figs] + [""]
     text = "\n".join(lines)
     with open(os.path.join(out_dir, "report.md"), "w", encoding="utf-8") as f:

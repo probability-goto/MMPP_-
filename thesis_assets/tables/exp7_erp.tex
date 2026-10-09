@@ -1,0 +1,22 @@
+% scripts/make_thesis_numbers.py で生成 (手で編集しない)
+\begin{table}[tbp]
+\centering
+\caption{実験 7: 各系列の ERP 最小値}
+\label{tab:exp7-erp}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+系列 & C1 & C2 & C3 & C4 & C5 \\
+\midrule
+Base & \ExpSevenCOneBaseERPMin & \ExpSevenCTwoBaseERPMin & \ExpSevenCThreeBaseERPMin & \ExpSevenCFourBaseERPMin & \ExpSevenCFiveBaseERPMin \\
+NoCancel & \ExpSevenCOneNoCancelERPMin & \ExpSevenCTwoNoCancelERPMin & \ExpSevenCThreeNoCancelERPMin & \ExpSevenCFourNoCancelERPMin & \ExpSevenCFiveNoCancelERPMin \\
+P2 only & \ExpSevenCOnePTwoOnlyERPMin & \ExpSevenCTwoPTwoOnlyERPMin & \ExpSevenCThreePTwoOnlyERPMin & \ExpSevenCFourPTwoOnlyERPMin & \ExpSevenCFivePTwoOnlyERPMin \\
+P1 only & \ExpSevenCOnePOneOnlyERPMin & \ExpSevenCTwoPOneOnlyERPMin & \ExpSevenCThreePOneOnlyERPMin & \ExpSevenCFourPOneOnlyERPMin & \ExpSevenCFivePOneOnlyERPMin \\
+P1 only (prot.) & \ExpSevenCOnePOneOnlyProtectERPMin & \ExpSevenCTwoPOneOnlyProtectERPMin & \ExpSevenCThreePOneOnlyProtectERPMin & \ExpSevenCFourPOneOnlyProtectERPMin & \ExpSevenCFivePOneOnlyProtectERPMin \\
+P1+P2 & \ExpSevenCOnePOneTwoERPMin & \ExpSevenCTwoPOneTwoERPMin & \ExpSevenCThreePOneTwoERPMin & \ExpSevenCFourPOneTwoERPMin & \ExpSevenCFivePOneTwoERPMin \\
+P1+P2 (prot.) & \ExpSevenCOnePOneTwoProtectERPMin & \ExpSevenCTwoPOneTwoProtectERPMin & \ExpSevenCThreePOneTwoProtectERPMin & \ExpSevenCFourPOneTwoProtectERPMin & \ExpSevenCFivePOneTwoProtectERPMin \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize Base は $\beta$ を細かくした 121 点を含む. 出典: results/experiment\_7/.
+\end{table}

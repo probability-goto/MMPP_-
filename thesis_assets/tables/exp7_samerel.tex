@@ -1,0 +1,23 @@
+% scripts/make_thesis_numbers.py で生成 (手で編集しない)
+\begin{table}[tbp]
+\centering
+\caption{実験 7: ERP 最小値の相対差 (対 Base) と, 同じ信頼性 ($P \le P_{\mathrm{ref}}$) での改善}
+\label{tab:exp7-samerel}
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+系列 & \multicolumn{2}{c}{C1} & \multicolumn{2}{c}{C2} & \multicolumn{2}{c}{C3} & \multicolumn{2}{c}{C4} & \multicolumn{2}{c}{C5} \\
+ & ERP 差 & 改善 & ERP 差 & 改善 & ERP 差 & 改善 & ERP 差 & 改善 & ERP 差 & 改善 \\
+\midrule
+NoCancel & \ExpSevenCOneNoCancelERPRel & \ExpSevenCOneNoCancelSameRelImprovement & \ExpSevenCTwoNoCancelERPRel & \ExpSevenCTwoNoCancelSameRelImprovement & \ExpSevenCThreeNoCancelERPRel & \ExpSevenCThreeNoCancelSameRelImprovement & \ExpSevenCFourNoCancelERPRel & \ExpSevenCFourNoCancelSameRelImprovement & \ExpSevenCFiveNoCancelERPRel & \ExpSevenCFiveNoCancelSameRelImprovement \\
+P2 only & \ExpSevenCOnePTwoOnlyERPRel & \ExpSevenCOnePTwoOnlySameRelImprovement & \ExpSevenCTwoPTwoOnlyERPRel & \ExpSevenCTwoPTwoOnlySameRelImprovement & \ExpSevenCThreePTwoOnlyERPRel & \ExpSevenCThreePTwoOnlySameRelImprovement & \ExpSevenCFourPTwoOnlyERPRel & \ExpSevenCFourPTwoOnlySameRelImprovement & \ExpSevenCFivePTwoOnlyERPRel & \ExpSevenCFivePTwoOnlySameRelImprovement \\
+P1 only & \ExpSevenCOnePOneOnlyERPRel & \ExpSevenCOnePOneOnlySameRelImprovement & \ExpSevenCTwoPOneOnlyERPRel & \ExpSevenCTwoPOneOnlySameRelImprovement & \ExpSevenCThreePOneOnlyERPRel & \ExpSevenCThreePOneOnlySameRelImprovement & \ExpSevenCFourPOneOnlyERPRel & \ExpSevenCFourPOneOnlySameRelImprovement & \ExpSevenCFivePOneOnlyERPRel & \ExpSevenCFivePOneOnlySameRelImprovement \\
+P1 only (prot.) & \ExpSevenCOnePOneOnlyProtectERPRel & \ExpSevenCOnePOneOnlyProtectSameRelImprovement & \ExpSevenCTwoPOneOnlyProtectERPRel & \ExpSevenCTwoPOneOnlyProtectSameRelImprovement & \ExpSevenCThreePOneOnlyProtectERPRel & \ExpSevenCThreePOneOnlyProtectSameRelImprovement & \ExpSevenCFourPOneOnlyProtectERPRel & \ExpSevenCFourPOneOnlyProtectSameRelImprovement & \ExpSevenCFivePOneOnlyProtectERPRel & \ExpSevenCFivePOneOnlyProtectSameRelImprovement \\
+P1+P2 & \ExpSevenCOnePOneTwoERPRel & \ExpSevenCOnePOneTwoSameRelImprovement & \ExpSevenCTwoPOneTwoERPRel & \ExpSevenCTwoPOneTwoSameRelImprovement & \ExpSevenCThreePOneTwoERPRel & \ExpSevenCThreePOneTwoSameRelImprovement & \ExpSevenCFourPOneTwoERPRel & \ExpSevenCFourPOneTwoSameRelImprovement & \ExpSevenCFivePOneTwoERPRel & \ExpSevenCFivePOneTwoSameRelImprovement \\
+P1+P2 (prot.) & \ExpSevenCOnePOneTwoProtectERPRel & \ExpSevenCOnePOneTwoProtectSameRelImprovement & \ExpSevenCTwoPOneTwoProtectERPRel & \ExpSevenCTwoPOneTwoProtectSameRelImprovement & \ExpSevenCThreePOneTwoProtectERPRel & \ExpSevenCThreePOneTwoProtectSameRelImprovement & \ExpSevenCFourPOneTwoProtectERPRel & \ExpSevenCFourPOneTwoProtectSameRelImprovement & \ExpSevenCFivePOneTwoProtectERPRel & \ExpSevenCFivePOneTwoProtectSameRelImprovement \\
+\bottomrule
+\end{tabular}}
+\par\smallskip
+\footnotesize ERP 差 = ERP 最小値の相対差 (負が良い). 改善 = $P \le P_{\mathrm{ref}}$ の中の ERP 最小値の$-$(相対差) (正が良い). 出典: results/experiment\_7/blocking\_reassessment.md.
+\end{table}

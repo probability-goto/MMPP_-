@@ -1,0 +1,19 @@
+% scripts/make_thesis_numbers.py で生成 (手で編集しない)
+\begin{table}[tbp]
+\centering
+\caption{実験 9 パート B: Base の $\beta^*$ のまま規則を ON にした場合の区分 (35 マス)}
+\label{tab:exp9-partb}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+設定 & 改善 & 同等 & 棄却のみ改善 & 引き換え & 悪化 \\
+\midrule
+P1 only (protect) $n_{\mathrm{target}}$=10 & \ExpNinePOneNTenImprovedCount & \ExpNinePOneNTenEqualCount & \ExpNinePOneNTenBlockingOnlyCount & \ExpNinePOneNTenTradeOffCount & \ExpNinePOneNTenWorseCount \\
+P1 only (protect) $n_{\mathrm{target}}$=20 & \ExpNinePOneNTwentyImprovedCount & \ExpNinePOneNTwentyEqualCount & \ExpNinePOneNTwentyBlockingOnlyCount & \ExpNinePOneNTwentyTradeOffCount & \ExpNinePOneNTwentyWorseCount \\
+P2 only $\gamma$=3 & \ExpNinePTwoGammaThreeImprovedCount & \ExpNinePTwoGammaThreeEqualCount & \ExpNinePTwoGammaThreeBlockingOnlyCount & \ExpNinePTwoGammaThreeTradeOffCount & \ExpNinePTwoGammaThreeWorseCount \\
+P2 only $\gamma$=10 & \ExpNinePTwoGammaTenImprovedCount & \ExpNinePTwoGammaTenEqualCount & \ExpNinePTwoGammaTenBlockingOnlyCount & \ExpNinePTwoGammaTenTradeOffCount & \ExpNinePTwoGammaTenWorseCount \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize $|\Delta\mathrm{ERP}| \le 0.1\%$, $P$ の比 0.95〜1.05 を同等とする. 出典: results/experiment\_9/experiment\_9\_B.csv.
+\end{table}

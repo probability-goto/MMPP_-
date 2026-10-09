@@ -1,0 +1,27 @@
+% scripts/make_thesis_numbers.py で生成 (手で編集しない)
+\begin{table}[tbp]
+\centering
+\caption{実験 8 地図 A ($\alpha=0.1$): ERP 最小値の相対差 [\%] (対 Base)}
+\label{tab:exp8-mapa}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+ & $r_1=0.1$ & $r_1=0.562$ & $r_1=3.16$ & $r_1=17.8$ & $r_1=100$ \\
+\midrule
+\multicolumn{6}{l}{\textit{P2 only}} \\
+$\rho_B=0.6$ & $+0.08$ & $+0.19$ & $+0.31$ & $-0.46$ & $-0.06$ \\
+$\rho_B=0.8$ & $+0.08$ & $+0.05$ & $-0.01$ & $-2.08$ & $-1.54$ \\
+$\rho_B=1.12$ & $+0.06$ & $+0.02$ & $-0.17$ & $-0.08$ & $-0.01$ \\
+\multicolumn{6}{l}{\textit{P1 only (protect)}} \\
+$\rho_B=0.6$ & $-0.09$ & $-0.00$ & $-1.24$ & $-2.55$ & $-1.37$ \\
+$\rho_B=0.8$ & $-0.28$ & $+0.02$ & $-0.02$ & $-2.81$ & $-1.64$ \\
+$\rho_B=1.12$ & $-0.02$ & $-0.00$ & $-0.44$ & $-0.07$ & $-0.06$ \\
+\multicolumn{6}{l}{\textit{P1+P2 (protect)}} \\
+$\rho_B=0.6$ & $+0.03$ & $+0.17$ & $+0.18$ & $-0.72$ & $-0.12$ \\
+$\rho_B=0.8$ & $+0.08$ & $+0.05$ & $-0.21$ & $-2.76$ & $-1.67$ \\
+$\rho_B=1.12$ & $+0.03$ & $+0.01$ & $-0.46$ & $-0.14$ & $-0.03$ \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize 負が改善. 出典: results/experiment\_8/experiment\_8\_<行>.csv.
+\end{table}

@@ -1,0 +1,863 @@
+% 論文で引用する数値. scripts/make_thesis_numbers.py で生成 (手で編集しない).
+
+% 出典: results_gth/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
+% 実験 0 (ベースモデル) で DES と照合した ρ の点の数
+\newcommand{\ExpZeroBasePoints}{10}
+
+% 出典: results_gth/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
+% 照合した指標の数 (P_block, E[N], E[W], λ_eff, ρ_server, Cost)
+\newcommand{\ExpZeroMetrics}{6}
+
+% 出典: results_gth/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
+% 理論値が DES の 95% 信頼区間に入った (点, 指標) の組の数 (全点・全指標が CI 内)
+\newcommand{\ExpZeroBaseInCI}{60}
+
+% 出典: results/protect_des/protect_des.csv (policy=both)
+% 6 指標の理論値が DES の 95% 信頼区間に入った組の数 (n_in_ci_6 の和)
+\newcommand{\ExpZeroProtectBothInCI}{29}
+
+% 出典: results/protect_des/protect_des.csv (policy=both)
+% 照合した組の総数 (ρ の点の数 × 6 指標)
+\newcommand{\ExpZeroProtectBothTotal}{30}
+
+% 出典: results/protect_des/protect_des.csv (policy=nocancel)
+% 6 指標の理論値が DES の 95% 信頼区間に入った組の数 (n_in_ci_6 の和)
+\newcommand{\ExpZeroProtectNoCancelInCI}{28}
+
+% 出典: results/protect_des/protect_des.csv (policy=nocancel)
+% 照合した組の総数 (ρ の点の数 × 6 指標)
+\newcommand{\ExpZeroProtectNoCancelTotal}{30}
+
+% 出典: results/protect_des/protect_des.csv
+% DES でブロックが 1 回も観測されず (CI が [0, 0]) CI 外と判定された P_block の数
+\newcommand{\ExpZeroProtectUnobservable}{1}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 Base の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCOneBaseERPMin}{6.2151}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 NoCancel の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCOneNoCancelERPMin}{6.2519}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 NoCancel の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCOneNoCancelERPRel}{$+0.59$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 NoCancel の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCOneNoCancelSameRelImprovement}{$-0.60$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P2 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCOnePTwoOnlyERPMin}{6.2085}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P2 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCOnePTwoOnlyERPRel}{$-0.11$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P2 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCOnePTwoOnlySameRelImprovement}{$-0.01$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCOnePOneOnlyERPMin}{6.2066}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCOnePOneOnlyERPRel}{$-0.14$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCOnePOneOnlySameRelImprovement}{$+0.14$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1 only (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCOnePOneOnlyProtectERPMin}{6.1432}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1 only (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCOnePOneOnlyProtectERPRel}{$-1.16$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1 only (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCOnePOneOnlyProtectSameRelImprovement}{$+0.11$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1+P2 の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCOnePOneTwoERPMin}{6.1936}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1+P2 の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCOnePOneTwoERPRel}{$-0.35$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1+P2 の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCOnePOneTwoSameRelImprovement}{$+0.08$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1+P2 (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCOnePOneTwoProtectERPMin}{6.1409}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1+P2 (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCOnePOneTwoProtectERPRel}{$-1.19$\%}
+
+% 出典: results/experiment_7/experiment_7_C1.csv と experiment_7_refine_C1.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C1, 系列 P1+P2 (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCOnePOneTwoProtectSameRelImprovement}{$+0.81$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 Base の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCTwoBaseERPMin}{9.5494}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 NoCancel の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCTwoNoCancelERPMin}{9.7522}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 NoCancel の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCTwoNoCancelERPRel}{$+2.12$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 NoCancel の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCTwoNoCancelSameRelImprovement}{$-2.12$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P2 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCTwoPTwoOnlyERPMin}{9.5384}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P2 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCTwoPTwoOnlyERPRel}{$-0.11$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P2 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCTwoPTwoOnlySameRelImprovement}{$+0.10$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCTwoPOneOnlyERPMin}{9.5414}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCTwoPOneOnlyERPRel}{$-0.08$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCTwoPOneOnlySameRelImprovement}{$+0.08$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1 only (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCTwoPOneOnlyProtectERPMin}{9.5193}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1 only (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCTwoPOneOnlyProtectERPRel}{$-0.32$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1 only (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCTwoPOneOnlyProtectSameRelImprovement}{$+0.32$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1+P2 の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCTwoPOneTwoERPMin}{9.5293}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1+P2 の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCTwoPOneTwoERPRel}{$-0.21$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1+P2 の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCTwoPOneTwoSameRelImprovement}{$+0.21$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1+P2 (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCTwoPOneTwoProtectERPMin}{9.5187}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1+P2 (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCTwoPOneTwoProtectERPRel}{$-0.32$\%}
+
+% 出典: results/experiment_7/experiment_7_C2.csv と experiment_7_refine_C2.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C2, 系列 P1+P2 (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCTwoPOneTwoProtectSameRelImprovement}{$+0.32$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 Base の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCThreeBaseERPMin}{5.6791}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 NoCancel の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCThreeNoCancelERPMin}{6.1654}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 NoCancel の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCThreeNoCancelERPRel}{$+8.56$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 NoCancel の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCThreeNoCancelSameRelImprovement}{$-8.56$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P2 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCThreePTwoOnlyERPMin}{5.6800}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P2 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCThreePTwoOnlyERPRel}{$+0.02$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P2 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCThreePTwoOnlySameRelImprovement}{$-1.21$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCThreePOneOnlyERPMin}{5.6795}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCThreePOneOnlyERPRel}{$+0.01$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCThreePOneOnlySameRelImprovement}{$-0.90$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1 only (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCThreePOneOnlyProtectERPMin}{5.6632}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1 only (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCThreePOneOnlyProtectERPRel}{$-0.28$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1 only (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCThreePOneOnlyProtectSameRelImprovement}{$+0.28$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1+P2 の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCThreePOneTwoERPMin}{5.6789}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1+P2 の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCThreePOneTwoERPRel}{$-0.00$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1+P2 の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCThreePOneTwoSameRelImprovement}{$-1.21$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1+P2 (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCThreePOneTwoProtectERPMin}{5.6736}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1+P2 (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCThreePOneTwoProtectERPRel}{$-0.10$\%}
+
+% 出典: results/experiment_7/experiment_7_C3.csv と experiment_7_refine_C3.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C3, 系列 P1+P2 (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCThreePOneTwoProtectSameRelImprovement}{$+0.10$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 Base の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFourBaseERPMin}{6.2891}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 NoCancel の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFourNoCancelERPMin}{6.3099}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 NoCancel の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFourNoCancelERPRel}{$+0.33$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 NoCancel の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFourNoCancelSameRelImprovement}{$-0.33$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P2 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFourPTwoOnlyERPMin}{6.2826}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P2 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFourPTwoOnlyERPRel}{$-0.10$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P2 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFourPTwoOnlySameRelImprovement}{$+0.07$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFourPOneOnlyERPMin}{6.2938}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFourPOneOnlyERPRel}{$+0.07$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFourPOneOnlySameRelImprovement}{$-0.07$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1 only (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFourPOneOnlyProtectERPMin}{6.2757}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1 only (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFourPOneOnlyProtectERPRel}{$-0.21$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1 only (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFourPOneOnlyProtectSameRelImprovement}{$-0.08$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1+P2 の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFourPOneTwoERPMin}{6.2822}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1+P2 の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFourPOneTwoERPRel}{$-0.11$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1+P2 の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFourPOneTwoSameRelImprovement}{$+0.07$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1+P2 (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFourPOneTwoProtectERPMin}{6.2749}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1+P2 (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFourPOneTwoProtectERPRel}{$-0.23$\%}
+
+% 出典: results/experiment_7/experiment_7_C4.csv と experiment_7_refine_C4.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C4, 系列 P1+P2 (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFourPOneTwoProtectSameRelImprovement}{$+0.07$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 Base の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFiveBaseERPMin}{4.3070}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 NoCancel の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFiveNoCancelERPMin}{4.3498}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 NoCancel の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFiveNoCancelERPRel}{$+0.99$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 NoCancel の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFiveNoCancelSameRelImprovement}{$-0.99$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P2 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFivePTwoOnlyERPMin}{4.2843}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P2 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFivePTwoOnlyERPRel}{$-0.53$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P2 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFivePTwoOnlySameRelImprovement}{$+0.53$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1 only の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFivePOneOnlyERPMin}{4.3069}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1 only の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFivePOneOnlyERPRel}{$-0.00$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1 only の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFivePOneOnlySameRelImprovement}{$+0.00$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1 only (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFivePOneOnlyProtectERPMin}{4.3050}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1 only (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFivePOneOnlyProtectERPRel}{$-0.05$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1 only (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFivePOneOnlyProtectSameRelImprovement}{$+0.05$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1+P2 の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFivePOneTwoERPMin}{4.2836}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1+P2 の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFivePOneTwoERPRel}{$-0.54$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1+P2 の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFivePOneTwoSameRelImprovement}{$+0.54$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1+P2 (protect) の ERP 最小値 (Base は β を細かくした 121 点を含む)
+\newcommand{\ExpSevenCFivePOneTwoProtectERPMin}{4.2833}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1+P2 (protect) の ERP 最小値の, Base の ERP 最小値に対する相対差
+\newcommand{\ExpSevenCFivePOneTwoProtectERPRel}{$-0.55$\%}
+
+% 出典: results/experiment_7/experiment_7_C5.csv と experiment_7_refine_C5.csv (scripts/blocking_reassessment.py の load_exp7 と assess)
+% 条件 C5, 系列 P1+P2 (protect) の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を
+% 満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+\newcommand{\ExpSevenCFivePOneTwoProtectSameRelImprovement}{$+0.55$\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 3 系列のいずれかで改善 (−ERP の相対差, 対 β を細かくした Base) が 0.5% を超えるマスの数
+\newcommand{\ExpEightCoreCellCount}{13}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 地図 A・B の重複のないマスの数
+\newcommand{\ExpEightCellCount}{35}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 改善が 0.5% を超えるマスでの, 3 系列のうち最良の改善の最小値
+\newcommand{\ExpEightCoreImprovementMin}{0.51\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 改善が 0.5% を超えるマスでの, 3 系列のうち最良の改善の最大値
+\newcommand{\ExpEightCoreImprovementMax}{3.79\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 全マス・全系列で改善 (−ERP の相対差) の最大値
+\newcommand{\ExpEightMaxImprovement}{3.79\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 改善が最大の系列
+\newcommand{\ExpEightMaxImprovementSeries}{P1 only (protect)}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 改善が最大のマス
+\newcommand{\ExpEightMaxImprovementCell}{$\alpha=1$, $r_1=3.16$}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P2 only の改善の最大値
+\newcommand{\ExpEightPTwoOnlyMaxImprovement}{2.69\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P2 only の改善が最大のマス
+\newcommand{\ExpEightPTwoOnlyMaxImprovementCell}{$\alpha=0.005$, $r_1=17.8$}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P2 only の改善が 0.5% を超えるマスの数
+\newcommand{\ExpEightPTwoOnlyCoreCellCount}{7}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P1 only (protect) の改善の最大値
+\newcommand{\ExpEightPOneOnlyProtectMaxImprovement}{3.79\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P1 only (protect) の改善が最大のマス
+\newcommand{\ExpEightPOneOnlyProtectMaxImprovementCell}{$\alpha=1$, $r_1=3.16$}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P1 only (protect) の改善が 0.5% を超えるマスの数
+\newcommand{\ExpEightPOneOnlyProtectCoreCellCount}{12}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P1+P2 (protect) の改善の最大値
+\newcommand{\ExpEightPOneTwoProtectMaxImprovement}{2.83\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P1+P2 (protect) の改善が最大のマス
+\newcommand{\ExpEightPOneTwoProtectMaxImprovementCell}{$\alpha=0.005$, $r_1=17.8$}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 系列 P1+P2 (protect) の改善が 0.5% を超えるマスの数
+\newcommand{\ExpEightPOneTwoProtectCoreCellCount}{10}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% r1=0.1 の列の 7 マス × 3 系列での改善の最大値
+\newcommand{\ExpEightROneMinMaxImprovement}{0.40\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% R = β*(P1 only (protect)) / β*(Base) と P1 only (protect) の改善の相関 (results/experiment_8/mechanism.md の手順 1 と同じ)
+% 全マス, Pearson
+\newcommand{\ExpEightRPearsonAll}{+0.785}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% R = β*(P1 only (protect)) / β*(Base) と P1 only (protect) の改善の相関 (results/experiment_8/mechanism.md の手順 1 と同じ)
+% 全マス, Spearman
+\newcommand{\ExpEightRSpearmanAll}{+0.644}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% R = β*(P1 only (protect)) / β*(Base) と P1 only (protect) の改善の相関 (results/experiment_8/mechanism.md の手順 1 と同じ)
+% 改善が 0.5% を超えるマス, Pearson
+\newcommand{\ExpEightRPearsonCore}{+0.666}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% R = β*(P1 only (protect)) / β*(Base) と P1 only (protect) の改善の相関 (results/experiment_8/mechanism.md の手順 1 と同じ)
+% 改善が 0.5% を超えるマス, Spearman
+\newcommand{\ExpEightRSpearmanCore}{+0.458}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% R = β*(P1 only (protect)) / β*(Base) と P1 only (protect) の改善の相関 (results/experiment_8/mechanism.md の手順 1 と同じ)
+% 改善が 0.5% を超えるマスの数 (P1 only (protect))
+\newcommand{\ExpEightRCoreCount}{12}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% R = β*(P1 only (protect)) / β*(Base) と P1 only (protect) の改善の相関 (results/experiment_8/mechanism.md の手順 1 と同じ)
+% 改善が 0.5% を超えるマスのうち R > 1 のマスの数
+\newcommand{\ExpEightRAboveOneCore}{11}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% P1 only (protect) の ERP 最小点の p1_fire_rate と 1/(1+1/r1) の Pearson の相関係数
+\newcommand{\ExpEightFirePearsonRaw}{-0.200}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 位相 0→1 の遷移 1 回あたりの発動確率 p1_fire_rate/(σϖ₀) と 1/(1+1/r1) の相関
+\newcommand{\ExpEightFirePearsonPerOnset}{+0.821}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 地図 B, r1=17.8 での log10 α と P1 only (protect) の改善の Spearman の順位相関
+\newcommand{\ExpEightAlphaSpearmanROneSeventeen}{-1.00}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/experiment_8_map.py の summaries)
+% 地図 B, r1=100 での log10 α と P1 only (protect) の改善の Spearman の順位相関
+\newcommand{\ExpEightAlphaSpearmanROneHundred}{-1.00}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/blocking_reassessment.py の assess)
+% 同じ信頼性 (P ≤ P_ref) の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+% 系列 P2 only の最大値
+\newcommand{\ExpEightPTwoOnlySameRelMaxImprovement}{2.22\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/blocking_reassessment.py の assess)
+% 同じ信頼性 (P ≤ P_ref) の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+% 系列 P2 only で 0.1% を超えて改善するマスの数
+\newcommand{\ExpEightPTwoOnlySameRelImprovedCells}{14}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/blocking_reassessment.py の assess)
+% 同じ信頼性 (P ≤ P_ref) の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+% 系列 P1 only (protect) の最大値
+\newcommand{\ExpEightPOneOnlyProtectSameRelMaxImprovement}{3.79\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/blocking_reassessment.py の assess)
+% 同じ信頼性 (P ≤ P_ref) の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+% 系列 P1 only (protect) で 0.1% を超えて改善するマスの数
+\newcommand{\ExpEightPOneOnlyProtectSameRelImprovedCells}{16}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/blocking_reassessment.py の assess)
+% 同じ信頼性 (P ≤ P_ref) の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+% 系列 P1+P2 (protect) の最大値
+\newcommand{\ExpEightPOneTwoProtectSameRelMaxImprovement}{2.76\%}
+
+% 出典: results/experiment_8/experiment_8_<行>.csv (scripts/blocking_reassessment.py の assess)
+% 同じ信頼性 (P ≤ P_ref) の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)
+% 系列 P1+P2 (protect) で 0.1% を超えて改善するマスの数
+\newcommand{\ExpEightPOneTwoProtectSameRelImprovedCells}{19}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=10 で区分「改善」のマスの数
+\newcommand{\ExpNinePOneNTenImprovedCount}{7}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=10 で区分「同等」のマスの数
+\newcommand{\ExpNinePOneNTenEqualCount}{21}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=10 で区分「棄却のみ改善」のマスの数
+\newcommand{\ExpNinePOneNTenBlockingOnlyCount}{3}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=10 で区分「引き換え」のマスの数
+\newcommand{\ExpNinePOneNTenTradeOffCount}{0}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=10 で区分「悪化」のマスの数
+\newcommand{\ExpNinePOneNTenWorseCount}{4}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=10 の, 区分「改善」の中で ERP が最も下がるマスの −(ERP の相対差)
+\newcommand{\ExpNinePOneNTenMaxImprovement}{1.04\%}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePOneNTenMaxImprovementCell}{$\alpha=1$, $r_1=3.16$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=10 の, 区分「悪化」「引き換え」の中で ERP の相対差の最大値
+\newcommand{\ExpNinePOneNTenMaxWorseERP}{$+2.32$\%}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePOneNTenMaxWorseERPCell}{$\alpha=10$, $r_1=0.1$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=10 の, 区分「悪化」「引き換え」の中で P の比 (対同じ β* の Base) の最大値
+\newcommand{\ExpNinePOneNTenMaxPRatio}{0.977}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePOneNTenMaxPRatioCell}{$\alpha=10$, $r_1=17.8$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=20 で区分「改善」のマスの数
+\newcommand{\ExpNinePOneNTwentyImprovedCount}{9}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=20 で区分「同等」のマスの数
+\newcommand{\ExpNinePOneNTwentyEqualCount}{3}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=20 で区分「棄却のみ改善」のマスの数
+\newcommand{\ExpNinePOneNTwentyBlockingOnlyCount}{0}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=20 で区分「引き換え」のマスの数
+\newcommand{\ExpNinePOneNTwentyTradeOffCount}{23}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=20 で区分「悪化」のマスの数
+\newcommand{\ExpNinePOneNTwentyWorseCount}{0}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=20 の, 区分「改善」の中で ERP が最も下がるマスの −(ERP の相対差)
+\newcommand{\ExpNinePOneNTwentyMaxImprovement}{2.32\%}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePOneNTwentyMaxImprovementCell}{$\rho_B=0.8$, $r_1=17.8$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=20 の, 区分「悪化」「引き換え」の中で ERP の相対差の最大値
+\newcommand{\ExpNinePOneNTwentyMaxWorseERP}{$+53.93$\%}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePOneNTwentyMaxWorseERPCell}{$\alpha=10$, $r_1=0.1$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P1 only (protect) n_target=20 の, 区分「悪化」「引き換え」の中で P の比 (対同じ β* の Base) の最大値
+\newcommand{\ExpNinePOneNTwentyMaxPRatio}{0.794}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePOneNTwentyMaxPRatioCell}{$\alpha=10$, $r_1=100$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=3 で区分「改善」のマスの数
+\newcommand{\ExpNinePTwoGammaThreeImprovedCount}{3}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=3 で区分「同等」のマスの数
+\newcommand{\ExpNinePTwoGammaThreeEqualCount}{3}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=3 で区分「棄却のみ改善」のマスの数
+\newcommand{\ExpNinePTwoGammaThreeBlockingOnlyCount}{0}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=3 で区分「引き換え」のマスの数
+\newcommand{\ExpNinePTwoGammaThreeTradeOffCount}{6}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=3 で区分「悪化」のマスの数
+\newcommand{\ExpNinePTwoGammaThreeWorseCount}{23}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=3 の, 区分「改善」の中で ERP が最も下がるマスの −(ERP の相対差)
+\newcommand{\ExpNinePTwoGammaThreeMaxImprovement}{0.18\%}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePTwoGammaThreeMaxImprovementCell}{$\alpha=10$, $r_1=17.8$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=3 の, 区分「悪化」「引き換え」の中で ERP の相対差の最大値
+\newcommand{\ExpNinePTwoGammaThreeMaxWorseERP}{$+2.71$\%}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePTwoGammaThreeMaxWorseERPCell}{$\rho_B=0.6$, $r_1=0.562$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=3 の, 区分「悪化」「引き換え」の中で P の比 (対同じ β* の Base) の最大値
+\newcommand{\ExpNinePTwoGammaThreeMaxPRatio}{11.528}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePTwoGammaThreeMaxPRatioCell}{$\rho_B=0.6$, $r_1=0.562$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=10 で区分「改善」のマスの数
+\newcommand{\ExpNinePTwoGammaTenImprovedCount}{2}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=10 で区分「同等」のマスの数
+\newcommand{\ExpNinePTwoGammaTenEqualCount}{2}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=10 で区分「棄却のみ改善」のマスの数
+\newcommand{\ExpNinePTwoGammaTenBlockingOnlyCount}{0}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=10 で区分「引き換え」のマスの数
+\newcommand{\ExpNinePTwoGammaTenTradeOffCount}{0}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=10 で区分「悪化」のマスの数
+\newcommand{\ExpNinePTwoGammaTenWorseCount}{31}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=10 の, 区分「改善」の中で ERP が最も下がるマスの −(ERP の相対差)
+\newcommand{\ExpNinePTwoGammaTenMaxImprovement}{0.21\%}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePTwoGammaTenMaxImprovementCell}{$\alpha=10$, $r_1=17.8$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=10 の, 区分「悪化」「引き換え」の中で ERP の相対差の最大値
+\newcommand{\ExpNinePTwoGammaTenMaxWorseERP}{$+17.11$\%}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePTwoGammaTenMaxWorseERPCell}{$\rho_B=0.6$, $r_1=0.562$}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 設定 P2 only γ=10 の, 区分「悪化」「引き換え」の中で P の比 (対同じ β* の Base) の最大値
+\newcommand{\ExpNinePTwoGammaTenMaxPRatio}{129.275}
+
+% 出典: results/experiment_9/experiment_9_B.csv (しきい値付きの 5 区分: scripts/experiment_9_sensitivity.py の category5;
+% |ERP の差| ≤ 0.1%, P の比 0.95〜1.05 を同等. 比較の相手は同じ β* の Base)
+% 上のマス
+\newcommand{\ExpNinePTwoGammaTenMaxPRatioCell}{$\rho_B=0.6$, $r_1=0.562$}
+
+% 出典: results/experiment_9/experiment_9_A.csv
+% 基準点の β を 2 倍にしたとき P の比 (対 P_ref) が 1.05 を超える組の数
+\newcommand{\ExpNineBetaTwoOverCount}{8}
+
+% 出典: results/experiment_9/experiment_9_A.csv
+% 基準点の組の数
+\newcommand{\ExpNineBetaTwoTotal}{12}
+
+% 出典: results/experiment_9/experiment_9_A.csv
+% 上の組の P の比の最大値
+\newcommand{\ExpNineBetaTwoMaxPRatio}{2.951}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% ベースモデル標準設定の状態数 N
+\newcommand{\BenchBaseN}{8{,}442}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% ベースモデル標準設定の下帯幅 p
+\newcommand{\BenchBaseP}{210}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% ベースモデル標準設定の上帯幅 q
+\newcommand{\BenchBaseQ}{42}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% ベースモデル標準設定の GTH の計算時間 [ms]
+\newcommand{\BenchBaseGTHms}{102.5}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% Predictive 標準設定の名目の状態数
+\newcommand{\BenchPredNominalN}{92{,}862}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% Predictive 標準設定の到達可能状態に縮約した後の状態数
+\newcommand{\BenchPredReducedN}{12{,}292}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% Predictive 標準設定の縮約後の下帯幅 p
+\newcommand{\BenchPredP}{760}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% Predictive 標準設定の縮約後の上帯幅 q
+\newcommand{\BenchPredQ}{152}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% Predictive 標準設定の GTH の計算時間 [s]
+\newcommand{\BenchPredGTHs}{0.97}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% Predictive K=1000 の縮約後の状態数
+\newcommand{\BenchPredKThousandReducedN}{45{,}892}
+
+% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% Predictive K=1000 の GTH の計算時間 [s]
+\newcommand{\BenchPredKThousandGTHs}{2.33}
