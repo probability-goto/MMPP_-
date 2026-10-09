@@ -1,0 +1,38 @@
+2026-10-09T05:56:14 done=10/324 elapsed=19.1s eta=600.3s last=[A] B_alpha1,r1=3.16,P1 only (protect),n_target=18
+2026-10-09T05:56:45 done=20/324 elapsed=50.4s eta=766.2s last=[A] B_alpha1,r1=3.16,P1 only (protect),gamma=1000.0
+2026-10-09T05:57:07 done=30/324 elapsed=71.5s eta=700.3s last=[A] B_alpha1,r1=3.16,P1+P2 (protect),n_target=4
+2026-10-09T05:57:33 done=40/324 elapsed=98.0s eta=696.1s last=[A] B_alpha1,r1=3.16,P1+P2 (protect),gamma=2.0
+2026-10-09T05:57:47 done=50/324 elapsed=111.5s eta=611.0s last=[A] B_alpha1,r1=3.16,P1+P2 (protect),beta_mult=0.5
+2026-10-09T05:57:59 done=60/324 elapsed=123.8s eta=544.8s last=[A] A_rhoB0.8,r1=17.8,P1 only (protect),n_target=10
+2026-10-09T05:58:59 done=70/324 elapsed=183.9s eta=667.1s last=[A] A_rhoB0.8,r1=17.8,P1 only (protect),gamma=10.0
+2026-10-09T06:00:04 done=78/324 elapsed=249.2s eta=786.1s last=[A] A_rhoB0.8,r1=17.8,P1 only (protect),beta_mult=1.0
+2026-10-09T06:00:21 done=80/324 elapsed=265.6s eta=810.1s last=[A] A_rhoB0.8,r1=17.8,P1 only (protect),beta_mult=3.0
+2026-10-09T06:00:42 done=90/324 elapsed=287.4s eta=747.3s last=[A] A_rhoB0.8,r1=17.8,P1+P2 (protect),n_target=16
+2026-10-09T06:01:44 done=98/324 elapsed=348.6s eta=803.9s last=[A] A_rhoB0.8,r1=17.8,P1+P2 (protect),gamma=30.0
+2026-10-09T06:02:00 done=100/324 elapsed=365.1s eta=817.8s last=[A] A_rhoB0.8,r1=17.8,P1+P2 (protect),gamma=300.0
+2026-10-09T06:03:04 done=108/324 elapsed=429.3s eta=858.5s last=[A] A_rhoB0.8,r1=17.8,P1+P2 (protect),beta_mult=10.0
+2026-10-09T06:03:07 done=110/324 elapsed=431.5s eta=839.5s last=[A] B_alpha0.005,r1=17.8,P1 only (protect),n_target=2
+2026-10-09T06:03:39 done=120/324 elapsed=464.1s eta=788.9s last=[A] B_alpha0.005,r1=17.8,P1 only (protect),gamma=1.0
+2026-10-09T06:04:43 done=128/324 elapsed=528.2s eta=808.8s last=[A] B_alpha0.005,r1=17.8,P1 only (protect),gamma=1000.0
+2026-10-09T06:04:59 done=130/324 elapsed=544.2s eta=812.2s last=[A] B_alpha0.005,r1=17.8,P1 only (protect),beta_mult=0.3
+2026-10-09T06:05:45 done=140/324 elapsed=590.1s eta=775.5s last=[A] B_alpha0.005,r1=17.8,P1+P2 (protect),n_target=8
+2026-10-09T06:06:38 done=150/324 elapsed=643.2s eta=746.2s last=[A] B_alpha0.005,r1=17.8,P1+P2 (protect),gamma=5.0
+2026-10-09T06:07:42 done=158/324 elapsed=707.4s eta=743.3s last=[A] B_alpha0.005,r1=17.8,P1+P2 (protect),beta_mult=0.5
+2026-10-09T06:07:58 done=160/324 elapsed=723.3s eta=741.4s last=[A] B_alpha0.005,r1=17.8,P1+P2 (protect),beta_mult=2.0
+2026-10-09T06:08:25 done=170/324 elapsed=750.0s eta=679.4s last=[A] A_rhoB0.6,r1=3.16,P1 only (protect),n_target=14
+2026-10-09T06:09:00 done=180/324 elapsed=784.5s eta=627.6s last=[A] A_rhoB0.6,r1=3.16,P1 only (protect),gamma=100.0
+2026-10-09T06:09:24 done=190/324 elapsed=808.5s eta=570.2s last=[A] A_rhoB0.6,r1=3.16,P1+P2 (protect),n_target=0
+2026-10-09T06:09:49 done=200/324 elapsed=834.2s eta=517.2s last=[A] A_rhoB0.6,r1=3.16,P1+P2 (protect),n_target=20
+2026-10-09T06:10:03 done=210/324 elapsed=847.9s eta=460.3s last=[A] A_rhoB0.6,r1=3.16,P1+P2 (protect),beta_mult=0.1
+2026-10-09T06:10:15 done=220/324 elapsed=860.2s eta=406.6s last=[A] A_rhoB0.8,r1=0.1,P1 only (protect),n_target=6
+2026-10-09T06:10:45 done=230/324 elapsed=890.3s eta=363.9s last=[A] A_rhoB0.8,r1=0.1,P1 only (protect),gamma=3.0
+2026-10-09T06:11:11 done=240/324 elapsed=916.3s eta=320.7s last=[A] A_rhoB0.8,r1=0.1,P1 only (protect),beta_mult=1.0
+2026-10-09T06:11:27 done=250/324 elapsed=932.4s eta=276.0s last=[A] A_rhoB0.8,r1=0.1,P1+P2 (protect),n_target=12
+2026-10-09T06:11:54 done=260/324 elapsed=958.5s eta=235.9s last=[A] A_rhoB0.8,r1=0.1,P1+P2 (protect),gamma=30.0
+2026-10-09T06:12:07 done=270/324 elapsed=971.8s eta=194.4s last=[A] A_rhoB0.8,r1=0.1,P1+P2 (protect),beta_mult=10.0
+2026-10-09T06:12:26 done=280/324 elapsed=990.5s eta=155.7s last=[A] B_alpha10,r1=17.8,P1 only (protect),n_target=18
+2026-10-09T06:12:44 done=290/324 elapsed=1008.8s eta=118.3s last=[A] B_alpha10,r1=17.8,P1 only (protect),gamma=1000.0
+2026-10-09T06:12:55 done=300/324 elapsed=1019.8s eta=81.6s last=[A] B_alpha10,r1=17.8,P1+P2 (protect),n_target=4
+2026-10-09T06:13:21 done=310/324 elapsed=1045.6s eta=47.2s last=[A] B_alpha10,r1=17.8,P1+P2 (protect),gamma=2.0
+2026-10-09T06:13:32 done=320/324 elapsed=1057.0s eta=13.2s last=[A] B_alpha10,r1=17.8,P1+P2 (protect),beta_mult=0.5
+2026-10-09T06:13:36 done=324/324 elapsed=1061.4s eta=0.0s last=[A] B_alpha10,r1=17.8,P1+P2 (protect),beta_mult=10.0
