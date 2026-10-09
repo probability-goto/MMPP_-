@@ -268,7 +268,10 @@ def report_A(rows: List[dict], fig_dir: str = FIG_DIR) -> Tuple[List[str], List[
              "blocking_reassessment.md). ERP の相対差は Base の ERP 最小値に対するもの, P の比は "
              "P_ref (Base の ERP 最小点の P) に対するもの. 「Base より悪い」= ERP の相対差 > 0 または "
              "P の比 > 1. 各パラメータの範囲は, その格子の上で悪くなる値の区間 (β は基準点の β に"
-             "対する倍率).", ""]
+             "対する倍率). 「ERP のみ」は ERP の相対差 > 0 だけで, 「P のみ」は P の比 > 1 だけで判定した"
+             "範囲で, 両者は重なりうる. 「どちらか」はその和集合. 基準点は P ≤ P_ref の制約の下での最良点"
+             "なので, P の比は 1 に近いことが多く, β を大きくする (通常期に早く切る) と P が P_ref を超えやすい.",
+             ""]
     fmts = {"n_target": lambda v: f"{int(v)}", "gamma": lambda v: f"{v:g}",
             "beta_mult": lambda v: f"×{v:g}"}
     names = {"n_target": "n_target", "gamma": "γ", "beta_mult": "β"}
@@ -369,13 +372,19 @@ def report_B(rows: List[dict], fig_dir: str = FIG_DIR) -> Tuple[List[str], List[
             lines.append(f"- 最大の改善: {_cell_label(b['row'], b['r1'])} で ERP {100 * _f(b, 'rel_ERP'):+.2f}% "
                          f"(P {100 * _f(b, 'rel_P'):+.2f}%).")
         worst = max(cr, key=lambda r: _f(r, "rel_ERP"))
-        lines.append(f"- ERP の最大の悪化: {_cell_label(worst['row'], worst['r1'])} で ERP "
-                     f"{100 * _f(worst, 'rel_ERP'):+.2f}% (P {100 * _f(worst, 'rel_P'):+.2f}%, "
-                     f"区分 {worst['category']}).")
+        if _f(worst, "rel_ERP") > 0:
+            lines.append(f"- ERP の最大の悪化: {_cell_label(worst['row'], worst['r1'])} で ERP "
+                         f"{100 * _f(worst, 'rel_ERP'):+.2f}% (P {100 * _f(worst, 'rel_P'):+.2f}%, "
+                         f"区分 {worst['category']}).")
+        else:
+            lines.append("- ERP が上がるマスはない.")
         wp = max(cr, key=lambda r: _f(r, "rel_P"))
-        lines.append(f"- P の最大の悪化: {_cell_label(wp['row'], wp['r1'])} で P "
-                     f"{100 * _f(wp, 'rel_P'):+.2f}% (ERP {100 * _f(wp, 'rel_ERP'):+.2f}%, "
-                     f"区分 {wp['category']}).")
+        if _f(wp, "rel_P") > RTOL:
+            lines.append(f"- P の最大の悪化: {_cell_label(wp['row'], wp['r1'])} で P "
+                         f"{100 * _f(wp, 'rel_P'):+.2f}% (ERP {100 * _f(wp, 'rel_ERP'):+.2f}%, "
+                         f"区分 {wp['category']}).")
+        else:
+            lines.append(f"- P が上がるマスはない (P の相対差の最大 {100 * _f(wp, 'rel_P'):+.2f}%).")
         for c in ("改善", "引き換え", "悪化"):
             if cats[c]:
                 lines.append(f"- {c}: " + ", ".join(_cell_label(r["row"], r["r1"]) for r in
