@@ -1,0 +1,972 @@
+2026-10-08T21:44:07 done=10/8015 elapsed=5.6s eta=4501.3s last=A_rhoB0.6,r1=0.1,Check,check,beta=0.3162,n_target=0,gamma=1
+2026-10-08T21:44:18 done=20/8015 elapsed=16.7s eta=6677.4s last=A_rhoB0.6,r1=0.1,P2 only,coarse,beta=0.001,n_target=0,gamma=10
+2026-10-08T21:44:28 done=30/8015 elapsed=26.6s eta=7072.0s last=A_rhoB0.6,r1=0.1,P2 only,coarse,beta=0.004217,n_target=0,gamma=30
+2026-10-08T21:44:37 done=40/8015 elapsed=36.4s eta=7249.5s last=A_rhoB0.6,r1=0.1,P2 only,coarse,beta=0.01778,n_target=0,gamma=100
+2026-10-08T21:44:47 done=50/8015 elapsed=46.1s eta=7347.8s last=A_rhoB0.6,r1=0.1,P2 only,coarse,beta=0.07499,n_target=0,gamma=1000
+2026-10-08T21:44:57 done=60/8015 elapsed=55.9s eta=7413.6s last=A_rhoB0.6,r1=0.1,P1 only (protect),coarse,beta=0.3162,n_target=5,gamma=1
+2026-10-08T21:45:08 done=70/8015 elapsed=67.3s eta=7635.8s last=A_rhoB0.6,r1=0.1,P1 only (protect),coarse,beta=1.334,n_target=10,gamma=1
+2026-10-08T21:45:28 done=80/8015 elapsed=87.1s eta=8638.0s last=A_rhoB0.6,r1=0.1,P1 only (protect),coarse,beta=5.623,n_target=15,gamma=1
+2026-10-08T21:46:31 done=90/8015 elapsed=150.3s eta=13236.6s last=A_rhoB0.6,r1=0.1,P1 only (protect),coarse,beta=23.71,n_target=20,gamma=1
+2026-10-08T21:46:48 done=100/8015 elapsed=166.6s eta=13184.2s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=100,n_target=5,gamma=3
+2026-10-08T21:46:58 done=110/8015 elapsed=176.6s eta=12688.4s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=0.001,n_target=5,gamma=30
+2026-10-08T21:47:08 done=120/8015 elapsed=186.5s eta=12271.4s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=0.004217,n_target=5,gamma=100
+2026-10-08T21:47:18 done=130/8015 elapsed=197.1s eta=11955.0s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=0.01778,n_target=10,gamma=3
+2026-10-08T21:47:30 done=140/8015 elapsed=209.2s eta=11764.9s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=0.07499,n_target=10,gamma=10
+2026-10-08T21:47:42 done=150/8015 elapsed=221.2s eta=11600.8s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=0.3162,n_target=10,gamma=30
+2026-10-08T21:47:54 done=160/8015 elapsed=233.3s eta=11451.8s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=1.334,n_target=10,gamma=100
+2026-10-08T21:48:50 done=170/8015 elapsed=288.7s eta=13322.8s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=5.623,n_target=20,gamma=3
+2026-10-08T21:49:56 done=179/8015 elapsed=355.1s eta=15543.3s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=5.623,n_target=20,gamma=10
+2026-10-08T21:50:03 done=180/8015 elapsed=362.3s eta=15771.6s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=23.71,n_target=20,gamma=10
+2026-10-08T21:51:09 done=189/8015 elapsed=428.3s eta=17735.2s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=23.71,n_target=20,gamma=30
+2026-10-08T21:51:17 done=190/8015 elapsed=435.5s eta=17934.9s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=100,n_target=20,gamma=30
+2026-10-08T21:52:22 done=199/8015 elapsed=500.7s eta=19667.2s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),coarse,beta=100,n_target=20,gamma=100
+2026-10-08T21:52:22 done=200/8015 elapsed=501.1s eta=19582.0s last=A_rhoB0.6,r1=0.1,Base,fine,beta=0.001155,n_target=0,gamma=1
+2026-10-08T21:52:26 done=210/8015 elapsed=505.2s eta=18774.9s last=A_rhoB0.6,r1=0.1,Base,fine,beta=0.005623,n_target=0,gamma=1
+2026-10-08T21:52:32 done=220/8015 elapsed=511.2s eta=18111.6s last=A_rhoB0.6,r1=0.1,P2 only,fine,beta=0.002054,n_target=0,gamma=10
+2026-10-08T21:52:44 done=230/8015 elapsed=522.6s eta=17690.4s last=A_rhoB0.6,r1=0.1,P1+P2 (protect),fine,beta=0.00261,n_target=10,gamma=10
+2026-10-08T21:52:51 done=237/8015 elapsed=530.3s eta=17402.1s last=A_rhoB0.6,r1=0.1 マス完了
+2026-10-08T21:52:53 done=240/8015 elapsed=531.5s eta=17217.4s last=A_rhoB0.6,r1=0.5623,Base,coarse,beta=0.003162,n_target=0,gamma=1
+2026-10-08T21:53:00 done=250/8015 elapsed=538.5s eta=16727.4s last=A_rhoB0.6,r1=0.5623,P2 only,coarse,beta=0.003162,n_target=0,gamma=3
+2026-10-08T21:53:09 done=260/8015 elapsed=548.4s eta=16357.0s last=A_rhoB0.6,r1=0.5623,P2 only,coarse,beta=0.01334,n_target=0,gamma=10
+2026-10-08T21:53:19 done=270/8015 elapsed=558.3s eta=16015.7s last=A_rhoB0.6,r1=0.5623,P2 only,coarse,beta=0.05623,n_target=0,gamma=30
+2026-10-08T21:53:29 done=280/8015 elapsed=568.3s eta=15698.3s last=A_rhoB0.6,r1=0.5623,P2 only,coarse,beta=0.2371,n_target=0,gamma=100
+2026-10-08T21:53:39 done=290/8015 elapsed=578.2s eta=15401.1s last=A_rhoB0.6,r1=0.5623,P2 only,coarse,beta=1,n_target=0,gamma=1000
+2026-10-08T21:53:49 done=300/8015 elapsed=588.4s eta=15132.0s last=A_rhoB0.6,r1=0.5623,P1 only (protect),coarse,beta=4.217,n_target=5,gamma=1
+2026-10-08T21:54:01 done=310/8015 elapsed=600.3s eta=14921.5s last=A_rhoB0.6,r1=0.5623,P1 only (protect),coarse,beta=17.78,n_target=10,gamma=1
+2026-10-08T21:54:30 done=320/8015 elapsed=628.7s eta=15119.1s last=A_rhoB0.6,r1=0.5623,P1 only (protect),coarse,beta=0.0001778,n_target=20,gamma=1
+2026-10-08T21:55:30 done=330/8015 elapsed=689.0s eta=16044.5s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.0007499,n_target=5,gamma=3
+2026-10-08T21:55:40 done=340/8015 elapsed=699.3s eta=15785.0s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.003162,n_target=5,gamma=10
+2026-10-08T21:55:51 done=350/8015 elapsed=709.5s eta=15538.9s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.01334,n_target=5,gamma=30
+2026-10-08T21:56:01 done=360/8015 elapsed=720.1s eta=15312.9s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.05623,n_target=5,gamma=100
+2026-10-08T21:56:13 done=370/8015 elapsed=731.9s eta=15123.6s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.2371,n_target=10,gamma=3
+2026-10-08T21:56:25 done=380/8015 elapsed=744.2s eta=14952.3s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=1,n_target=10,gamma=10
+2026-10-08T21:56:37 done=390/8015 elapsed=756.3s eta=14785.7s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=4.217,n_target=10,gamma=30
+2026-10-08T21:56:49 done=400/8015 elapsed=768.3s eta=14626.6s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=17.78,n_target=10,gamma=100
+2026-10-08T21:57:55 done=409/8015 elapsed=833.6s eta=15501.3s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=17.78,n_target=20,gamma=3
+2026-10-08T21:58:02 done=410/8015 elapsed=840.9s eta=15598.0s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.0001778,n_target=20,gamma=10
+2026-10-08T21:59:07 done=419/8015 elapsed=906.3s eta=16431.1s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.0001778,n_target=20,gamma=30
+2026-10-08T21:59:15 done=420/8015 elapsed=913.7s eta=16522.1s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.0007499,n_target=20,gamma=30
+2026-10-08T22:00:20 done=429/8015 elapsed=979.2s eta=17314.7s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.0007499,n_target=20,gamma=100
+2026-10-08T22:00:28 done=430/8015 elapsed=986.6s eta=17403.1s last=A_rhoB0.6,r1=0.5623,P1+P2 (protect),coarse,beta=0.003162,n_target=20,gamma=100
+2026-10-08T22:01:13 done=440/8015 elapsed=1031.9s eta=17765.9s last=A_rhoB0.6,r1=0.5623,Base,fine,beta=0.001334,n_target=0,gamma=1
+2026-10-08T22:01:17 done=450/8015 elapsed=1035.9s eta=17414.8s last=A_rhoB0.6,r1=0.5623,Base,fine,beta=0.006494,n_target=0,gamma=1
+2026-10-08T22:01:25 done=460/8015 elapsed=1043.7s eta=17141.9s last=A_rhoB0.6,r1=0.5623,P1 only (protect),fine,beta=0.001212,n_target=10,gamma=1
+2026-10-08T22:01:34 done=468/8015 elapsed=1053.4s eta=16986.8s last=A_rhoB0.6,r1=0.5623 マス完了
+2026-10-08T22:01:35 done=470/8015 elapsed=1054.1s eta=16922.3s last=A_rhoB0.6,r1=3.162,Base,coarse,beta=0.0001334,n_target=0,gamma=1
+2026-10-08T22:01:41 done=480/8015 elapsed=1060.5s eta=16646.9s last=A_rhoB0.6,r1=3.162,P2 only,coarse,beta=0.0001334,n_target=0,gamma=3
+2026-10-08T22:01:51 done=490/8015 elapsed=1070.3s eta=16437.0s last=A_rhoB0.6,r1=3.162,P2 only,coarse,beta=0.0005623,n_target=0,gamma=10
+2026-10-08T22:02:01 done=500/8015 elapsed=1080.2s eta=16236.0s last=A_rhoB0.6,r1=3.162,P2 only,coarse,beta=0.002371,n_target=0,gamma=30
+2026-10-08T22:02:11 done=510/8015 elapsed=1090.0s eta=16040.6s last=A_rhoB0.6,r1=3.162,P2 only,coarse,beta=0.01,n_target=0,gamma=100
+2026-10-08T22:02:21 done=520/8015 elapsed=1099.9s eta=15853.9s last=A_rhoB0.6,r1=3.162,P2 only,coarse,beta=0.04217,n_target=0,gamma=1000
+2026-10-08T22:02:31 done=530/8015 elapsed=1110.1s eta=15677.6s last=A_rhoB0.6,r1=3.162,P1 only (protect),coarse,beta=0.1778,n_target=5,gamma=1
+2026-10-08T22:02:43 done=540/8015 elapsed=1122.0s eta=15530.9s last=A_rhoB0.6,r1=3.162,P1 only (protect),coarse,beta=0.7499,n_target=10,gamma=1
+2026-10-08T22:03:05 done=550/8015 elapsed=1144.4s eta=15532.1s last=A_rhoB0.6,r1=3.162,P1 only (protect),coarse,beta=3.162,n_target=15,gamma=1
+2026-10-08T22:04:12 done=559/8015 elapsed=1211.4s eta=16157.3s last=A_rhoB0.6,r1=3.162,P1 only (protect),coarse,beta=3.162,n_target=20,gamma=1
+2026-10-08T22:04:13 done=560/8015 elapsed=1212.4s eta=16140.1s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=3.162e-05,n_target=5,gamma=3
+2026-10-08T22:04:24 done=570/8015 elapsed=1223.0s eta=15973.6s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=0.0001334,n_target=5,gamma=10
+2026-10-08T22:04:34 done=580/8015 elapsed=1233.5s eta=15811.6s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=0.0005623,n_target=5,gamma=30
+2026-10-08T22:04:45 done=590/8015 elapsed=1243.9s eta=15654.1s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=0.002371,n_target=5,gamma=100
+2026-10-08T22:04:56 done=600/8015 elapsed=1255.3s eta=15513.9s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=0.01,n_target=10,gamma=3
+2026-10-08T22:05:09 done=610/8015 elapsed=1267.7s eta=15389.2s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=0.04217,n_target=10,gamma=10
+2026-10-08T22:05:21 done=620/8015 elapsed=1279.8s eta=15265.2s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=0.1778,n_target=10,gamma=30
+2026-10-08T22:05:33 done=630/8015 elapsed=1292.0s eta=15145.0s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=0.7499,n_target=10,gamma=100
+2026-10-08T22:06:40 done=640/8015 elapsed=1358.8s eta=15657.6s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=3.162,n_target=20,gamma=3
+2026-10-08T22:07:45 done=649/8015 elapsed=1424.1s eta=16163.6s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=3.162,n_target=20,gamma=10
+2026-10-08T22:07:53 done=650/8015 elapsed=1431.5s eta=16220.0s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=3.162e-05,n_target=20,gamma=30
+2026-10-08T22:08:58 done=659/8015 elapsed=1497.0s eta=16709.7s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=3.162e-05,n_target=20,gamma=100
+2026-10-08T22:09:05 done=660/8015 elapsed=1504.2s eta=16762.8s last=A_rhoB0.6,r1=3.162,P1+P2 (protect),coarse,beta=0.0001334,n_target=20,gamma=100
+2026-10-08T22:09:58 done=670/8015 elapsed=1556.6s eta=17064.0s last=A_rhoB0.6,r1=3.162,Base,fine,beta=0.003652,n_target=0,gamma=1
+2026-10-08T22:10:02 done=680/8015 elapsed=1560.6s eta=16833.9s last=A_rhoB0.6,r1=3.162,Base,fine,beta=0.01778,n_target=0,gamma=1
+2026-10-08T22:10:10 done=690/8015 elapsed=1569.0s eta=16656.6s last=A_rhoB0.6,r1=3.162,P1 only (protect),fine,beta=0.003831,n_target=15,gamma=1
+2026-10-08T22:10:22 done=697/8015 elapsed=1580.9s eta=16597.9s last=A_rhoB0.6,r1=3.162 マス完了
+2026-10-08T22:10:23 done=700/8015 elapsed=1582.0s eta=16532.3s last=A_rhoB0.6,r1=17.78,Base,coarse,beta=0.0001,n_target=0,gamma=1
+2026-10-08T22:10:30 done=710/8015 elapsed=1589.2s eta=16350.6s last=A_rhoB0.6,r1=17.78,P2 only,coarse,beta=0.0001,n_target=0,gamma=3
+2026-10-08T22:10:40 done=720/8015 elapsed=1599.1s eta=16202.4s last=A_rhoB0.6,r1=17.78,P2 only,coarse,beta=0.0004217,n_target=0,gamma=10
+2026-10-08T22:10:50 done=730/8015 elapsed=1609.1s eta=16058.1s last=A_rhoB0.6,r1=17.78,P2 only,coarse,beta=0.001778,n_target=0,gamma=30
+2026-10-08T22:11:00 done=740/8015 elapsed=1619.1s eta=15917.4s last=A_rhoB0.6,r1=17.78,P2 only,coarse,beta=0.007499,n_target=0,gamma=100
+2026-10-08T22:11:10 done=750/8015 elapsed=1629.3s eta=15782.6s last=A_rhoB0.6,r1=17.78,P2 only,coarse,beta=0.03162,n_target=0,gamma=1000
+2026-10-08T22:11:21 done=760/8015 elapsed=1639.5s eta=15651.2s last=A_rhoB0.6,r1=17.78,P1 only (protect),coarse,beta=0.1334,n_target=5,gamma=1
+2026-10-08T22:11:33 done=770/8015 elapsed=1651.6s eta=15540.3s last=A_rhoB0.6,r1=17.78,P1 only (protect),coarse,beta=0.5623,n_target=10,gamma=1
+2026-10-08T22:12:01 done=780/8015 elapsed=1680.0s eta=15583.0s last=A_rhoB0.6,r1=17.78,P1 only (protect),coarse,beta=5.623e-06,n_target=20,gamma=1
+2026-10-08T22:13:01 done=790/8015 elapsed=1740.4s eta=15916.9s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=2.371e-05,n_target=5,gamma=3
+2026-10-08T22:13:12 done=800/8015 elapsed=1751.0s eta=15792.2s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.0001,n_target=5,gamma=10
+2026-10-08T22:13:22 done=810/8015 elapsed=1761.4s eta=15668.1s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.0004217,n_target=5,gamma=30
+2026-10-08T22:13:34 done=820/8015 elapsed=1772.5s eta=15552.7s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.001778,n_target=5,gamma=100
+2026-10-08T22:13:45 done=830/8015 elapsed=1784.0s eta=15443.3s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.007499,n_target=10,gamma=3
+2026-10-08T22:13:57 done=840/8015 elapsed=1796.2s eta=15342.3s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.03162,n_target=10,gamma=10
+2026-10-08T22:14:10 done=850/8015 elapsed=1808.6s eta=15245.1s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.1334,n_target=10,gamma=30
+2026-10-08T22:14:22 done=860/8015 elapsed=1821.4s eta=15153.4s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.5623,n_target=10,gamma=100
+2026-10-08T22:15:29 done=869/8015 elapsed=1888.0s eta=15525.5s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.5623,n_target=20,gamma=3
+2026-10-08T22:15:37 done=870/8015 elapsed=1895.6s eta=15567.7s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=5.623e-06,n_target=20,gamma=10
+2026-10-08T22:16:43 done=879/8015 elapsed=1961.8s eta=15926.7s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=5.623e-06,n_target=20,gamma=30
+2026-10-08T22:16:50 done=880/8015 elapsed=1969.3s eta=15966.7s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=2.371e-05,n_target=20,gamma=30
+2026-10-08T22:17:56 done=889/8015 elapsed=2035.3s eta=16314.3s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=2.371e-05,n_target=20,gamma=100
+2026-10-08T22:18:04 done=890/8015 elapsed=2042.8s eta=16353.8s last=A_rhoB0.6,r1=17.78,P1+P2 (protect),coarse,beta=0.0001,n_target=20,gamma=100
+2026-10-08T22:18:50 done=900/8015 elapsed=2088.8s eta=16512.9s last=A_rhoB0.6,r1=17.78,Base,fine,beta=0.01334,n_target=0,gamma=1
+2026-10-08T22:18:54 done=910/8015 elapsed=2092.7s eta=16339.5s last=A_rhoB0.6,r1=17.78,Base,fine,beta=0.06494,n_target=0,gamma=1
+2026-10-08T22:19:04 done=920/8015 elapsed=2103.1s eta=16219.1s last=A_rhoB0.6,r1=17.78,P1 only (protect),fine,beta=0.01957,n_target=15,gamma=1
+2026-10-08T22:19:14 done=926/8015 elapsed=2112.7s eta=16173.7s last=A_rhoB0.6,r1=17.78 マス完了
+2026-10-08T22:19:15 done=930/8015 elapsed=2114.3s eta=16107.4s last=A_rhoB0.6,r1=100,Base,coarse,beta=7.499e-05,n_target=0,gamma=1
+2026-10-08T22:19:23 done=940/8015 elapsed=2122.0s eta=15971.4s last=A_rhoB0.6,r1=100,P2 only,coarse,beta=7.499e-05,n_target=0,gamma=3
+2026-10-08T22:19:33 done=950/8015 elapsed=2132.0s eta=15855.2s last=A_rhoB0.6,r1=100,P2 only,coarse,beta=0.0003162,n_target=0,gamma=10
+2026-10-08T22:19:43 done=960/8015 elapsed=2142.0s eta=15741.5s last=A_rhoB0.6,r1=100,P2 only,coarse,beta=0.001334,n_target=0,gamma=30
+2026-10-08T22:19:53 done=970/8015 elapsed=2151.9s eta=15629.3s last=A_rhoB0.6,r1=100,P2 only,coarse,beta=0.005623,n_target=0,gamma=100
+2026-10-08T22:20:03 done=980/8015 elapsed=2161.9s eta=15519.6s last=A_rhoB0.6,r1=100,P2 only,coarse,beta=0.02371,n_target=0,gamma=1000
+2026-10-08T22:20:14 done=990/8015 elapsed=2172.6s eta=15416.3s last=A_rhoB0.6,r1=100,P1 only (protect),coarse,beta=0.1,n_target=5,gamma=1
+2026-10-08T22:20:27 done=1000/8015 elapsed=2186.1s eta=15335.5s last=A_rhoB0.6,r1=100,P1 only (protect),coarse,beta=1e-06,n_target=15,gamma=1
+2026-10-08T22:21:01 done=1010/8015 elapsed=2219.8s eta=15395.5s last=A_rhoB0.6,r1=100,P1 only (protect),coarse,beta=4.217e-06,n_target=20,gamma=1
+2026-10-08T22:21:56 done=1020/8015 elapsed=2275.1s eta=15602.4s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=1.778e-05,n_target=5,gamma=3
+2026-10-08T22:22:07 done=1030/8015 elapsed=2286.3s eta=15504.6s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=7.499e-05,n_target=5,gamma=10
+2026-10-08T22:22:19 done=1040/8015 elapsed=2298.0s eta=15412.1s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=0.0003162,n_target=5,gamma=30
+2026-10-08T22:22:31 done=1050/8015 elapsed=2309.6s eta=15320.4s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=0.001334,n_target=5,gamma=100
+2026-10-08T22:22:44 done=1060/8015 elapsed=2322.7s eta=15240.0s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=0.005623,n_target=10,gamma=3
+2026-10-08T22:22:58 done=1070/8015 elapsed=2336.7s eta=15166.5s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=0.02371,n_target=10,gamma=10
+2026-10-08T22:23:12 done=1080/8015 elapsed=2350.5s eta=15093.3s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=0.1,n_target=10,gamma=30
+2026-10-08T22:23:32 done=1090/8015 elapsed=2371.5s eta=15066.3s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=1e-06,n_target=20,gamma=3
+2026-10-08T22:24:33 done=1097/8015 elapsed=2431.8s eta=15335.6s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=0.02371,n_target=20,gamma=3
+2026-10-08T22:25:05 done=1100/8015 elapsed=2463.9s eta=15489.0s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=4.217e-06,n_target=20,gamma=10
+2026-10-08T22:26:18 done=1107/8015 elapsed=2537.5s eta=15834.4s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=0.1,n_target=20,gamma=10
+2026-10-08T22:26:55 done=1110/8015 elapsed=2574.0s eta=16011.8s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=1.778e-05,n_target=20,gamma=30
+2026-10-08T22:27:59 done=1116/8015 elapsed=2638.1s eta=16308.6s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=0.1,n_target=20,gamma=30
+2026-10-08T22:28:32 done=1120/8015 elapsed=2670.8s eta=16441.9s last=A_rhoB0.6,r1=100,P1+P2 (protect),coarse,beta=7.499e-05,n_target=20,gamma=100
+2026-10-08T22:29:21 done=1130/8015 elapsed=2719.6s eta=16570.6s last=A_rhoB0.6,r1=100,Base,fine,beta=0.01155,n_target=0,gamma=1
+2026-10-08T22:29:25 done=1140/8015 elapsed=2724.1s eta=16428.0s last=A_rhoB0.6,r1=100,Base,fine,beta=0.05623,n_target=0,gamma=1
+2026-10-08T22:29:39 done=1150/8015 elapsed=2737.5s eta=16341.9s last=A_rhoB0.6,r1=100,P1 only (protect),fine,beta=0.03831,n_target=15,gamma=1
+2026-10-08T22:29:46 done=1155/8015 elapsed=2745.5s eta=16306.4s last=A_rhoB0.6,r1=100 マス完了
+2026-10-08T22:29:49 done=1160/8015 elapsed=2748.3s eta=16241.3s last=A_rhoB0.8,r1=0.1,Base,coarse,beta=0.3162,n_target=0,gamma=1
+2026-10-08T22:29:59 done=1170/8015 elapsed=2757.8s eta=16134.4s last=A_rhoB0.8,r1=0.1,P2 only,coarse,beta=0.3162,n_target=0,gamma=3
+2026-10-08T22:30:10 done=1180/8015 elapsed=2768.8s eta=16037.7s last=A_rhoB0.8,r1=0.1,P2 only,coarse,beta=1.334,n_target=0,gamma=10
+2026-10-08T22:30:21 done=1190/8015 elapsed=2779.6s eta=15941.6s last=A_rhoB0.8,r1=0.1,P2 only,coarse,beta=5.623,n_target=0,gamma=30
+2026-10-08T22:30:32 done=1200/8015 elapsed=2790.5s eta=15847.7s last=A_rhoB0.8,r1=0.1,P2 only,coarse,beta=23.71,n_target=0,gamma=100
+2026-10-08T22:30:43 done=1210/8015 elapsed=2801.7s eta=15756.8s last=A_rhoB0.8,r1=0.1,P2 only,coarse,beta=100,n_target=0,gamma=1000
+2026-10-08T22:30:54 done=1220/8015 elapsed=2813.3s eta=15669.0s last=A_rhoB0.8,r1=0.1,P1 only (protect),coarse,beta=0.001,n_target=10,gamma=1
+2026-10-08T22:31:10 done=1230/8015 elapsed=2829.4s eta=15607.8s last=A_rhoB0.8,r1=0.1,P1 only (protect),coarse,beta=0.004217,n_target=15,gamma=1
+2026-10-08T22:31:52 done=1240/8015 elapsed=2871.4s eta=15688.3s last=A_rhoB0.8,r1=0.1,P1 only (protect),coarse,beta=0.01778,n_target=20,gamma=1
+2026-10-08T22:32:45 done=1250/8015 elapsed=2923.8s eta=15823.7s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.07499,n_target=5,gamma=3
+2026-10-08T22:32:56 done=1260/8015 elapsed=2935.1s eta=15735.1s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.3162,n_target=5,gamma=10
+2026-10-08T22:33:07 done=1270/8015 elapsed=2946.3s eta=15648.0s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=1.334,n_target=5,gamma=30
+2026-10-08T22:33:19 done=1280/8015 elapsed=2957.9s eta=15563.6s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=5.623,n_target=5,gamma=100
+2026-10-08T22:33:32 done=1290/8015 elapsed=2970.8s eta=15487.2s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=23.71,n_target=10,gamma=3
+2026-10-08T22:33:45 done=1300/8015 elapsed=2984.2s eta=15414.5s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=100,n_target=10,gamma=10
+2026-10-08T22:33:58 done=1310/8015 elapsed=2997.5s eta=15341.9s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.001,n_target=10,gamma=100
+2026-10-08T22:34:25 done=1320/8015 elapsed=3023.9s eta=15337.3s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.004217,n_target=20,gamma=3
+2026-10-08T22:35:29 done=1328/8015 elapsed=3088.0s eta=15549.4s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.001,n_target=20,gamma=10
+2026-10-08T22:35:45 done=1330/8015 elapsed=3103.8s eta=15600.9s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.01778,n_target=20,gamma=10
+2026-10-08T22:36:48 done=1338/8015 elapsed=3167.3s eta=15805.7s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.004217,n_target=20,gamma=30
+2026-10-08T22:37:04 done=1340/8015 elapsed=3183.2s eta=15856.7s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.07499,n_target=20,gamma=30
+2026-10-08T22:38:08 done=1348/8015 elapsed=3246.7s eta=16057.6s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.01778,n_target=20,gamma=100
+2026-10-08T22:38:24 done=1350/8015 elapsed=3262.8s eta=16108.8s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),coarse,beta=0.3162,n_target=20,gamma=100
+2026-10-08T22:38:58 done=1360/8015 elapsed=3297.4s eta=16135.2s last=A_rhoB0.8,r1=0.1,Base,fine,beta=0.002371,n_target=0,gamma=1
+2026-10-08T22:39:03 done=1370/8015 elapsed=3301.9s eta=16015.2s last=A_rhoB0.8,r1=0.1,Base,fine,beta=0.01155,n_target=0,gamma=1
+2026-10-08T22:39:17 done=1380/8015 elapsed=3315.8s eta=15942.3s last=A_rhoB0.8,r1=0.1,P1 only (protect),fine,beta=0.006813,n_target=15,gamma=1
+2026-10-08T22:39:31 done=1390/8015 elapsed=3329.6s eta=15869.5s last=A_rhoB0.8,r1=0.1,P1+P2 (protect),extend,beta=0.0004642,n_target=10,gamma=10
+2026-10-08T22:39:33 done=1392/8015 elapsed=3332.3s eta=15854.5s last=A_rhoB0.8,r1=0.1 マス完了
+2026-10-08T22:39:37 done=1400/8015 elapsed=3335.9s eta=15761.9s last=A_rhoB0.8,r1=0.5623,Base,coarse,beta=4.217,n_target=0,gamma=1
+2026-10-08T22:39:48 done=1410/8015 elapsed=3346.9s eta=15678.2s last=A_rhoB0.8,r1=0.5623,P2 only,coarse,beta=4.217,n_target=0,gamma=3
+2026-10-08T22:39:59 done=1420/8015 elapsed=3357.6s eta=15593.8s last=A_rhoB0.8,r1=0.5623,P2 only,coarse,beta=17.78,n_target=0,gamma=10
+2026-10-08T22:40:10 done=1430/8015 elapsed=3368.5s eta=15511.5s last=A_rhoB0.8,r1=0.5623,P2 only,coarse,beta=0.0001778,n_target=0,gamma=100
+2026-10-08T22:40:22 done=1440/8015 elapsed=3380.5s eta=15435.3s last=A_rhoB0.8,r1=0.5623,P2 only,coarse,beta=0.0007499,n_target=0,gamma=1000
+2026-10-08T22:40:32 done=1450/8015 elapsed=3391.5s eta=15355.1s last=A_rhoB0.8,r1=0.5623,P1 only (protect),coarse,beta=0.003162,n_target=5,gamma=1
+2026-10-08T22:40:45 done=1460/8015 elapsed=3403.7s eta=15281.8s last=A_rhoB0.8,r1=0.5623,P1 only (protect),coarse,beta=0.01334,n_target=10,gamma=1
+2026-10-08T22:41:04 done=1470/8015 elapsed=3423.1s eta=15241.0s last=A_rhoB0.8,r1=0.5623,P1 only (protect),coarse,beta=0.05623,n_target=15,gamma=1
+2026-10-08T22:42:03 done=1480/8015 elapsed=3481.7s eta=15373.7s last=A_rhoB0.8,r1=0.5623,P1 only (protect),coarse,beta=0.2371,n_target=20,gamma=1
+2026-10-08T22:42:35 done=1490/8015 elapsed=3513.7s eta=15387.1s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=1,n_target=5,gamma=3
+2026-10-08T22:42:46 done=1500/8015 elapsed=3525.1s eta=15310.6s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=4.217,n_target=5,gamma=10
+2026-10-08T22:42:57 done=1510/8015 elapsed=3536.4s eta=15234.7s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=17.78,n_target=5,gamma=30
+2026-10-08T22:43:09 done=1520/8015 elapsed=3548.0s eta=15160.5s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.0001778,n_target=10,gamma=3
+2026-10-08T22:43:22 done=1530/8015 elapsed=3561.4s eta=15095.2s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.0007499,n_target=10,gamma=10
+2026-10-08T22:43:36 done=1540/8015 elapsed=3574.8s eta=15030.4s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.003162,n_target=10,gamma=30
+2026-10-08T22:43:49 done=1550/8015 elapsed=3588.2s eta=14966.2s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.01334,n_target=10,gamma=100
+2026-10-08T22:44:37 done=1560/8015 elapsed=3635.7s eta=15044.0s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.05623,n_target=20,gamma=3
+2026-10-08T22:45:41 done=1568/8015 elapsed=3700.3s eta=15214.2s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.01334,n_target=20,gamma=10
+2026-10-08T22:45:57 done=1570/8015 elapsed=3716.4s eta=15256.0s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.2371,n_target=20,gamma=10
+2026-10-08T22:47:02 done=1578/8015 elapsed=3780.6s eta=15421.8s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.05623,n_target=20,gamma=30
+2026-10-08T22:47:18 done=1580/8015 elapsed=3796.7s eta=15463.1s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=1,n_target=20,gamma=30
+2026-10-08T22:48:22 done=1588/8015 elapsed=3860.9s eta=15625.9s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=0.2371,n_target=20,gamma=100
+2026-10-08T22:48:38 done=1590/8015 elapsed=3876.9s eta=15666.1s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),coarse,beta=4.217,n_target=20,gamma=100
+2026-10-08T22:48:50 done=1600/8015 elapsed=3889.0s eta=15592.5s last=A_rhoB0.8,r1=0.5623,Base,fine,beta=0.002738,n_target=0,gamma=1
+2026-10-08T22:48:55 done=1610/8015 elapsed=3894.1s eta=15491.6s last=A_rhoB0.8,r1=0.5623,P2 only,fine,beta=0.0002873,n_target=0,gamma=3
+2026-10-08T22:49:13 done=1620/8015 elapsed=3912.1s eta=15443.1s last=A_rhoB0.8,r1=0.5623,P1+P2 (protect),fine,beta=0.001212,n_target=10,gamma=3
+2026-10-08T22:49:14 done=1621/8015 elapsed=3913.5s eta=15436.5s last=A_rhoB0.8,r1=0.5623 マス完了
+2026-10-08T22:49:18 done=1630/8015 elapsed=3917.4s eta=15345.0s last=A_rhoB0.8,r1=3.162,Base,coarse,beta=3.162,n_target=0,gamma=1
+2026-10-08T22:49:30 done=1640/8015 elapsed=3929.0s eta=15272.9s last=A_rhoB0.8,r1=3.162,P2 only,coarse,beta=3.162,n_target=0,gamma=3
+2026-10-08T22:49:41 done=1650/8015 elapsed=3940.1s eta=15199.3s last=A_rhoB0.8,r1=3.162,P2 only,coarse,beta=3.162e-05,n_target=0,gamma=30
+2026-10-08T22:49:52 done=1660/8015 elapsed=3951.1s eta=15126.0s last=A_rhoB0.8,r1=3.162,P2 only,coarse,beta=0.0001334,n_target=0,gamma=100
+2026-10-08T22:50:03 done=1670/8015 elapsed=3962.0s eta=15053.2s last=A_rhoB0.8,r1=3.162,P2 only,coarse,beta=0.0005623,n_target=0,gamma=1000
+2026-10-08T22:50:14 done=1680/8015 elapsed=3972.9s eta=14981.3s last=A_rhoB0.8,r1=3.162,P1 only (protect),coarse,beta=0.002371,n_target=5,gamma=1
+2026-10-08T22:50:26 done=1690/8015 elapsed=3985.3s eta=14915.6s last=A_rhoB0.8,r1=3.162,P1 only (protect),coarse,beta=0.01,n_target=10,gamma=1
+2026-10-08T22:50:47 done=1700/8015 elapsed=4006.2s eta=14881.8s last=A_rhoB0.8,r1=3.162,P1 only (protect),coarse,beta=0.04217,n_target=15,gamma=1
+2026-10-08T22:51:51 done=1710/8015 elapsed=4070.1s eta=15007.1s last=A_rhoB0.8,r1=3.162,P1 only (protect),coarse,beta=0.1778,n_target=20,gamma=1
+2026-10-08T22:52:17 done=1720/8015 elapsed=4095.5s eta=14989.2s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.7499,n_target=5,gamma=3
+2026-10-08T22:52:28 done=1730/8015 elapsed=4106.9s eta=14920.0s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=3.162,n_target=5,gamma=10
+2026-10-08T22:52:39 done=1740/8015 elapsed=4118.0s eta=14850.9s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=3.162e-05,n_target=5,gamma=100
+2026-10-08T22:52:51 done=1750/8015 elapsed=4129.7s eta=14784.2s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.0001334,n_target=10,gamma=3
+2026-10-08T22:53:04 done=1760/8015 elapsed=4143.2s eta=14724.7s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.0005623,n_target=10,gamma=10
+2026-10-08T22:53:18 done=1770/8015 elapsed=4156.7s eta=14665.8s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.002371,n_target=10,gamma=30
+2026-10-08T22:53:31 done=1780/8015 elapsed=4170.1s eta=14607.0s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.01,n_target=10,gamma=100
+2026-10-08T22:54:24 done=1790/8015 elapsed=4223.5s eta=14687.7s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.04217,n_target=20,gamma=3
+2026-10-08T22:55:29 done=1798/8015 elapsed=4287.5s eta=14825.1s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.01,n_target=20,gamma=10
+2026-10-08T22:55:45 done=1800/8015 elapsed=4303.6s eta=14859.3s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.1778,n_target=20,gamma=10
+2026-10-08T22:56:49 done=1808/8015 elapsed=4368.4s eta=14996.9s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.04217,n_target=20,gamma=30
+2026-10-08T22:57:05 done=1810/8015 elapsed=4384.4s eta=15030.4s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.7499,n_target=20,gamma=30
+2026-10-08T22:58:10 done=1818/8015 elapsed=4448.5s eta=15163.7s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=0.1778,n_target=20,gamma=100
+2026-10-08T22:58:26 done=1820/8015 elapsed=4464.9s eta=15197.8s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),coarse,beta=3.162,n_target=20,gamma=100
+2026-10-08T22:58:30 done=1830/8015 elapsed=4469.2s eta=15105.0s last=A_rhoB0.8,r1=3.162,Base,fine,beta=0.002738,n_target=0,gamma=1
+2026-10-08T22:58:36 done=1840/8015 elapsed=4475.0s eta=15017.9s last=A_rhoB0.8,r1=3.162,P2 only,fine,beta=0.0003481,n_target=0,gamma=3
+2026-10-08T22:59:20 done=1850/8015 elapsed=4519.4s eta=15060.5s last=A_rhoB0.8,r1=3.162,P1+P2 (protect),fine,beta=0.001468,n_target=20,gamma=10
+2026-10-08T22:59:20 done=1850/8015 elapsed=4519.4s eta=15060.6s last=A_rhoB0.8,r1=3.162 マス完了
+2026-10-08T22:59:26 done=1860/8015 elapsed=4525.1s eta=14974.3s last=A_rhoB0.8,r1=17.78,Check,check,beta=0.001778,n_target=0,gamma=1
+2026-10-08T22:59:37 done=1870/8015 elapsed=4535.8s eta=14905.1s last=A_rhoB0.8,r1=17.78,P2 only,coarse,beta=5.623e-06,n_target=0,gamma=10
+2026-10-08T22:59:48 done=1880/8015 elapsed=4546.7s eta=14837.4s last=A_rhoB0.8,r1=17.78,P2 only,coarse,beta=2.371e-05,n_target=0,gamma=30
+2026-10-08T22:59:59 done=1890/8015 elapsed=4557.5s eta=14769.7s last=A_rhoB0.8,r1=17.78,P2 only,coarse,beta=0.0001,n_target=0,gamma=100
+2026-10-08T23:00:09 done=1900/8015 elapsed=4568.4s eta=14703.2s last=A_rhoB0.8,r1=17.78,P2 only,coarse,beta=0.0004217,n_target=0,gamma=1000
+2026-10-08T23:00:21 done=1910/8015 elapsed=4579.8s eta=14638.6s last=A_rhoB0.8,r1=17.78,P1 only (protect),coarse,beta=0.001778,n_target=5,gamma=1
+2026-10-08T23:00:34 done=1920/8015 elapsed=4592.5s eta=14578.8s last=A_rhoB0.8,r1=17.78,P1 only (protect),coarse,beta=0.007499,n_target=10,gamma=1
+2026-10-08T23:00:55 done=1930/8015 elapsed=4614.4s eta=14548.6s last=A_rhoB0.8,r1=17.78,P1 only (protect),coarse,beta=0.03162,n_target=15,gamma=1
+2026-10-08T23:01:57 done=1939/8015 elapsed=4675.7s eta=14651.7s last=A_rhoB0.8,r1=17.78,P1 only (protect),coarse,beta=0.03162,n_target=20,gamma=1
+2026-10-08T23:02:05 done=1940/8015 elapsed=4683.7s eta=14666.8s last=A_rhoB0.8,r1=17.78,P1 only (protect),coarse,beta=0.1334,n_target=20,gamma=1
+2026-10-08T23:02:23 done=1950/8015 elapsed=4702.2s eta=14625.1s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.5623,n_target=5,gamma=3
+2026-10-08T23:02:34 done=1960/8015 elapsed=4713.5s eta=14561.3s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=5.623e-06,n_target=5,gamma=30
+2026-10-08T23:02:46 done=1970/8015 elapsed=4724.7s eta=14497.9s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=2.371e-05,n_target=5,gamma=100
+2026-10-08T23:02:58 done=1980/8015 elapsed=4736.6s eta=14437.0s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.0001,n_target=10,gamma=3
+2026-10-08T23:03:11 done=1990/8015 elapsed=4750.0s eta=14381.1s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.0004217,n_target=10,gamma=10
+2026-10-08T23:03:25 done=2000/8015 elapsed=4763.7s eta=14326.8s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.001778,n_target=10,gamma=30
+2026-10-08T23:03:38 done=2010/8015 elapsed=4777.0s eta=14271.5s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.007499,n_target=10,gamma=100
+2026-10-08T23:04:38 done=2020/8015 elapsed=4837.5s eta=14356.7s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.03162,n_target=20,gamma=3
+2026-10-08T23:05:43 done=2028/8015 elapsed=4901.7s eta=14470.7s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.007499,n_target=20,gamma=10
+2026-10-08T23:05:59 done=2030/8015 elapsed=4917.8s eta=14498.9s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.1334,n_target=20,gamma=10
+2026-10-08T23:07:03 done=2038/8015 elapsed=4981.9s eta=14610.8s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.03162,n_target=20,gamma=30
+2026-10-08T23:07:19 done=2040/8015 elapsed=4997.8s eta=14638.2s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.5623,n_target=20,gamma=30
+2026-10-08T23:08:23 done=2048/8015 elapsed=5062.4s eta=14749.7s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),coarse,beta=0.1334,n_target=20,gamma=100
+2026-10-08T23:08:32 done=2050/8015 elapsed=5070.9s eta=14755.1s last=A_rhoB0.8,r1=17.78,Base,fine,beta=0.00866,n_target=0,gamma=1
+2026-10-08T23:08:36 done=2060/8015 elapsed=5075.2s eta=14671.3s last=A_rhoB0.8,r1=17.78,Base,fine,beta=0.04217,n_target=0,gamma=1
+2026-10-08T23:08:43 done=2070/8015 elapsed=5081.6s eta=14594.3s last=A_rhoB0.8,r1=17.78,P2 only,fine,beta=0.0006813,n_target=0,gamma=100
+2026-10-08T23:09:47 done=2079/8015 elapsed=5146.5s eta=14694.2s last=A_rhoB0.8,r1=17.78,P1+P2 (protect),fine,beta=0.001101,n_target=20,gamma=100
+2026-10-08T23:09:47 done=2079/8015 elapsed=5146.5s eta=14694.3s last=A_rhoB0.8,r1=17.78 マス完了
+2026-10-08T23:09:48 done=2080/8015 elapsed=5146.9s eta=14686.0s last=A_rhoB0.8,r1=100,Base,coarse,beta=1e-06,n_target=0,gamma=1
+2026-10-08T23:09:54 done=2090/8015 elapsed=5153.3s eta=14609.1s last=A_rhoB0.8,r1=100,P2 only,coarse,beta=1e-06,n_target=0,gamma=3
+2026-10-08T23:10:05 done=2100/8015 elapsed=5164.1s eta=14545.5s last=A_rhoB0.8,r1=100,P2 only,coarse,beta=4.217e-06,n_target=0,gamma=10
+2026-10-08T23:10:16 done=2110/8015 elapsed=5175.2s eta=14483.2s last=A_rhoB0.8,r1=100,P2 only,coarse,beta=1.778e-05,n_target=0,gamma=30
+2026-10-08T23:10:27 done=2120/8015 elapsed=5186.2s eta=14421.0s last=A_rhoB0.8,r1=100,P2 only,coarse,beta=7.499e-05,n_target=0,gamma=100
+2026-10-08T23:10:38 done=2130/8015 elapsed=5197.1s eta=14359.1s last=A_rhoB0.8,r1=100,P2 only,coarse,beta=0.0003162,n_target=0,gamma=1000
+2026-10-08T23:10:49 done=2140/8015 elapsed=5208.3s eta=14298.4s last=A_rhoB0.8,r1=100,P1 only (protect),coarse,beta=0.001334,n_target=5,gamma=1
+2026-10-08T23:11:02 done=2150/8015 elapsed=5221.1s eta=14242.8s last=A_rhoB0.8,r1=100,P1 only (protect),coarse,beta=0.005623,n_target=10,gamma=1
+2026-10-08T23:11:25 done=2160/8015 elapsed=5244.4s eta=14215.8s last=A_rhoB0.8,r1=100,P1 only (protect),coarse,beta=0.02371,n_target=15,gamma=1
+2026-10-08T23:12:32 done=2169/8015 elapsed=5310.8s eta=14314.0s last=A_rhoB0.8,r1=100,P1 only (protect),coarse,beta=0.02371,n_target=20,gamma=1
+2026-10-08T23:12:40 done=2170/8015 elapsed=5318.7s eta=14326.2s last=A_rhoB0.8,r1=100,P1 only (protect),coarse,beta=0.1,n_target=20,gamma=1
+2026-10-08T23:12:51 done=2180/8015 elapsed=5329.8s eta=14265.9s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=1e-06,n_target=5,gamma=10
+2026-10-08T23:13:02 done=2190/8015 elapsed=5340.9s eta=14205.9s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=4.217e-06,n_target=5,gamma=30
+2026-10-08T23:13:13 done=2200/8015 elapsed=5352.2s eta=14146.8s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=1.778e-05,n_target=5,gamma=100
+2026-10-08T23:13:26 done=2210/8015 elapsed=5364.5s eta=14091.0s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=7.499e-05,n_target=10,gamma=3
+2026-10-08T23:13:39 done=2220/8015 elapsed=5377.8s eta=14037.9s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=0.0003162,n_target=10,gamma=10
+2026-10-08T23:13:52 done=2230/8015 elapsed=5391.3s eta=13985.9s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=0.001334,n_target=10,gamma=30
+2026-10-08T23:14:06 done=2240/8015 elapsed=5404.7s eta=13933.9s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=0.005623,n_target=10,gamma=100
+2026-10-08T23:15:14 done=2250/8015 elapsed=5472.5s eta=14021.8s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=0.02371,n_target=20,gamma=3
+2026-10-08T23:16:17 done=2258/8015 elapsed=5536.3s eta=14115.4s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=0.005623,n_target=20,gamma=10
+2026-10-08T23:16:33 done=2260/8015 elapsed=5552.4s eta=14138.8s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=0.1,n_target=20,gamma=10
+2026-10-08T23:17:38 done=2268/8015 elapsed=5616.7s eta=14232.4s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=0.02371,n_target=20,gamma=30
+2026-10-08T23:17:54 done=2270/8015 elapsed=5632.7s eta=14255.4s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=1e-06,n_target=20,gamma=100
+2026-10-08T23:18:58 done=2278/8015 elapsed=5696.7s eta=14346.9s last=A_rhoB0.8,r1=100,P1+P2 (protect),coarse,beta=0.1,n_target=20,gamma=100
+2026-10-08T23:18:59 done=2280/8015 elapsed=5697.6s eta=14331.6s last=A_rhoB0.8,r1=100,Base,fine,beta=0.001778,n_target=0,gamma=1
+2026-10-08T23:19:03 done=2290/8015 elapsed=5702.1s eta=14255.3s last=A_rhoB0.8,r1=100,Base,fine,beta=0.00866,n_target=0,gamma=1
+2026-10-08T23:19:10 done=2300/8015 elapsed=5709.2s eta=14186.0s last=A_rhoB0.8,r1=100,P2 only,fine,beta=4.642e-05,n_target=0,gamma=1000
+2026-10-08T23:20:14 done=2308/8015 elapsed=5773.4s eta=14275.8s last=A_rhoB0.8,r1=100,P1+P2 (protect),fine,beta=0.01468,n_target=20,gamma=3
+2026-10-08T23:20:14 done=2308/8015 elapsed=5773.4s eta=14275.9s last=A_rhoB0.8,r1=100 マス完了
+2026-10-08T23:20:16 done=2310/8015 elapsed=5774.5s eta=14261.2s last=A_rhoB1.12,r1=0.1,Base,coarse,beta=0.004217,n_target=0,gamma=1
+2026-10-08T23:20:23 done=2320/8015 elapsed=5781.9s eta=14193.1s last=A_rhoB1.12,r1=0.1,P2 only,coarse,beta=0.004217,n_target=0,gamma=3
+2026-10-08T23:20:34 done=2330/8015 elapsed=5793.0s eta=14134.4s last=A_rhoB1.12,r1=0.1,P2 only,coarse,beta=0.01778,n_target=0,gamma=10
+2026-10-08T23:20:45 done=2340/8015 elapsed=5804.0s eta=14075.8s last=A_rhoB1.12,r1=0.1,P2 only,coarse,beta=0.07499,n_target=0,gamma=30
+2026-10-08T23:20:56 done=2350/8015 elapsed=5815.0s eta=14017.9s last=A_rhoB1.12,r1=0.1,P2 only,coarse,beta=0.3162,n_target=0,gamma=100
+2026-10-08T23:21:07 done=2360/8015 elapsed=5826.0s eta=13960.1s last=A_rhoB1.12,r1=0.1,P2 only,coarse,beta=1.334,n_target=0,gamma=1000
+2026-10-08T23:21:18 done=2370/8015 elapsed=5837.1s eta=13903.2s last=A_rhoB1.12,r1=0.1,P1 only (protect),coarse,beta=5.623,n_target=5,gamma=1
+2026-10-08T23:21:31 done=2380/8015 elapsed=5850.4s eta=13851.6s last=A_rhoB1.12,r1=0.1,P1 only (protect),coarse,beta=23.71,n_target=10,gamma=1
+2026-10-08T23:21:56 done=2390/8015 elapsed=5875.0s eta=13827.1s last=A_rhoB1.12,r1=0.1,P1 only (protect),coarse,beta=100,n_target=15,gamma=1
+2026-10-08T23:23:00 done=2398/8015 elapsed=5939.4s eta=13912.3s last=A_rhoB1.12,r1=0.1,P1 only (protect),coarse,beta=23.71,n_target=20,gamma=1
+2026-10-08T23:23:10 done=2400/8015 elapsed=5948.6s eta=13917.2s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=0.001,n_target=5,gamma=3
+2026-10-08T23:23:21 done=2410/8015 elapsed=5959.9s eta=13861.0s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=0.004217,n_target=5,gamma=10
+2026-10-08T23:23:33 done=2420/8015 elapsed=5972.0s eta=13807.1s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=0.01778,n_target=5,gamma=30
+2026-10-08T23:23:45 done=2430/8015 elapsed=5983.5s eta=13752.2s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=0.07499,n_target=5,gamma=100
+2026-10-08T23:23:57 done=2440/8015 elapsed=5996.0s eta=13699.8s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=0.3162,n_target=10,gamma=3
+2026-10-08T23:24:11 done=2450/8015 elapsed=6009.5s eta=13650.3s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=1.334,n_target=10,gamma=10
+2026-10-08T23:24:24 done=2460/8015 elapsed=6022.9s eta=13600.6s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=5.623,n_target=10,gamma=30
+2026-10-08T23:24:38 done=2470/8015 elapsed=6036.5s eta=13551.6s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=23.71,n_target=10,gamma=100
+2026-10-08T23:25:44 done=2479/8015 elapsed=6102.7s eta=13628.4s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=23.71,n_target=20,gamma=3
+2026-10-08T23:25:52 done=2480/8015 elapsed=6111.0s eta=13638.8s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=100,n_target=20,gamma=3
+2026-10-08T23:26:57 done=2488/8015 elapsed=6176.1s eta=13720.0s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=23.71,n_target=20,gamma=10
+2026-10-08T23:27:13 done=2490/8015 elapsed=6192.2s eta=13739.7s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=0.001,n_target=20,gamma=30
+2026-10-08T23:28:18 done=2498/8015 elapsed=6257.0s eta=13819.1s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=100,n_target=20,gamma=30
+2026-10-08T23:28:34 done=2500/8015 elapsed=6273.4s eta=13839.0s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),coarse,beta=0.004217,n_target=20,gamma=100
+2026-10-08T23:29:32 done=2510/8015 elapsed=6331.0s eta=13885.3s last=A_rhoB1.12,r1=0.1,Base,fine,beta=0.001241,n_target=0,gamma=1
+2026-10-08T23:29:36 done=2520/8015 elapsed=6335.3s eta=13814.5s last=A_rhoB1.12,r1=0.1,Base,fine,beta=0.002548,n_target=0,gamma=1
+2026-10-08T23:29:43 done=2530/8015 elapsed=6342.4s eta=13750.2s last=A_rhoB1.12,r1=0.1,P2 only,fine,beta=0.00261,n_target=0,gamma=3
+2026-10-08T23:30:48 done=2539/8015 elapsed=6407.0s eta=13818.3s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),fine,beta=0.002054,n_target=20,gamma=3
+2026-10-08T23:30:56 done=2540/8015 elapsed=6414.9s eta=13827.5s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),fine,beta=0.00261,n_target=20,gamma=3
+2026-10-08T23:31:32 done=2550/8015 elapsed=6451.2s eta=13825.8s last=A_rhoB1.12,r1=0.1,P1 only (protect),extend,beta=0.0001,n_target=20,gamma=1
+2026-10-08T23:31:59 done=2560/8015 elapsed=6478.0s eta=13803.7s last=A_rhoB1.12,r1=0.1,Base,fine2,beta=0.0001308,n_target=0,gamma=1
+2026-10-08T23:32:04 done=2570/8015 elapsed=6482.5s eta=13734.3s last=A_rhoB1.12,r1=0.1,Base,fine2,beta=0.000192,n_target=0,gamma=1
+2026-10-08T23:32:19 done=2580/8015 elapsed=6498.1s eta=13688.7s last=A_rhoB1.12,r1=0.1,P1 only (protect),fine2,beta=0.0001136,n_target=20,gamma=1
+2026-10-08T23:33:23 done=2588/8015 elapsed=6561.7s eta=13759.7s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),fine2,beta=0.0001468,n_target=20,gamma=3
+2026-10-08T23:33:39 done=2590/8015 elapsed=6577.5s eta=13777.2s last=A_rhoB1.12,r1=0.1,P1+P2 (protect),fine2,beta=0.0001896,n_target=20,gamma=3
+2026-10-08T23:33:47 done=2591/8015 elapsed=6585.6s eta=13786.2s last=A_rhoB1.12,r1=0.1 マス完了
+2026-10-08T23:33:50 done=2600/8015 elapsed=6589.5s eta=13723.8s last=A_rhoB1.12,r1=0.5623,Base,coarse,beta=17.78,n_target=0,gamma=1
+2026-10-08T23:34:02 done=2610/8015 elapsed=6600.9s eta=13669.7s last=A_rhoB1.12,r1=0.5623,P2 only,coarse,beta=17.78,n_target=0,gamma=3
+2026-10-08T23:34:13 done=2620/8015 elapsed=6611.7s eta=13614.6s last=A_rhoB1.12,r1=0.5623,P2 only,coarse,beta=0.0001778,n_target=0,gamma=30
+2026-10-08T23:34:24 done=2630/8015 elapsed=6623.1s eta=13560.9s last=A_rhoB1.12,r1=0.5623,P2 only,coarse,beta=0.0007499,n_target=0,gamma=100
+2026-10-08T23:34:35 done=2640/8015 elapsed=6634.2s eta=13507.0s last=A_rhoB1.12,r1=0.5623,P2 only,coarse,beta=0.003162,n_target=0,gamma=1000
+2026-10-08T23:34:46 done=2650/8015 elapsed=6645.2s eta=13453.5s last=A_rhoB1.12,r1=0.5623,P1 only (protect),coarse,beta=0.01334,n_target=5,gamma=1
+2026-10-08T23:34:59 done=2660/8015 elapsed=6657.7s eta=13403.1s last=A_rhoB1.12,r1=0.5623,P1 only (protect),coarse,beta=0.05623,n_target=10,gamma=1
+2026-10-08T23:35:20 done=2670/8015 elapsed=6678.5s eta=13369.5s last=A_rhoB1.12,r1=0.5623,P1 only (protect),coarse,beta=0.2371,n_target=15,gamma=1
+2026-10-08T23:36:23 done=2680/8015 elapsed=6742.1s eta=13421.3s last=A_rhoB1.12,r1=0.5623,P1 only (protect),coarse,beta=1,n_target=20,gamma=1
+2026-10-08T23:36:48 done=2690/8015 elapsed=6767.4s eta=13396.4s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=4.217,n_target=5,gamma=3
+2026-10-08T23:37:00 done=2700/8015 elapsed=6778.9s eta=13344.4s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=17.78,n_target=5,gamma=10
+2026-10-08T23:37:11 done=2710/8015 elapsed=6790.3s eta=13292.4s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=0.0001778,n_target=5,gamma=100
+2026-10-08T23:37:23 done=2720/8015 elapsed=6802.2s eta=13241.8s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=0.0007499,n_target=10,gamma=3
+2026-10-08T23:37:37 done=2730/8015 elapsed=6815.7s eta=13194.5s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=0.003162,n_target=10,gamma=10
+2026-10-08T23:37:50 done=2740/8015 elapsed=6829.5s eta=13147.9s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=0.01334,n_target=10,gamma=30
+2026-10-08T23:38:04 done=2750/8015 elapsed=6842.8s eta=13100.9s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=0.05623,n_target=10,gamma=100
+2026-10-08T23:38:58 done=2760/8015 elapsed=6896.8s eta=13131.4s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=0.2371,n_target=20,gamma=3
+2026-10-08T23:40:02 done=2768/8015 elapsed=6961.3s eta=13195.8s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=0.05623,n_target=20,gamma=10
+2026-10-08T23:40:18 done=2770/8015 elapsed=6977.4s eta=13211.7s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=1,n_target=20,gamma=10
+2026-10-08T23:41:23 done=2778/8015 elapsed=7041.7s eta=13274.7s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=0.2371,n_target=20,gamma=30
+2026-10-08T23:41:39 done=2780/8015 elapsed=7057.8s eta=13290.5s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=4.217,n_target=20,gamma=30
+2026-10-08T23:42:43 done=2788/8015 elapsed=7121.8s eta=13352.2s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=1,n_target=20,gamma=100
+2026-10-08T23:42:59 done=2790/8015 elapsed=7138.1s eta=13367.9s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),coarse,beta=17.78,n_target=20,gamma=100
+2026-10-08T23:43:03 done=2800/8015 elapsed=7142.3s eta=13302.6s last=A_rhoB1.12,r1=0.5623,Base,fine,beta=0.0003652,n_target=0,gamma=1
+2026-10-08T23:43:08 done=2810/8015 elapsed=7147.4s eta=13239.2s last=A_rhoB1.12,r1=0.5623,P2 only,fine,beta=0.000226,n_target=0,gamma=3
+2026-10-08T23:44:01 done=2820/8015 elapsed=7200.2s eta=13264.1s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),fine,beta=0.000226,n_target=20,gamma=3
+2026-10-08T23:44:39 done=2830/8015 elapsed=7237.8s eta=13260.8s last=A_rhoB1.12,r1=0.5623,P2 only,extend,beta=1.778e-05,n_target=0,gamma=3
+2026-10-08T23:45:29 done=2840/8015 elapsed=7287.9s eta=13279.8s last=A_rhoB1.12,r1=0.5623,Base,fine2,beta=2.073e-05,n_target=0,gamma=1
+2026-10-08T23:45:33 done=2850/8015 elapsed=7292.3s eta=13215.7s last=A_rhoB1.12,r1=0.5623,Base,fine2,beta=3.043e-05,n_target=0,gamma=1
+2026-10-08T23:45:40 done=2860/8015 elapsed=7299.4s eta=13156.7s last=A_rhoB1.12,r1=0.5623,P2 only,fine2,beta=2.966e-05,n_target=0,gamma=3
+2026-10-08T23:46:47 done=2870/8015 elapsed=7366.0s eta=13204.8s last=A_rhoB1.12,r1=0.5623,P1+P2 (protect),fine2,beta=2.297e-05,n_target=20,gamma=3
+2026-10-08T23:47:19 done=2874/8015 elapsed=7398.1s eta=13233.7s last=A_rhoB1.12,r1=0.5623 マス完了
+2026-10-08T23:47:22 done=2880/8015 elapsed=7400.7s eta=13195.3s last=A_rhoB1.12,r1=3.162,Base,coarse,beta=0.04217,n_target=0,gamma=1
+2026-10-08T23:47:31 done=2890/8015 elapsed=7410.4s eta=13141.3s last=A_rhoB1.12,r1=3.162,P2 only,coarse,beta=0.04217,n_target=0,gamma=3
+2026-10-08T23:47:42 done=2900/8015 elapsed=7421.3s eta=13089.6s last=A_rhoB1.12,r1=3.162,P2 only,coarse,beta=0.1778,n_target=0,gamma=10
+2026-10-08T23:47:53 done=2910/8015 elapsed=7432.2s eta=13038.3s last=A_rhoB1.12,r1=3.162,P2 only,coarse,beta=0.7499,n_target=0,gamma=30
+2026-10-08T23:48:04 done=2920/8015 elapsed=7443.4s eta=12987.7s last=A_rhoB1.12,r1=3.162,P2 only,coarse,beta=3.162,n_target=0,gamma=100
+2026-10-08T23:48:16 done=2930/8015 elapsed=7455.0s eta=12938.2s last=A_rhoB1.12,r1=3.162,P1 only (protect),coarse,beta=3.162e-05,n_target=5,gamma=1
+2026-10-08T23:48:29 done=2940/8015 elapsed=7467.5s eta=12890.3s last=A_rhoB1.12,r1=3.162,P1 only (protect),coarse,beta=0.0001334,n_target=10,gamma=1
+2026-10-08T23:48:46 done=2950/8015 elapsed=7484.9s eta=12851.2s last=A_rhoB1.12,r1=3.162,P1 only (protect),coarse,beta=0.0005623,n_target=15,gamma=1
+2026-10-08T23:49:34 done=2960/8015 elapsed=7533.2s eta=12864.9s last=A_rhoB1.12,r1=3.162,P1 only (protect),coarse,beta=0.002371,n_target=20,gamma=1
+2026-10-08T23:50:20 done=2970/8015 elapsed=7579.3s eta=12874.6s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.01,n_target=5,gamma=3
+2026-10-08T23:50:32 done=2980/8015 elapsed=7591.2s eta=12826.0s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.04217,n_target=5,gamma=10
+2026-10-08T23:50:44 done=2990/8015 elapsed=7602.7s eta=12777.1s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.1778,n_target=5,gamma=30
+2026-10-08T23:50:55 done=3000/8015 elapsed=7614.0s eta=12728.1s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.7499,n_target=5,gamma=100
+2026-10-08T23:51:08 done=3010/8015 elapsed=7627.3s eta=12682.7s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=3.162,n_target=10,gamma=3
+2026-10-08T23:51:22 done=3020/8015 elapsed=7641.1s eta=12638.2s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=3.162e-05,n_target=10,gamma=30
+2026-10-08T23:51:36 done=3030/8015 elapsed=7655.2s eta=12594.4s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.0001334,n_target=10,gamma=100
+2026-10-08T23:52:10 done=3040/8015 elapsed=7688.8s eta=12582.8s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.0005623,n_target=20,gamma=3
+2026-10-08T23:53:14 done=3048/8015 elapsed=7753.4s eta=12634.9s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.0001334,n_target=20,gamma=10
+2026-10-08T23:53:31 done=3050/8015 elapsed=7769.8s eta=12648.2s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.002371,n_target=20,gamma=10
+2026-10-08T23:54:36 done=3058/8015 elapsed=7835.2s eta=12700.7s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.0005623,n_target=20,gamma=30
+2026-10-08T23:54:52 done=3060/8015 elapsed=7851.5s eta=12713.7s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.01,n_target=20,gamma=30
+2026-10-08T23:55:58 done=3068/8015 elapsed=7916.9s eta=12765.6s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.002371,n_target=20,gamma=100
+2026-10-08T23:56:15 done=3070/8015 elapsed=7933.5s eta=12778.9s last=A_rhoB1.12,r1=3.162,P1+P2 (protect),coarse,beta=0.04217,n_target=20,gamma=100
+2026-10-08T23:56:42 done=3080/8015 elapsed=7961.3s eta=12756.2s last=A_rhoB1.12,r1=3.162,Base,fine,beta=0.02738,n_target=0,gamma=1
+2026-10-08T23:56:47 done=3090/8015 elapsed=7965.7s eta=12696.1s last=A_rhoB1.12,r1=3.162,Base,fine,beta=0.1334,n_target=0,gamma=1
+2026-10-08T23:57:26 done=3100/8015 elapsed=8004.7s eta=12691.3s last=A_rhoB1.12,r1=3.162,P1 only (protect),fine,beta=0.1101,n_target=20,gamma=1
+2026-10-08T23:58:02 done=3107/8015 elapsed=8040.6s eta=12701.4s last=A_rhoB1.12,r1=3.162 マス完了
+2026-10-08T23:58:03 done=3110/8015 elapsed=8041.9s eta=12683.5s last=A_rhoB1.12,r1=17.78,Base,coarse,beta=0.0001,n_target=0,gamma=1
+2026-10-08T23:58:11 done=3120/8015 elapsed=8050.0s eta=12629.7s last=A_rhoB1.12,r1=17.78,P2 only,coarse,beta=0.0001,n_target=0,gamma=3
+2026-10-08T23:58:22 done=3130/8015 elapsed=8061.1s eta=12581.0s last=A_rhoB1.12,r1=17.78,P2 only,coarse,beta=0.0004217,n_target=0,gamma=10
+2026-10-08T23:58:34 done=3140/8015 elapsed=8072.7s eta=12533.2s last=A_rhoB1.12,r1=17.78,P2 only,coarse,beta=0.001778,n_target=0,gamma=30
+2026-10-08T23:58:45 done=3150/8015 elapsed=8083.7s eta=12484.9s last=A_rhoB1.12,r1=17.78,P2 only,coarse,beta=0.007499,n_target=0,gamma=100
+2026-10-08T23:58:56 done=3160/8015 elapsed=8094.9s eta=12436.9s last=A_rhoB1.12,r1=17.78,P2 only,coarse,beta=0.03162,n_target=0,gamma=1000
+2026-10-08T23:59:08 done=3170/8015 elapsed=8106.6s eta=12390.1s last=A_rhoB1.12,r1=17.78,P1 only (protect),coarse,beta=0.1334,n_target=5,gamma=1
+2026-10-08T23:59:21 done=3180/8015 elapsed=8120.1s eta=12346.1s last=A_rhoB1.12,r1=17.78,P1 only (protect),coarse,beta=0.5623,n_target=10,gamma=1
+2026-10-08T23:59:53 done=3190/8015 elapsed=8152.1s eta=12330.3s last=A_rhoB1.12,r1=17.78,P1 only (protect),coarse,beta=5.623e-06,n_target=20,gamma=1
+2026-10-09T00:00:59 done=3198/8015 elapsed=8218.0s eta=12378.4s last=A_rhoB1.12,r1=17.78,P1 only (protect),coarse,beta=0.5623,n_target=20,gamma=1
+2026-10-09T00:01:01 done=3200/8015 elapsed=8220.5s eta=12369.2s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=2.371e-05,n_target=5,gamma=3
+2026-10-09T00:01:13 done=3210/8015 elapsed=8232.1s eta=12322.5s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.0001,n_target=5,gamma=10
+2026-10-09T00:01:26 done=3220/8015 elapsed=8244.6s eta=12277.3s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.0004217,n_target=5,gamma=30
+2026-10-09T00:01:37 done=3230/8015 elapsed=8256.2s eta=12230.9s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.001778,n_target=5,gamma=100
+2026-10-09T00:01:50 done=3240/8015 elapsed=8269.0s eta=12186.6s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.007499,n_target=10,gamma=3
+2026-10-09T00:02:04 done=3250/8015 elapsed=8283.3s eta=12144.6s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.03162,n_target=10,gamma=10
+2026-10-09T00:02:18 done=3260/8015 elapsed=8297.0s eta=12101.8s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.1334,n_target=10,gamma=30
+2026-10-09T00:02:32 done=3270/8015 elapsed=8310.9s eta=12059.6s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.5623,n_target=10,gamma=100
+2026-10-09T00:03:37 done=3278/8015 elapsed=8376.4s eta=12104.7s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.1334,n_target=20,gamma=3
+2026-10-09T00:03:54 done=3280/8015 elapsed=8392.7s eta=12115.7s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=5.623e-06,n_target=20,gamma=10
+2026-10-09T00:04:59 done=3288/8015 elapsed=8457.5s eta=12159.0s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.5623,n_target=20,gamma=10
+2026-10-09T00:05:15 done=3290/8015 elapsed=8473.6s eta=12169.5s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=2.371e-05,n_target=20,gamma=30
+2026-10-09T00:06:19 done=3298/8015 elapsed=8538.2s eta=12211.8s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=5.623e-06,n_target=20,gamma=100
+2026-10-09T00:06:35 done=3300/8015 elapsed=8554.2s eta=12222.1s last=A_rhoB1.12,r1=17.78,P1+P2 (protect),coarse,beta=0.0001,n_target=20,gamma=100
+2026-10-09T00:07:25 done=3310/8015 elapsed=8604.2s eta=12230.5s last=A_rhoB1.12,r1=17.78,Base,fine,beta=0.01334,n_target=0,gamma=1
+2026-10-09T00:07:30 done=3320/8015 elapsed=8608.7s eta=12174.0s last=A_rhoB1.12,r1=17.78,Base,fine,beta=0.06494,n_target=0,gamma=1
+2026-10-09T00:07:52 done=3330/8015 elapsed=8631.1s eta=12143.2s last=A_rhoB1.12,r1=17.78,P1 only (protect),fine,beta=0.01957,n_target=20,gamma=1
+2026-10-09T00:08:40 done=3336/8015 elapsed=8679.1s eta=12173.2s last=A_rhoB1.12,r1=17.78 マス完了
+2026-10-09T00:08:42 done=3340/8015 elapsed=8681.0s eta=12150.8s last=A_rhoB1.12,r1=100,Base,coarse,beta=7.499e-05,n_target=0,gamma=1
+2026-10-09T00:08:50 done=3350/8015 elapsed=8689.2s eta=12100.1s last=A_rhoB1.12,r1=100,P2 only,coarse,beta=7.499e-05,n_target=0,gamma=3
+2026-10-09T00:09:01 done=3360/8015 elapsed=8700.2s eta=12053.4s last=A_rhoB1.12,r1=100,P2 only,coarse,beta=0.0003162,n_target=0,gamma=10
+2026-10-09T00:09:12 done=3370/8015 elapsed=8711.1s eta=12006.9s last=A_rhoB1.12,r1=100,P2 only,coarse,beta=0.001334,n_target=0,gamma=30
+2026-10-09T00:09:23 done=3380/8015 elapsed=8722.0s eta=11960.6s last=A_rhoB1.12,r1=100,P2 only,coarse,beta=0.005623,n_target=0,gamma=100
+2026-10-09T00:09:34 done=3390/8015 elapsed=8733.4s eta=11915.1s last=A_rhoB1.12,r1=100,P2 only,coarse,beta=0.02371,n_target=0,gamma=1000
+2026-10-09T00:09:46 done=3400/8015 elapsed=8744.7s eta=11869.7s last=A_rhoB1.12,r1=100,P1 only (protect),coarse,beta=0.1,n_target=5,gamma=1
+2026-10-09T00:10:00 done=3410/8015 elapsed=8759.3s eta=11828.9s last=A_rhoB1.12,r1=100,P1 only (protect),coarse,beta=1e-06,n_target=15,gamma=1
+2026-10-09T00:10:37 done=3420/8015 elapsed=8796.0s eta=11818.0s last=A_rhoB1.12,r1=100,P1 only (protect),coarse,beta=4.217e-06,n_target=20,gamma=1
+2026-10-09T00:11:37 done=3430/8015 elapsed=8856.1s eta=11838.2s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=1.778e-05,n_target=5,gamma=3
+2026-10-09T00:11:49 done=3440/8015 elapsed=8867.9s eta=11793.8s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=7.499e-05,n_target=5,gamma=10
+2026-10-09T00:12:00 done=3450/8015 elapsed=8879.4s eta=11749.1s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=0.0003162,n_target=5,gamma=30
+2026-10-09T00:12:12 done=3460/8015 elapsed=8891.2s eta=11705.0s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=0.001334,n_target=5,gamma=100
+2026-10-09T00:12:25 done=3470/8015 elapsed=8904.3s eta=11662.9s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=0.005623,n_target=10,gamma=3
+2026-10-09T00:12:39 done=3480/8015 elapsed=8917.9s eta=11621.5s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=0.02371,n_target=10,gamma=10
+2026-10-09T00:12:53 done=3490/8015 elapsed=8931.9s eta=11580.7s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=0.1,n_target=10,gamma=30
+2026-10-09T00:13:13 done=3500/8015 elapsed=8952.4s eta=11548.6s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=1e-06,n_target=20,gamma=3
+2026-10-09T00:14:18 done=3508/8015 elapsed=9017.4s eta=11585.4s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=0.1,n_target=20,gamma=3
+2026-10-09T00:14:36 done=3510/8015 elapsed=9034.6s eta=11595.7s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=4.217e-06,n_target=20,gamma=10
+2026-10-09T00:15:41 done=3518/8015 elapsed=9100.2s eta=11632.6s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=1e-06,n_target=20,gamma=30
+2026-10-09T00:15:58 done=3520/8015 elapsed=9116.7s eta=11642.0s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=1.778e-05,n_target=20,gamma=30
+2026-10-09T00:17:03 done=3528/8015 elapsed=9181.7s eta=11677.6s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=4.217e-06,n_target=20,gamma=100
+2026-10-09T00:17:19 done=3530/8015 elapsed=9198.0s eta=11686.4s last=A_rhoB1.12,r1=100,P1+P2 (protect),coarse,beta=7.499e-05,n_target=20,gamma=100
+2026-10-09T00:18:02 done=3540/8015 elapsed=9241.2s eta=11682.0s last=A_rhoB1.12,r1=100,Base,fine,beta=0.01155,n_target=0,gamma=1
+2026-10-09T00:18:07 done=3550/8015 elapsed=9245.6s eta=11628.6s last=A_rhoB1.12,r1=100,Base,fine,beta=0.05623,n_target=0,gamma=1
+2026-10-09T00:18:37 done=3560/8015 elapsed=9276.2s eta=11608.3s last=A_rhoB1.12,r1=100,P1 only (protect),fine,beta=0.03831,n_target=20,gamma=1
+2026-10-09T00:19:18 done=3565/8015 elapsed=9316.9s eta=11629.8s last=A_rhoB1.12,r1=100 マス完了
+2026-10-09T00:19:20 done=3570/8015 elapsed=9319.4s eta=11603.5s last=B_alpha0.005,r1=0.1,Base,coarse,beta=0.01581,n_target=0,gamma=1
+2026-10-09T00:19:30 done=3580/8015 elapsed=9329.3s eta=11557.4s last=B_alpha0.005,r1=0.1,P2 only,coarse,beta=0.01581,n_target=0,gamma=3
+2026-10-09T00:19:42 done=3590/8015 elapsed=9340.5s eta=11513.0s last=B_alpha0.005,r1=0.1,P2 only,coarse,beta=0.06668,n_target=0,gamma=10
+2026-10-09T00:19:53 done=3600/8015 elapsed=9351.7s eta=11468.8s last=B_alpha0.005,r1=0.1,P2 only,coarse,beta=0.2812,n_target=0,gamma=30
+2026-10-09T00:20:04 done=3610/8015 elapsed=9362.8s eta=11424.7s last=B_alpha0.005,r1=0.1,P2 only,coarse,beta=1.186,n_target=0,gamma=100
+2026-10-09T00:20:15 done=3620/8015 elapsed=9373.9s eta=11380.8s last=B_alpha0.005,r1=0.1,P2 only,coarse,beta=5,n_target=0,gamma=1000
+2026-10-09T00:20:27 done=3630/8015 elapsed=9385.7s eta=11337.8s last=B_alpha0.005,r1=0.1,P1 only (protect),coarse,beta=5e-05,n_target=10,gamma=1
+2026-10-09T00:20:43 done=3640/8015 elapsed=9402.3s eta=11300.8s last=B_alpha0.005,r1=0.1,P1 only (protect),coarse,beta=0.0002108,n_target=15,gamma=1
+2026-10-09T00:21:26 done=3650/8015 elapsed=9445.3s eta=11295.6s last=B_alpha0.005,r1=0.1,P1 only (protect),coarse,beta=0.0008891,n_target=20,gamma=1
+2026-10-09T00:22:20 done=3660/8015 elapsed=9498.8s eta=11302.6s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.003749,n_target=5,gamma=3
+2026-10-09T00:22:31 done=3670/8015 elapsed=9510.4s eta=11259.6s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.01581,n_target=5,gamma=10
+2026-10-09T00:22:43 done=3680/8015 elapsed=9521.8s eta=11216.6s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.06668,n_target=5,gamma=30
+2026-10-09T00:22:54 done=3690/8015 elapsed=9533.2s eta=11173.7s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.2812,n_target=5,gamma=100
+2026-10-09T00:23:08 done=3700/8015 elapsed=9546.7s eta=11133.5s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=1.186,n_target=10,gamma=3
+2026-10-09T00:23:22 done=3710/8015 elapsed=9560.6s eta=11093.9s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=5,n_target=10,gamma=10
+2026-10-09T00:23:36 done=3720/8015 elapsed=9574.6s eta=11054.5s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=5e-05,n_target=10,gamma=100
+2026-10-09T00:24:03 done=3730/8015 elapsed=9601.9s eta=11030.6s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.0002108,n_target=20,gamma=3
+2026-10-09T00:25:08 done=3738/8015 elapsed=9666.8s eta=11060.7s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=5e-05,n_target=20,gamma=10
+2026-10-09T00:25:24 done=3740/8015 elapsed=9683.2s eta=11068.4s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.0008891,n_target=20,gamma=10
+2026-10-09T00:26:30 done=3748/8015 elapsed=9749.2s eta=11099.2s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.0002108,n_target=20,gamma=30
+2026-10-09T00:26:47 done=3750/8015 elapsed=9765.7s eta=11106.9s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.003749,n_target=20,gamma=30
+2026-10-09T00:27:53 done=3758/8015 elapsed=9832.1s eta=11137.6s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.0008891,n_target=20,gamma=100
+2026-10-09T00:28:09 done=3760/8015 elapsed=9848.3s eta=11144.8s last=B_alpha0.005,r1=0.1,P1+P2 (protect),coarse,beta=0.01581,n_target=20,gamma=100
+2026-10-09T00:28:45 done=3770/8015 elapsed=9884.3s eta=11129.6s last=B_alpha0.005,r1=0.1,Base,fine,beta=7.7e-05,n_target=0,gamma=1
+2026-10-09T00:28:50 done=3780/8015 elapsed=9888.8s eta=11079.1s last=B_alpha0.005,r1=0.1,Base,fine,beta=0.0001581,n_target=0,gamma=1
+2026-10-09T00:29:02 done=3790/8015 elapsed=9901.2s eta=11037.6s last=B_alpha0.005,r1=0.1,P1 only (protect),fine,beta=8.078e-05,n_target=15,gamma=1
+2026-10-09T00:29:18 done=3800/8015 elapsed=9916.7s eta=10999.7s last=B_alpha0.005,r1=0.1,Base,extend,beta=1.077e-05,n_target=0,gamma=1
+2026-10-09T00:29:34 done=3810/8015 elapsed=9932.7s eta=10962.5s last=B_alpha0.005,r1=0.1,P1+P2 (protect),extend,beta=5e-06,n_target=10,gamma=3
+2026-10-09T00:29:46 done=3820/8015 elapsed=9945.1s eta=10921.4s last=B_alpha0.005,r1=0.1,P1+P2 (protect),fine2,beta=2.321e-05,n_target=10,gamma=3
+2026-10-09T00:29:49 done=3822/8015 elapsed=9948.0s eta=10913.7s last=B_alpha0.005,r1=0.1 マス完了
+2026-10-09T00:29:53 done=3830/8015 elapsed=9951.6s eta=10874.0s last=B_alpha0.005,r1=0.5623,Base,coarse,beta=0.2108,n_target=0,gamma=1
+2026-10-09T00:30:04 done=3840/8015 elapsed=9963.2s eta=10832.4s last=B_alpha0.005,r1=0.5623,P2 only,coarse,beta=0.2108,n_target=0,gamma=3
+2026-10-09T00:30:15 done=3850/8015 elapsed=9974.4s eta=10790.5s last=B_alpha0.005,r1=0.5623,P2 only,coarse,beta=0.8891,n_target=0,gamma=10
+2026-10-09T00:30:27 done=3860/8015 elapsed=9985.6s eta=10748.8s last=B_alpha0.005,r1=0.5623,P2 only,coarse,beta=8.891e-06,n_target=0,gamma=100
+2026-10-09T00:30:38 done=3870/8015 elapsed=9997.2s eta=10707.6s last=B_alpha0.005,r1=0.5623,P2 only,coarse,beta=3.749e-05,n_target=0,gamma=1000
+2026-10-09T00:30:50 done=3880/8015 elapsed=10008.5s eta=10666.3s last=B_alpha0.005,r1=0.5623,P1 only (protect),coarse,beta=0.0001581,n_target=5,gamma=1
+2026-10-09T00:31:02 done=3890/8015 elapsed=10021.0s eta=10626.4s last=B_alpha0.005,r1=0.5623,P1 only (protect),coarse,beta=0.0006668,n_target=10,gamma=1
+2026-10-09T00:31:22 done=3900/8015 elapsed=10041.2s eta=10594.7s last=B_alpha0.005,r1=0.5623,P1 only (protect),coarse,beta=0.002812,n_target=15,gamma=1
+2026-10-09T00:32:22 done=3910/8015 elapsed=10100.8s eta=10604.5s last=B_alpha0.005,r1=0.5623,P1 only (protect),coarse,beta=0.01186,n_target=20,gamma=1
+2026-10-09T00:32:55 done=3920/8015 elapsed=10133.9s eta=10586.4s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.05,n_target=5,gamma=3
+2026-10-09T00:33:07 done=3930/8015 elapsed=10145.6s eta=10545.7s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.2108,n_target=5,gamma=10
+2026-10-09T00:33:18 done=3940/8015 elapsed=10157.4s eta=10505.4s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.8891,n_target=5,gamma=30
+2026-10-09T00:33:30 done=3950/8015 elapsed=10169.4s eta=10465.4s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=8.891e-06,n_target=10,gamma=3
+2026-10-09T00:33:44 done=3960/8015 elapsed=10182.9s eta=10427.2s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=3.749e-05,n_target=10,gamma=10
+2026-10-09T00:33:58 done=3970/8015 elapsed=10196.9s eta=10389.6s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.0001581,n_target=10,gamma=30
+2026-10-09T00:34:11 done=3980/8015 elapsed=10210.4s eta=10351.5s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.0006668,n_target=10,gamma=100
+2026-10-09T00:34:59 done=3990/8015 elapsed=10258.3s eta=10348.3s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.002812,n_target=20,gamma=3
+2026-10-09T00:36:04 done=3998/8015 elapsed=10322.8s eta=10371.8s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.0006668,n_target=20,gamma=10
+2026-10-09T00:36:20 done=4000/8015 elapsed=10339.0s eta=10377.7s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.01186,n_target=20,gamma=10
+2026-10-09T00:37:24 done=4008/8015 elapsed=10403.3s eta=10400.7s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.002812,n_target=20,gamma=30
+2026-10-09T00:37:41 done=4010/8015 elapsed=10419.8s eta=10406.8s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.05,n_target=20,gamma=30
+2026-10-09T00:38:45 done=4018/8015 elapsed=10484.1s eta=10429.4s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.01186,n_target=20,gamma=100
+2026-10-09T00:39:01 done=4020/8015 elapsed=10500.1s eta=10434.8s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),coarse,beta=0.2108,n_target=20,gamma=100
+2026-10-09T00:39:13 done=4030/8015 elapsed=10512.3s eta=10395.0s last=B_alpha0.005,r1=0.5623,Base,fine,beta=3.247e-05,n_target=0,gamma=1
+2026-10-09T00:39:19 done=4040/8015 elapsed=10517.5s eta=10348.3s last=B_alpha0.005,r1=0.5623,P2 only,fine,beta=1.13e-05,n_target=0,gamma=3
+2026-10-09T00:39:35 done=4050/8015 elapsed=10534.4s eta=10313.4s last=B_alpha0.005,r1=0.5623,P1+P2 (protect),fine,beta=1.436e-05,n_target=5,gamma=3
+2026-10-09T00:39:39 done=4053/8015 elapsed=10537.8s eta=10301.2s last=B_alpha0.005,r1=0.5623 マス完了
+2026-10-09T00:39:42 done=4060/8015 elapsed=10540.9s eta=10268.3s last=B_alpha0.005,r1=3.162,Base,coarse,beta=0.008891,n_target=0,gamma=1
+2026-10-09T00:39:52 done=4070/8015 elapsed=10551.1s eta=10227.0s last=B_alpha0.005,r1=3.162,P2 only,coarse,beta=0.008891,n_target=0,gamma=3
+2026-10-09T00:40:03 done=4080/8015 elapsed=10561.9s eta=10186.5s last=B_alpha0.005,r1=3.162,P2 only,coarse,beta=0.03749,n_target=0,gamma=10
+2026-10-09T00:40:14 done=4090/8015 elapsed=10572.7s eta=10146.2s last=B_alpha0.005,r1=3.162,P2 only,coarse,beta=0.1581,n_target=0,gamma=30
+2026-10-09T00:40:25 done=4100/8015 elapsed=10583.6s eta=10106.1s last=B_alpha0.005,r1=3.162,P2 only,coarse,beta=1.581e-06,n_target=0,gamma=1000
+2026-10-09T00:40:36 done=4110/8015 elapsed=10594.5s eta=10066.1s last=B_alpha0.005,r1=3.162,P1 only (protect),coarse,beta=6.668e-06,n_target=5,gamma=1
+2026-10-09T00:40:47 done=4120/8015 elapsed=10606.4s eta=10027.2s last=B_alpha0.005,r1=3.162,P1 only (protect),coarse,beta=2.812e-05,n_target=10,gamma=1
+2026-10-09T00:41:06 done=4130/8015 elapsed=10624.9s eta=9994.6s last=B_alpha0.005,r1=3.162,P1 only (protect),coarse,beta=0.0001186,n_target=15,gamma=1
+2026-10-09T00:41:59 done=4140/8015 elapsed=10677.9s eta=9994.4s last=B_alpha0.005,r1=3.162,P1 only (protect),coarse,beta=0.0005,n_target=20,gamma=1
+2026-10-09T00:42:37 done=4150/8015 elapsed=10716.3s eta=9980.4s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.002108,n_target=5,gamma=3
+2026-10-09T00:42:49 done=4160/8015 elapsed=10727.7s eta=9941.2s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.008891,n_target=5,gamma=10
+2026-10-09T00:43:00 done=4170/8015 elapsed=10738.9s eta=9902.0s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.03749,n_target=5,gamma=30
+2026-10-09T00:43:11 done=4180/8015 elapsed=10750.2s eta=9862.9s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.1581,n_target=5,gamma=100
+2026-10-09T00:43:25 done=4190/8015 elapsed=10763.7s eta=9826.1s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=1.581e-06,n_target=10,gamma=10
+2026-10-09T00:43:38 done=4200/8015 elapsed=10777.0s eta=9789.1s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=6.668e-06,n_target=10,gamma=30
+2026-10-09T00:43:51 done=4210/8015 elapsed=10790.3s eta=9752.2s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=2.812e-05,n_target=10,gamma=100
+2026-10-09T00:44:32 done=4220/8015 elapsed=10830.7s eta=9739.9s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.0001186,n_target=20,gamma=3
+2026-10-09T00:45:37 done=4228/8015 elapsed=10895.7s eta=9759.2s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=2.812e-05,n_target=20,gamma=10
+2026-10-09T00:45:53 done=4230/8015 elapsed=10911.7s eta=9763.8s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.0005,n_target=20,gamma=10
+2026-10-09T00:46:57 done=4238/8015 elapsed=10976.3s eta=9782.3s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.0001186,n_target=20,gamma=30
+2026-10-09T00:47:13 done=4240/8015 elapsed=10992.3s eta=9786.8s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.002108,n_target=20,gamma=30
+2026-10-09T00:48:18 done=4248/8015 elapsed=11056.5s eta=9804.6s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.0005,n_target=20,gamma=100
+2026-10-09T00:48:34 done=4250/8015 elapsed=11072.8s eta=9809.2s last=B_alpha0.005,r1=3.162,P1+P2 (protect),coarse,beta=0.008891,n_target=20,gamma=100
+2026-10-09T00:48:53 done=4260/8015 elapsed=11092.3s eta=9777.3s last=B_alpha0.005,r1=3.162,Base,fine,beta=2.108e-05,n_target=0,gamma=1
+2026-10-09T00:48:58 done=4270/8015 elapsed=11096.7s eta=9732.4s last=B_alpha0.005,r1=3.162,Base,fine,beta=0.0001027,n_target=0,gamma=1
+2026-10-09T00:49:15 done=4280/8015 elapsed=11113.6s eta=9698.4s last=B_alpha0.005,r1=3.162,P1+P2 (protect),fine,beta=2.01e-06,n_target=10,gamma=30
+2026-10-09T00:49:20 done=4284/8015 elapsed=11118.8s eta=9683.6s last=B_alpha0.005,r1=3.162 マス完了
+2026-10-09T00:49:23 done=4290/8015 elapsed=11121.5s eta=9656.8s last=B_alpha0.005,r1=17.78,Base,coarse,beta=0.0003749,n_target=0,gamma=1
+2026-10-09T00:49:32 done=4300/8015 elapsed=11131.1s eta=9616.8s last=B_alpha0.005,r1=17.78,P2 only,coarse,beta=0.0003749,n_target=0,gamma=3
+2026-10-09T00:49:43 done=4310/8015 elapsed=11141.9s eta=9577.9s last=B_alpha0.005,r1=17.78,P2 only,coarse,beta=0.001581,n_target=0,gamma=10
+2026-10-09T00:49:54 done=4320/8015 elapsed=11152.7s eta=9539.2s last=B_alpha0.005,r1=17.78,P2 only,coarse,beta=0.006668,n_target=0,gamma=30
+2026-10-09T00:50:05 done=4330/8015 elapsed=11163.6s eta=9500.6s last=B_alpha0.005,r1=17.78,P2 only,coarse,beta=0.02812,n_target=0,gamma=100
+2026-10-09T00:50:16 done=4340/8015 elapsed=11174.5s eta=9462.3s last=B_alpha0.005,r1=17.78,P1 only (protect),coarse,beta=2.812e-07,n_target=5,gamma=1
+2026-10-09T00:50:27 done=4350/8015 elapsed=11186.4s eta=9424.8s last=B_alpha0.005,r1=17.78,P1 only (protect),coarse,beta=1.186e-06,n_target=10,gamma=1
+2026-10-09T00:50:45 done=4360/8015 elapsed=11203.7s eta=9392.1s last=B_alpha0.005,r1=17.78,P1 only (protect),coarse,beta=5e-06,n_target=15,gamma=1
+2026-10-09T00:51:32 done=4370/8015 elapsed=11251.1s eta=9384.5s last=B_alpha0.005,r1=17.78,P1 only (protect),coarse,beta=2.108e-05,n_target=20,gamma=1
+2026-10-09T00:52:18 done=4380/8015 elapsed=11296.9s eta=9375.4s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=8.891e-05,n_target=5,gamma=3
+2026-10-09T00:52:29 done=4390/8015 elapsed=11308.3s eta=9337.7s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=0.0003749,n_target=5,gamma=10
+2026-10-09T00:52:41 done=4400/8015 elapsed=11320.0s eta=9300.4s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=0.001581,n_target=5,gamma=30
+2026-10-09T00:52:52 done=4410/8015 elapsed=11331.3s eta=9262.9s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=0.006668,n_target=5,gamma=100
+2026-10-09T00:53:06 done=4420/8015 elapsed=11344.5s eta=9227.1s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=0.02812,n_target=10,gamma=3
+2026-10-09T00:53:19 done=4430/8015 elapsed=11358.1s eta=9191.6s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=2.812e-07,n_target=10,gamma=30
+2026-10-09T00:53:33 done=4440/8015 elapsed=11371.7s eta=9156.3s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=1.186e-06,n_target=10,gamma=100
+2026-10-09T00:54:06 done=4450/8015 elapsed=11405.1s eta=9136.9s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=5e-06,n_target=20,gamma=3
+2026-10-09T00:55:11 done=4458/8015 elapsed=11469.5s eta=9151.5s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=1.186e-06,n_target=20,gamma=10
+2026-10-09T00:55:27 done=4460/8015 elapsed=11485.6s eta=9155.0s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=2.108e-05,n_target=20,gamma=10
+2026-10-09T00:56:32 done=4468/8015 elapsed=11550.7s eta=9169.7s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=5e-06,n_target=20,gamma=30
+2026-10-09T00:56:48 done=4470/8015 elapsed=11566.8s eta=9173.2s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=8.891e-05,n_target=20,gamma=30
+2026-10-09T00:57:52 done=4478/8015 elapsed=11631.3s eta=9187.1s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=2.108e-05,n_target=20,gamma=100
+2026-10-09T00:58:08 done=4480/8015 elapsed=11647.3s eta=9190.4s last=B_alpha0.005,r1=17.78,P1+P2 (protect),coarse,beta=0.0003749,n_target=20,gamma=100
+2026-10-09T00:58:35 done=4490/8015 elapsed=11674.5s eta=9165.4s last=B_alpha0.005,r1=17.78,Base,fine,beta=0.0002435,n_target=0,gamma=1
+2026-10-09T00:58:40 done=4500/8015 elapsed=11679.0s eta=9122.6s last=B_alpha0.005,r1=17.78,Base,fine,beta=0.001186,n_target=0,gamma=1
+2026-10-09T00:59:25 done=4510/8015 elapsed=11724.0s eta=9111.4s last=B_alpha0.005,r1=17.78,P1+P2 (protect),fine,beta=0.0001436,n_target=20,gamma=3
+2026-10-09T00:59:49 done=4513/8015 elapsed=11748.2s eta=9116.4s last=B_alpha0.005,r1=17.78 マス完了
+2026-10-09T00:59:52 done=4520/8015 elapsed=11751.2s eta=9086.4s last=B_alpha0.005,r1=100,Base,coarse,beta=0.0002812,n_target=0,gamma=1
+2026-10-09T01:00:03 done=4530/8015 elapsed=11761.5s eta=9048.3s last=B_alpha0.005,r1=100,P2 only,coarse,beta=0.0002812,n_target=0,gamma=3
+2026-10-09T01:00:14 done=4540/8015 elapsed=11772.5s eta=9010.9s last=B_alpha0.005,r1=100,P2 only,coarse,beta=0.001186,n_target=0,gamma=10
+2026-10-09T01:00:25 done=4550/8015 elapsed=11783.6s eta=8973.6s last=B_alpha0.005,r1=100,P2 only,coarse,beta=0.005,n_target=0,gamma=30
+2026-10-09T01:00:36 done=4560/8015 elapsed=11794.5s eta=8936.4s last=B_alpha0.005,r1=100,P2 only,coarse,beta=5e-08,n_target=0,gamma=1000
+2026-10-09T01:00:46 done=4570/8015 elapsed=11805.5s eta=8899.3s last=B_alpha0.005,r1=100,P1 only (protect),coarse,beta=2.108e-07,n_target=5,gamma=1
+2026-10-09T01:00:59 done=4580/8015 elapsed=11817.6s eta=8863.2s last=B_alpha0.005,r1=100,P1 only (protect),coarse,beta=8.891e-07,n_target=10,gamma=1
+2026-10-09T01:01:17 done=4590/8015 elapsed=11836.3s eta=8832.1s last=B_alpha0.005,r1=100,P1 only (protect),coarse,beta=3.749e-06,n_target=15,gamma=1
+2026-10-09T01:02:10 done=4600/8015 elapsed=11889.4s eta=8826.6s last=B_alpha0.005,r1=100,P1 only (protect),coarse,beta=1.581e-05,n_target=20,gamma=1
+2026-10-09T01:02:49 done=4610/8015 elapsed=11928.4s eta=8810.5s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=6.668e-05,n_target=5,gamma=3
+2026-10-09T01:03:01 done=4620/8015 elapsed=11940.0s eta=8774.1s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=0.0002812,n_target=5,gamma=10
+2026-10-09T01:03:13 done=4630/8015 elapsed=11951.8s eta=8738.0s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=0.001186,n_target=5,gamma=30
+2026-10-09T01:03:25 done=4640/8015 elapsed=11963.5s eta=8701.9s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=0.005,n_target=5,gamma=100
+2026-10-09T01:03:38 done=4650/8015 elapsed=11976.9s eta=8667.1s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=5e-08,n_target=10,gamma=10
+2026-10-09T01:03:51 done=4660/8015 elapsed=11990.3s eta=8632.5s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=2.108e-07,n_target=10,gamma=30
+2026-10-09T01:04:05 done=4670/8015 elapsed=12003.7s eta=8597.9s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=8.891e-07,n_target=10,gamma=100
+2026-10-09T01:04:45 done=4680/8015 elapsed=12043.9s eta=8582.5s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=3.749e-06,n_target=20,gamma=3
+2026-10-09T01:05:50 done=4688/8015 elapsed=12108.5s eta=8593.2s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=8.891e-07,n_target=20,gamma=10
+2026-10-09T01:06:06 done=4690/8015 elapsed=12124.5s eta=8595.7s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=1.581e-05,n_target=20,gamma=10
+2026-10-09T01:07:10 done=4698/8015 elapsed=12188.8s eta=8605.9s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=3.749e-06,n_target=20,gamma=30
+2026-10-09T01:07:26 done=4700/8015 elapsed=12205.2s eta=8608.6s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=6.668e-05,n_target=20,gamma=30
+2026-10-09T01:08:31 done=4708/8015 elapsed=12269.5s eta=8618.4s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=1.581e-05,n_target=20,gamma=100
+2026-10-09T01:08:47 done=4710/8015 elapsed=12285.6s eta=8620.8s last=B_alpha0.005,r1=100,P1+P2 (protect),coarse,beta=0.0002812,n_target=20,gamma=100
+2026-10-09T01:09:06 done=4720/8015 elapsed=12305.2s eta=8590.2s last=B_alpha0.005,r1=100,Base,fine,beta=0.0002108,n_target=0,gamma=1
+2026-10-09T01:09:11 done=4730/8015 elapsed=12309.6s eta=8549.1s last=B_alpha0.005,r1=100,Base,fine,beta=0.001027,n_target=0,gamma=1
+2026-10-09T01:10:04 done=4740/8015 elapsed=12362.5s eta=8541.6s last=B_alpha0.005,r1=100,P1+P2 (protect),fine,beta=0.000174,n_target=20,gamma=3
+2026-10-09T01:10:20 done=4742/8015 elapsed=12378.6s eta=8543.9s last=B_alpha0.005,r1=100 マス完了
+2026-10-09T01:10:24 done=4750/8015 elapsed=12382.5s eta=8511.4s last=B_alpha0.02,r1=0.1,Base,coarse,beta=4.743,n_target=0,gamma=1
+2026-10-09T01:10:35 done=4760/8015 elapsed=12394.0s eta=8475.3s last=B_alpha0.02,r1=0.1,P2 only,coarse,beta=4.743,n_target=0,gamma=3
+2026-10-09T01:10:46 done=4770/8015 elapsed=12404.9s eta=8439.0s last=B_alpha0.02,r1=0.1,P2 only,coarse,beta=20,n_target=0,gamma=10
+2026-10-09T01:10:57 done=4780/8015 elapsed=12416.1s eta=8403.0s last=B_alpha0.02,r1=0.1,P2 only,coarse,beta=0.0002,n_target=0,gamma=100
+2026-10-09T01:11:08 done=4790/8015 elapsed=12427.0s eta=8366.9s last=B_alpha0.02,r1=0.1,P2 only,coarse,beta=0.0008434,n_target=0,gamma=1000
+2026-10-09T01:11:19 done=4800/8015 elapsed=12438.4s eta=8331.1s last=B_alpha0.02,r1=0.1,P1 only (protect),coarse,beta=0.003557,n_target=5,gamma=1
+2026-10-09T01:11:32 done=4810/8015 elapsed=12450.7s eta=8296.1s last=B_alpha0.02,r1=0.1,P1 only (protect),coarse,beta=0.015,n_target=10,gamma=1
+2026-10-09T01:11:52 done=4820/8015 elapsed=12470.5s eta=8266.3s last=B_alpha0.02,r1=0.1,P1 only (protect),coarse,beta=0.06325,n_target=15,gamma=1
+2026-10-09T01:12:50 done=4830/8015 elapsed=12528.9s eta=8261.8s last=B_alpha0.02,r1=0.1,P1 only (protect),coarse,beta=0.2667,n_target=20,gamma=1
+2026-10-09T01:13:22 done=4840/8015 elapsed=12561.3s eta=8240.1s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=1.125,n_target=5,gamma=3
+2026-10-09T01:13:34 done=4850/8015 elapsed=12572.8s eta=8204.7s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=4.743,n_target=5,gamma=10
+2026-10-09T01:13:45 done=4860/8015 elapsed=12584.2s eta=8169.3s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=20,n_target=5,gamma=30
+2026-10-09T01:13:57 done=4870/8015 elapsed=12595.7s eta=8134.2s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.0002,n_target=10,gamma=3
+2026-10-09T01:14:10 done=4880/8015 elapsed=12609.2s eta=8100.4s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.0008434,n_target=10,gamma=10
+2026-10-09T01:14:24 done=4890/8015 elapsed=12622.6s eta=8066.6s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.003557,n_target=10,gamma=30
+2026-10-09T01:14:37 done=4900/8015 elapsed=12636.0s eta=8032.9s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.015,n_target=10,gamma=100
+2026-10-09T01:15:25 done=4910/8015 elapsed=12683.8s eta=8021.0s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.06325,n_target=20,gamma=3
+2026-10-09T01:16:29 done=4918/8015 elapsed=12747.9s eta=8027.7s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.015,n_target=20,gamma=10
+2026-10-09T01:16:45 done=4920/8015 elapsed=12763.9s eta=8029.3s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.2667,n_target=20,gamma=10
+2026-10-09T01:17:49 done=4928/8015 elapsed=12828.4s eta=8036.0s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.06325,n_target=20,gamma=30
+2026-10-09T01:18:05 done=4930/8015 elapsed=12844.3s eta=8037.5s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=1.125,n_target=20,gamma=30
+2026-10-09T01:19:10 done=4938/8015 elapsed=12908.7s eta=8043.8s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=0.2667,n_target=20,gamma=100
+2026-10-09T01:19:26 done=4940/8015 elapsed=12924.9s eta=8045.3s last=B_alpha0.02,r1=0.1,P1+P2 (protect),coarse,beta=4.743,n_target=20,gamma=100
+2026-10-09T01:19:38 done=4950/8015 elapsed=12936.8s eta=8010.4s last=B_alpha0.02,r1=0.1,Base,fine,beta=0.0003822,n_target=0,gamma=1
+2026-10-09T01:19:42 done=4960/8015 elapsed=12941.3s eta=7970.9s last=B_alpha0.02,r1=0.1,Base,fine,beta=0.0007848,n_target=0,gamma=1
+2026-10-09T01:20:00 done=4970/8015 elapsed=12959.4s eta=7939.9s last=B_alpha0.02,r1=0.1,P1 only (protect),fine,beta=0.0006635,n_target=15,gamma=1
+2026-10-09T01:20:13 done=4980/8015 elapsed=12972.1s eta=7905.7s last=B_alpha0.02,r1=0.1,P1+P2 (protect),extend,beta=4.309e-05,n_target=10,gamma=3
+2026-10-09T01:20:15 done=4981/8015 elapsed=12973.6s eta=7902.4s last=B_alpha0.02,r1=0.1 マス完了
+2026-10-09T01:20:18 done=4990/8015 elapsed=12977.4s eta=7867.1s last=B_alpha0.02,r1=0.5623,Base,coarse,beta=3.557,n_target=0,gamma=1
+2026-10-09T01:20:30 done=5000/8015 elapsed=12989.1s eta=7832.4s last=B_alpha0.02,r1=0.5623,P2 only,coarse,beta=3.557,n_target=0,gamma=3
+2026-10-09T01:20:41 done=5010/8015 elapsed=12999.9s eta=7797.4s last=B_alpha0.02,r1=0.5623,P2 only,coarse,beta=3.557e-05,n_target=0,gamma=30
+2026-10-09T01:20:52 done=5020/8015 elapsed=13010.9s eta=7762.5s last=B_alpha0.02,r1=0.5623,P2 only,coarse,beta=0.00015,n_target=0,gamma=100
+2026-10-09T01:21:03 done=5030/8015 elapsed=13021.9s eta=7727.7s last=B_alpha0.02,r1=0.5623,P2 only,coarse,beta=0.0006325,n_target=0,gamma=1000
+2026-10-09T01:21:14 done=5040/8015 elapsed=13033.4s eta=7693.3s last=B_alpha0.02,r1=0.5623,P1 only (protect),coarse,beta=0.002667,n_target=5,gamma=1
+2026-10-09T01:21:27 done=5050/8015 elapsed=13046.2s eta=7659.8s last=B_alpha0.02,r1=0.5623,P1 only (protect),coarse,beta=0.01125,n_target=10,gamma=1
+2026-10-09T01:21:48 done=5060/8015 elapsed=13067.0s eta=7631.0s last=B_alpha0.02,r1=0.5623,P1 only (protect),coarse,beta=0.04743,n_target=15,gamma=1
+2026-10-09T01:22:52 done=5070/8015 elapsed=13131.1s eta=7627.4s last=B_alpha0.02,r1=0.5623,P1 only (protect),coarse,beta=0.2,n_target=20,gamma=1
+2026-10-09T01:23:18 done=5080/8015 elapsed=13156.8s eta=7601.4s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.8434,n_target=5,gamma=3
+2026-10-09T01:23:30 done=5090/8015 elapsed=13168.5s eta=7567.4s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=3.557,n_target=5,gamma=10
+2026-10-09T01:23:41 done=5100/8015 elapsed=13180.1s eta=7533.3s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=3.557e-05,n_target=5,gamma=100
+2026-10-09T01:23:53 done=5110/8015 elapsed=13192.1s eta=7499.6s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.00015,n_target=10,gamma=3
+2026-10-09T01:24:07 done=5120/8015 elapsed=13205.6s eta=7466.8s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.0006325,n_target=10,gamma=10
+2026-10-09T01:24:20 done=5130/8015 elapsed=13219.2s eta=7434.2s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.002667,n_target=10,gamma=30
+2026-10-09T01:24:34 done=5140/8015 elapsed=13232.8s eta=7401.6s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.01125,n_target=10,gamma=100
+2026-10-09T01:25:28 done=5150/8015 elapsed=13286.5s eta=7391.4s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.04743,n_target=20,gamma=3
+2026-10-09T01:26:33 done=5158/8015 elapsed=13351.9s eta=7395.6s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.01125,n_target=20,gamma=10
+2026-10-09T01:26:49 done=5160/8015 elapsed=13367.8s eta=7396.3s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.2,n_target=20,gamma=10
+2026-10-09T01:27:53 done=5168/8015 elapsed=13432.4s eta=7399.8s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.04743,n_target=20,gamma=30
+2026-10-09T01:28:10 done=5170/8015 elapsed=13448.8s eta=7400.7s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.8434,n_target=20,gamma=30
+2026-10-09T01:29:14 done=5178/8015 elapsed=13513.3s eta=7403.9s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=0.2,n_target=20,gamma=100
+2026-10-09T01:29:30 done=5180/8015 elapsed=13529.4s eta=7404.6s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),coarse,beta=3.557,n_target=20,gamma=100
+2026-10-09T01:29:35 done=5190/8015 elapsed=13533.9s eta=7366.7s last=B_alpha0.02,r1=0.5623,Base,fine,beta=0.0001732,n_target=0,gamma=1
+2026-10-09T01:29:41 done=5200/8015 elapsed=13539.7s eta=7329.6s last=B_alpha0.02,r1=0.5623,P2 only,fine,beta=5.746e-05,n_target=0,gamma=3
+2026-10-09T01:29:58 done=5210/8015 elapsed=13557.0s eta=7298.9s last=B_alpha0.02,r1=0.5623,P1+P2 (protect),fine,beta=7.303e-05,n_target=10,gamma=3
+2026-10-09T01:30:01 done=5212/8015 elapsed=13559.9s eta=7292.5s last=B_alpha0.02,r1=0.5623 マス完了
+2026-10-09T01:30:04 done=5220/8015 elapsed=13563.4s eta=7262.4s last=B_alpha0.02,r1=3.162,Base,coarse,beta=0.15,n_target=0,gamma=1
+2026-10-09T01:30:15 done=5230/8015 elapsed=13574.3s eta=7228.4s last=B_alpha0.02,r1=3.162,P2 only,coarse,beta=0.15,n_target=0,gamma=3
+2026-10-09T01:30:26 done=5240/8015 elapsed=13585.2s eta=7194.5s last=B_alpha0.02,r1=3.162,P2 only,coarse,beta=0.6325,n_target=0,gamma=10
+2026-10-09T01:30:37 done=5250/8015 elapsed=13596.1s eta=7160.6s last=B_alpha0.02,r1=3.162,P2 only,coarse,beta=6.325e-06,n_target=0,gamma=100
+2026-10-09T01:30:48 done=5260/8015 elapsed=13607.0s eta=7126.8s last=B_alpha0.02,r1=3.162,P2 only,coarse,beta=2.667e-05,n_target=0,gamma=1000
+2026-10-09T01:30:59 done=5270/8015 elapsed=13617.9s eta=7093.2s last=B_alpha0.02,r1=3.162,P1 only (protect),coarse,beta=0.0001125,n_target=5,gamma=1
+2026-10-09T01:31:11 done=5280/8015 elapsed=13630.2s eta=7060.3s last=B_alpha0.02,r1=3.162,P1 only (protect),coarse,beta=0.0004743,n_target=10,gamma=1
+2026-10-09T01:31:31 done=5290/8015 elapsed=13650.0s eta=7031.4s last=B_alpha0.02,r1=3.162,P1 only (protect),coarse,beta=0.002,n_target=15,gamma=1
+2026-10-09T01:32:29 done=5300/8015 elapsed=13708.4s eta=7022.3s last=B_alpha0.02,r1=3.162,P1 only (protect),coarse,beta=0.008434,n_target=20,gamma=1
+2026-10-09T01:33:01 done=5310/8015 elapsed=13740.2s eta=6999.5s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.03557,n_target=5,gamma=3
+2026-10-09T01:33:13 done=5320/8015 elapsed=13751.5s eta=6966.2s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.15,n_target=5,gamma=10
+2026-10-09T01:33:25 done=5330/8015 elapsed=13763.6s eta=6933.4s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.6325,n_target=5,gamma=30
+2026-10-09T01:33:36 done=5340/8015 elapsed=13775.2s eta=6900.5s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=6.325e-06,n_target=10,gamma=3
+2026-10-09T01:33:50 done=5350/8015 elapsed=13788.6s eta=6868.5s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=2.667e-05,n_target=10,gamma=10
+2026-10-09T01:34:03 done=5360/8015 elapsed=13801.9s eta=6836.6s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.0001125,n_target=10,gamma=30
+2026-10-09T01:34:16 done=5370/8015 elapsed=13815.4s eta=6804.8s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.0004743,n_target=10,gamma=100
+2026-10-09T01:35:03 done=5380/8015 elapsed=13862.0s eta=6789.3s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.002,n_target=20,gamma=3
+2026-10-09T01:36:07 done=5388/8015 elapsed=13926.3s eta=6790.0s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.0004743,n_target=20,gamma=10
+2026-10-09T01:36:23 done=5390/8015 elapsed=13942.4s eta=6790.1s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.008434,n_target=20,gamma=10
+2026-10-09T01:37:30 done=5398/8015 elapsed=14008.6s eta=6791.5s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.002,n_target=20,gamma=30
+2026-10-09T01:37:46 done=5400/8015 elapsed=14024.9s eta=6791.7s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.03557,n_target=20,gamma=30
+2026-10-09T01:38:51 done=5408/8015 elapsed=14089.6s eta=6792.1s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.008434,n_target=20,gamma=100
+2026-10-09T01:39:07 done=5410/8015 elapsed=14105.8s eta=6792.2s last=B_alpha0.02,r1=3.162,P1+P2 (protect),coarse,beta=0.15,n_target=20,gamma=100
+2026-10-09T01:39:19 done=5420/8015 elapsed=14117.8s eta=6759.4s last=B_alpha0.02,r1=3.162,Base,fine,beta=9.739e-05,n_target=0,gamma=1
+2026-10-09T01:39:24 done=5430/8015 elapsed=14122.8s eta=6723.3s last=B_alpha0.02,r1=3.162,P2 only,fine,beta=1.022e-05,n_target=0,gamma=10
+2026-10-09T01:40:04 done=5440/8015 elapsed=14163.1s eta=6704.1s last=B_alpha0.02,r1=3.162,P1+P2 (protect),fine,beta=4.309e-05,n_target=10,gamma=10
+2026-10-09T01:40:06 done=5441/8015 elapsed=14164.6s eta=6700.9s last=B_alpha0.02,r1=3.162 マス完了
+2026-10-09T01:40:10 done=5450/8015 elapsed=14168.6s eta=6668.3s last=B_alpha0.02,r1=17.78,Base,coarse,beta=0.1125,n_target=0,gamma=1
+2026-10-09T01:40:21 done=5460/8015 elapsed=14180.2s eta=6635.6s last=B_alpha0.02,r1=17.78,P2 only,coarse,beta=0.1125,n_target=0,gamma=3
+2026-10-09T01:40:32 done=5470/8015 elapsed=14191.3s eta=6602.7s last=B_alpha0.02,r1=17.78,P2 only,coarse,beta=1.125e-06,n_target=0,gamma=30
+2026-10-09T01:40:43 done=5480/8015 elapsed=14202.3s eta=6569.9s last=B_alpha0.02,r1=17.78,P2 only,coarse,beta=4.743e-06,n_target=0,gamma=100
+2026-10-09T01:40:54 done=5490/8015 elapsed=14213.3s eta=6537.1s last=B_alpha0.02,r1=17.78,P2 only,coarse,beta=2e-05,n_target=0,gamma=1000
+2026-10-09T01:41:06 done=5500/8015 elapsed=14224.5s eta=6504.5s last=B_alpha0.02,r1=17.78,P1 only (protect),coarse,beta=8.434e-05,n_target=5,gamma=1
+2026-10-09T01:41:19 done=5510/8015 elapsed=14237.5s eta=6472.8s last=B_alpha0.02,r1=17.78,P1 only (protect),coarse,beta=0.0003557,n_target=10,gamma=1
+2026-10-09T01:41:40 done=5520/8015 elapsed=14258.5s eta=6444.8s last=B_alpha0.02,r1=17.78,P1 only (protect),coarse,beta=0.0015,n_target=15,gamma=1
+2026-10-09T01:42:45 done=5530/8015 elapsed=14323.5s eta=6436.5s last=B_alpha0.02,r1=17.78,P1 only (protect),coarse,beta=0.006325,n_target=20,gamma=1
+2026-10-09T01:43:10 done=5540/8015 elapsed=14349.3s eta=6410.6s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.02667,n_target=5,gamma=3
+2026-10-09T01:43:22 done=5550/8015 elapsed=14361.0s eta=6378.3s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.1125,n_target=5,gamma=10
+2026-10-09T01:43:34 done=5560/8015 elapsed=14372.7s eta=6346.2s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=1.125e-06,n_target=5,gamma=100
+2026-10-09T01:43:46 done=5570/8015 elapsed=14384.6s eta=6314.3s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=4.743e-06,n_target=10,gamma=3
+2026-10-09T01:43:59 done=5580/8015 elapsed=14398.2s eta=6283.1s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=2e-05,n_target=10,gamma=10
+2026-10-09T01:44:13 done=5590/8015 elapsed=14412.2s eta=6252.2s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=8.434e-05,n_target=10,gamma=30
+2026-10-09T01:44:27 done=5600/8015 elapsed=14426.0s eta=6221.2s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.0003557,n_target=10,gamma=100
+2026-10-09T01:45:22 done=5610/8015 elapsed=14481.1s eta=6208.0s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.0015,n_target=20,gamma=3
+2026-10-09T01:46:28 done=5618/8015 elapsed=14546.8s eta=6206.6s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.0003557,n_target=20,gamma=10
+2026-10-09T01:46:44 done=5620/8015 elapsed=14563.1s eta=6206.2s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.006325,n_target=20,gamma=10
+2026-10-09T01:47:49 done=5628/8015 elapsed=14628.1s eta=6204.2s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.0015,n_target=20,gamma=30
+2026-10-09T01:48:05 done=5630/8015 elapsed=14644.2s eta=6203.6s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.02667,n_target=20,gamma=30
+2026-10-09T01:49:10 done=5638/8015 elapsed=14709.3s eta=6201.5s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.006325,n_target=20,gamma=100
+2026-10-09T01:49:27 done=5640/8015 elapsed=14725.7s eta=6201.0s last=B_alpha0.02,r1=17.78,P1+P2 (protect),coarse,beta=0.1125,n_target=20,gamma=100
+2026-10-09T01:49:31 done=5650/8015 elapsed=14730.1s eta=6165.8s last=B_alpha0.02,r1=17.78,Base,fine,beta=0.001732,n_target=0,gamma=1
+2026-10-09T01:49:37 done=5660/8015 elapsed=14736.0s eta=6131.3s last=B_alpha0.02,r1=17.78,P2 only,fine,beta=2.936e-06,n_target=0,gamma=1000
+2026-10-09T01:50:44 done=5670/8015 elapsed=14803.0s eta=6122.2s last=B_alpha0.02,r1=17.78,P1+P2 (protect),fine,beta=0.003915,n_target=20,gamma=3
+2026-10-09T01:50:44 done=5670/8015 elapsed=14803.1s eta=6122.3s last=B_alpha0.02,r1=17.78 マス完了
+2026-10-09T01:50:50 done=5680/8015 elapsed=14808.8s eta=6087.8s last=B_alpha0.02,r1=100,Check,check,beta=6.325e-05,n_target=0,gamma=1
+2026-10-09T01:51:01 done=5690/8015 elapsed=14819.7s eta=6055.5s last=B_alpha0.02,r1=100,P2 only,coarse,beta=2e-07,n_target=0,gamma=10
+2026-10-09T01:51:12 done=5700/8015 elapsed=14830.7s eta=6023.4s last=B_alpha0.02,r1=100,P2 only,coarse,beta=8.434e-07,n_target=0,gamma=30
+2026-10-09T01:51:23 done=5710/8015 elapsed=14841.8s eta=5991.3s last=B_alpha0.02,r1=100,P2 only,coarse,beta=3.557e-06,n_target=0,gamma=100
+2026-10-09T01:51:34 done=5720/8015 elapsed=14852.8s eta=5959.3s last=B_alpha0.02,r1=100,P2 only,coarse,beta=1.5e-05,n_target=0,gamma=1000
+2026-10-09T01:51:46 done=5730/8015 elapsed=14864.5s eta=5927.6s last=B_alpha0.02,r1=100,P1 only (protect),coarse,beta=6.325e-05,n_target=5,gamma=1
+2026-10-09T01:51:59 done=5740/8015 elapsed=14877.5s eta=5896.6s last=B_alpha0.02,r1=100,P1 only (protect),coarse,beta=0.0002667,n_target=10,gamma=1
+2026-10-09T01:52:21 done=5750/8015 elapsed=14899.8s eta=5869.2s last=B_alpha0.02,r1=100,P1 only (protect),coarse,beta=0.001125,n_target=15,gamma=1
+2026-10-09T01:53:23 done=5759/8015 elapsed=14962.1s eta=5861.2s last=B_alpha0.02,r1=100,P1 only (protect),coarse,beta=0.001125,n_target=20,gamma=1
+2026-10-09T01:53:31 done=5760/8015 elapsed=14970.4s eta=5860.8s last=B_alpha0.02,r1=100,P1 only (protect),coarse,beta=0.004743,n_target=20,gamma=1
+2026-10-09T01:53:50 done=5770/8015 elapsed=14988.9s eta=5831.9s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=0.02,n_target=5,gamma=3
+2026-10-09T01:54:01 done=5780/8015 elapsed=15000.5s eta=5800.3s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=2e-07,n_target=5,gamma=30
+2026-10-09T01:54:13 done=5790/8015 elapsed=15012.0s eta=5768.9s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=8.434e-07,n_target=5,gamma=100
+2026-10-09T01:54:25 done=5800/8015 elapsed=15024.3s eta=5737.7s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=3.557e-06,n_target=10,gamma=3
+2026-10-09T01:54:39 done=5810/8015 elapsed=15037.8s eta=5707.1s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=1.5e-05,n_target=10,gamma=10
+2026-10-09T01:54:53 done=5820/8015 elapsed=15051.9s eta=5676.8s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=6.325e-05,n_target=10,gamma=30
+2026-10-09T01:55:06 done=5830/8015 elapsed=15065.4s eta=5646.3s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=0.0002667,n_target=10,gamma=100
+2026-10-09T01:56:08 done=5840/8015 elapsed=15127.1s eta=5633.8s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=0.001125,n_target=20,gamma=3
+2026-10-09T01:57:13 done=5848/8015 elapsed=15192.4s eta=5629.6s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=0.0002667,n_target=20,gamma=10
+2026-10-09T01:57:30 done=5850/8015 elapsed=15208.8s eta=5628.6s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=0.004743,n_target=20,gamma=10
+2026-10-09T01:58:35 done=5858/8015 elapsed=15274.5s eta=5624.3s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=0.001125,n_target=20,gamma=30
+2026-10-09T01:58:52 done=5860/8015 elapsed=15290.6s eta=5623.1s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=0.02,n_target=20,gamma=30
+2026-10-09T01:59:57 done=5868/8015 elapsed=15355.7s eta=5618.4s last=B_alpha0.02,r1=100,P1+P2 (protect),coarse,beta=0.004743,n_target=20,gamma=100
+2026-10-09T02:00:05 done=5870/8015 elapsed=15364.3s eta=5614.4s last=B_alpha0.02,r1=100,Base,fine,beta=0.000308,n_target=0,gamma=1
+2026-10-09T02:00:10 done=5880/8015 elapsed=15368.9s eta=5580.4s last=B_alpha0.02,r1=100,Base,fine,beta=0.0015,n_target=0,gamma=1
+2026-10-09T02:00:16 done=5890/8015 elapsed=15375.3s eta=5547.1s last=B_alpha0.02,r1=100,P2 only,fine,beta=5.746e-06,n_target=0,gamma=1000
+2026-10-09T02:01:23 done=5899/8015 elapsed=15441.8s eta=5539.0s last=B_alpha0.02,r1=100,P1+P2 (protect),fine,beta=0.002936,n_target=20,gamma=3
+2026-10-09T02:01:23 done=5899/8015 elapsed=15441.8s eta=5539.0s last=B_alpha0.02,r1=100 マス完了
+2026-10-09T02:01:24 done=5900/8015 elapsed=15442.5s eta=5535.7s last=B_alpha1,r1=0.1,Base,coarse,beta=0.01,n_target=0,gamma=1
+2026-10-09T02:01:30 done=5910/8015 elapsed=15449.4s eta=5502.7s last=B_alpha1,r1=0.1,P2 only,coarse,beta=0.01,n_target=0,gamma=3
+2026-10-09T02:01:42 done=5920/8015 elapsed=15460.7s eta=5471.3s last=B_alpha1,r1=0.1,P2 only,coarse,beta=0.04217,n_target=0,gamma=10
+2026-10-09T02:01:53 done=5930/8015 elapsed=15471.8s eta=5439.9s last=B_alpha1,r1=0.1,P2 only,coarse,beta=0.1778,n_target=0,gamma=30
+2026-10-09T02:02:04 done=5940/8015 elapsed=15482.9s eta=5408.6s last=B_alpha1,r1=0.1,P2 only,coarse,beta=0.7499,n_target=0,gamma=100
+2026-10-09T02:02:15 done=5950/8015 elapsed=15493.9s eta=5377.3s last=B_alpha1,r1=0.1,P2 only,coarse,beta=3.162,n_target=0,gamma=1000
+2026-10-09T02:02:26 done=5960/8015 elapsed=15505.2s eta=5346.2s last=B_alpha1,r1=0.1,P1 only (protect),coarse,beta=13.34,n_target=5,gamma=1
+2026-10-09T02:02:39 done=5970/8015 elapsed=15518.0s eta=5315.6s last=B_alpha1,r1=0.1,P1 only (protect),coarse,beta=56.23,n_target=10,gamma=1
+2026-10-09T02:03:02 done=5980/8015 elapsed=15541.2s eta=5288.7s last=B_alpha1,r1=0.1,P1 only (protect),coarse,beta=237.1,n_target=15,gamma=1
+2026-10-09T02:04:10 done=5989/8015 elapsed=15608.8s eta=5280.2s last=B_alpha1,r1=0.1,P1 only (protect),coarse,beta=237.1,n_target=20,gamma=1
+2026-10-09T02:04:18 done=5990/8015 elapsed=15616.8s eta=5279.5s last=B_alpha1,r1=0.1,P1 only (protect),coarse,beta=1000,n_target=20,gamma=1
+2026-10-09T02:04:29 done=6000/8015 elapsed=15628.2s eta=5248.5s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=0.01,n_target=5,gamma=10
+2026-10-09T02:04:41 done=6010/8015 elapsed=15639.5s eta=5217.5s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=0.04217,n_target=5,gamma=30
+2026-10-09T02:04:52 done=6020/8015 elapsed=15650.9s eta=5186.6s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=0.1778,n_target=5,gamma=100
+2026-10-09T02:05:04 done=6030/8015 elapsed=15663.2s eta=5156.1s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=0.7499,n_target=10,gamma=3
+2026-10-09T02:05:18 done=6040/8015 elapsed=15676.7s eta=5126.1s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=3.162,n_target=10,gamma=10
+2026-10-09T02:05:32 done=6050/8015 elapsed=15690.7s eta=5096.2s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=13.34,n_target=10,gamma=30
+2026-10-09T02:05:45 done=6060/8015 elapsed=15704.1s eta=5066.3s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=56.23,n_target=10,gamma=100
+2026-10-09T02:06:52 done=6070/8015 elapsed=15771.3s eta=5053.6s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=237.1,n_target=20,gamma=3
+2026-10-09T02:07:58 done=6078/8015 elapsed=15836.5s eta=5046.9s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=56.23,n_target=20,gamma=10
+2026-10-09T02:08:14 done=6080/8015 elapsed=15852.7s eta=5045.2s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=1000,n_target=20,gamma=10
+2026-10-09T02:09:18 done=6088/8015 elapsed=15917.4s eta=5038.2s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=237.1,n_target=20,gamma=30
+2026-10-09T02:09:35 done=6090/8015 elapsed=15933.5s eta=5036.4s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=0.01,n_target=20,gamma=100
+2026-10-09T02:10:39 done=6098/8015 elapsed=15998.5s eta=5029.4s last=B_alpha1,r1=0.1,P1+P2 (protect),coarse,beta=1000,n_target=20,gamma=100
+2026-10-09T02:10:40 done=6100/8015 elapsed=15999.3s eta=5022.7s last=B_alpha1,r1=0.1,Base,fine,beta=0.05623,n_target=0,gamma=1
+2026-10-09T02:10:45 done=6110/8015 elapsed=16003.7s eta=4989.7s last=B_alpha1,r1=0.1,Base,fine,beta=0.2738,n_target=0,gamma=1
+2026-10-09T02:10:52 done=6120/8015 elapsed=16011.0s eta=4957.7s last=B_alpha1,r1=0.1,P2 only,fine,beta=0.1101,n_target=0,gamma=10
+2026-10-09T02:11:03 done=6128/8015 elapsed=16021.8s eta=4933.6s last=B_alpha1,r1=0.1 マス完了
+2026-10-09T02:11:04 done=6130/8015 elapsed=16022.6s eta=4927.0s last=B_alpha1,r1=0.5623,Base,coarse,beta=0.007499,n_target=0,gamma=1
+2026-10-09T02:11:11 done=6140/8015 elapsed=16030.0s eta=4895.2s last=B_alpha1,r1=0.5623,P2 only,coarse,beta=0.007499,n_target=0,gamma=3
+2026-10-09T02:11:22 done=6150/8015 elapsed=16040.9s eta=4864.4s last=B_alpha1,r1=0.5623,P2 only,coarse,beta=0.03162,n_target=0,gamma=10
+2026-10-09T02:11:33 done=6160/8015 elapsed=16052.3s eta=4833.9s last=B_alpha1,r1=0.5623,P2 only,coarse,beta=0.1334,n_target=0,gamma=30
+2026-10-09T02:11:44 done=6170/8015 elapsed=16063.3s eta=4803.4s last=B_alpha1,r1=0.5623,P2 only,coarse,beta=0.5623,n_target=0,gamma=100
+2026-10-09T02:11:55 done=6180/8015 elapsed=16074.4s eta=4772.9s last=B_alpha1,r1=0.5623,P2 only,coarse,beta=2.371,n_target=0,gamma=1000
+2026-10-09T02:12:07 done=6190/8015 elapsed=16085.7s eta=4742.6s last=B_alpha1,r1=0.5623,P1 only (protect),coarse,beta=10,n_target=5,gamma=1
+2026-10-09T02:12:20 done=6200/8015 elapsed=16099.1s eta=4712.9s last=B_alpha1,r1=0.5623,P1 only (protect),coarse,beta=42.17,n_target=10,gamma=1
+2026-10-09T02:12:45 done=6210/8015 elapsed=16123.9s eta=4686.6s last=B_alpha1,r1=0.5623,P1 only (protect),coarse,beta=177.8,n_target=15,gamma=1
+2026-10-09T02:13:50 done=6218/8015 elapsed=16189.4s eta=4678.7s last=B_alpha1,r1=0.5623,P1 only (protect),coarse,beta=42.17,n_target=20,gamma=1
+2026-10-09T02:14:00 done=6220/8015 elapsed=16198.6s eta=4674.7s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=0.001778,n_target=5,gamma=3
+2026-10-09T02:14:11 done=6230/8015 elapsed=16210.3s eta=4644.5s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=0.007499,n_target=5,gamma=10
+2026-10-09T02:14:23 done=6240/8015 elapsed=16221.8s eta=4614.4s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=0.03162,n_target=5,gamma=30
+2026-10-09T02:14:35 done=6250/8015 elapsed=16233.5s eta=4584.3s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=0.1334,n_target=5,gamma=100
+2026-10-09T02:14:47 done=6260/8015 elapsed=16246.3s eta=4554.7s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=0.5623,n_target=10,gamma=3
+2026-10-09T02:15:01 done=6270/8015 elapsed=16260.3s eta=4525.4s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=2.371,n_target=10,gamma=10
+2026-10-09T02:15:15 done=6280/8015 elapsed=16274.4s eta=4496.2s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=10,n_target=10,gamma=30
+2026-10-09T02:15:29 done=6290/8015 elapsed=16288.3s eta=4467.0s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=42.17,n_target=10,gamma=100
+2026-10-09T02:16:36 done=6299/8015 elapsed=16354.9s eta=4455.5s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=42.17,n_target=20,gamma=3
+2026-10-09T02:16:44 done=6300/8015 elapsed=16363.1s eta=4454.4s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=177.8,n_target=20,gamma=3
+2026-10-09T02:17:49 done=6308/8015 elapsed=16428.3s eta=4445.6s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=42.17,n_target=20,gamma=10
+2026-10-09T02:18:05 done=6310/8015 elapsed=16444.4s eta=4443.4s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=0.001778,n_target=20,gamma=30
+2026-10-09T02:19:10 done=6318/8015 elapsed=16509.1s eta=4434.3s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=177.8,n_target=20,gamma=30
+2026-10-09T02:19:27 done=6320/8015 elapsed=16526.0s eta=4432.2s last=B_alpha1,r1=0.5623,P1+P2 (protect),coarse,beta=0.007499,n_target=20,gamma=100
+2026-10-09T02:20:25 done=6330/8015 elapsed=16583.9s eta=4414.5s last=B_alpha1,r1=0.5623,Base,fine,beta=0.0487,n_target=0,gamma=1
+2026-10-09T02:20:29 done=6340/8015 elapsed=16588.3s eta=4382.6s last=B_alpha1,r1=0.5623,Base,fine,beta=0.2371,n_target=0,gamma=1
+2026-10-09T02:20:38 done=6350/8015 elapsed=16596.5s eta=4351.7s last=B_alpha1,r1=0.5623,P1 only (protect),fine,beta=0.2154,n_target=10,gamma=1
+2026-10-09T02:20:47 done=6357/8015 elapsed=16606.1s eta=4331.1s last=B_alpha1,r1=0.5623 マス完了
+2026-10-09T02:20:48 done=6360/8015 elapsed=16607.5s eta=4321.6s last=B_alpha1,r1=3.162,Base,coarse,beta=0.005623,n_target=0,gamma=1
+2026-10-09T02:20:56 done=6370/8015 elapsed=16615.2s eta=4290.7s last=B_alpha1,r1=3.162,P2 only,coarse,beta=0.005623,n_target=0,gamma=3
+2026-10-09T02:21:07 done=6380/8015 elapsed=16626.2s eta=4260.8s last=B_alpha1,r1=3.162,P2 only,coarse,beta=0.02371,n_target=0,gamma=10
+2026-10-09T02:21:18 done=6390/8015 elapsed=16637.2s eta=4230.9s last=B_alpha1,r1=3.162,P2 only,coarse,beta=0.1,n_target=0,gamma=30
+2026-10-09T02:21:29 done=6400/8015 elapsed=16648.4s eta=4201.1s last=B_alpha1,r1=3.162,P2 only,coarse,beta=0.4217,n_target=0,gamma=100
+2026-10-09T02:21:40 done=6410/8015 elapsed=16659.4s eta=4171.3s last=B_alpha1,r1=3.162,P2 only,coarse,beta=1.778,n_target=0,gamma=1000
+2026-10-09T02:21:52 done=6420/8015 elapsed=16670.9s eta=4141.8s last=B_alpha1,r1=3.162,P1 only (protect),coarse,beta=7.499,n_target=5,gamma=1
+2026-10-09T02:22:06 done=6430/8015 elapsed=16685.1s eta=4112.9s last=B_alpha1,r1=3.162,P1 only (protect),coarse,beta=31.62,n_target=10,gamma=1
+2026-10-09T02:22:38 done=6440/8015 elapsed=16717.1s eta=4088.4s last=B_alpha1,r1=3.162,P1 only (protect),coarse,beta=0.0003162,n_target=20,gamma=1
+2026-10-09T02:23:44 done=6448/8015 elapsed=16782.6s eta=4078.5s last=B_alpha1,r1=3.162,P1 only (protect),coarse,beta=31.62,n_target=20,gamma=1
+2026-10-09T02:23:46 done=6450/8015 elapsed=16784.9s eta=4072.6s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.001334,n_target=5,gamma=3
+2026-10-09T02:23:57 done=6460/8015 elapsed=16796.4s eta=4043.1s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.005623,n_target=5,gamma=10
+2026-10-09T02:24:09 done=6470/8015 elapsed=16807.9s eta=4013.6s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.02371,n_target=5,gamma=30
+2026-10-09T02:24:21 done=6480/8015 elapsed=16819.7s eta=3984.3s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.1,n_target=5,gamma=100
+2026-10-09T02:24:34 done=6490/8015 elapsed=16832.7s eta=3955.3s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.4217,n_target=10,gamma=3
+2026-10-09T02:24:47 done=6500/8015 elapsed=16846.3s eta=3926.5s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=1.778,n_target=10,gamma=10
+2026-10-09T02:25:01 done=6510/8015 elapsed=16860.3s eta=3897.8s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=7.499,n_target=10,gamma=30
+2026-10-09T02:25:15 done=6520/8015 elapsed=16873.8s eta=3869.1s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=31.62,n_target=10,gamma=100
+2026-10-09T02:26:21 done=6528/8015 elapsed=16939.5s eta=3858.6s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=7.499,n_target=20,gamma=3
+2026-10-09T02:26:37 done=6530/8015 elapsed=16956.0s eta=3856.0s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.0003162,n_target=20,gamma=10
+2026-10-09T02:27:42 done=6538/8015 elapsed=17021.0s eta=3845.2s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=31.62,n_target=20,gamma=10
+2026-10-09T02:27:58 done=6540/8015 elapsed=17037.1s eta=3842.5s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.001334,n_target=20,gamma=30
+2026-10-09T02:29:04 done=6548/8015 elapsed=17102.5s eta=3831.6s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.0003162,n_target=20,gamma=100
+2026-10-09T02:29:20 done=6550/8015 elapsed=17118.9s eta=3828.9s last=B_alpha1,r1=3.162,P1+P2 (protect),coarse,beta=0.005623,n_target=20,gamma=100
+2026-10-09T02:30:10 done=6560/8015 elapsed=17169.3s eta=3808.1s last=B_alpha1,r1=3.162,Base,fine,beta=0.1778,n_target=0,gamma=1
+2026-10-09T02:30:15 done=6570/8015 elapsed=17173.6s eta=3777.1s last=B_alpha1,r1=3.162,Base,fine,beta=0.866,n_target=0,gamma=1
+2026-10-09T02:30:26 done=6580/8015 elapsed=17185.0s eta=3747.8s last=B_alpha1,r1=3.162,P1 only (protect),fine,beta=1.101,n_target=15,gamma=1
+2026-10-09T02:30:37 done=6586/8015 elapsed=17195.6s eta=3731.0s last=B_alpha1,r1=3.162 マス完了
+2026-10-09T02:30:38 done=6590/8015 elapsed=17197.5s eta=3718.7s last=B_alpha1,r1=17.78,Base,coarse,beta=0.004217,n_target=0,gamma=1
+2026-10-09T02:30:47 done=6600/8015 elapsed=17205.8s eta=3688.8s last=B_alpha1,r1=17.78,P2 only,coarse,beta=0.004217,n_target=0,gamma=3
+2026-10-09T02:30:58 done=6610/8015 elapsed=17217.1s eta=3659.6s last=B_alpha1,r1=17.78,P2 only,coarse,beta=0.01778,n_target=0,gamma=10
+2026-10-09T02:31:09 done=6620/8015 elapsed=17228.0s eta=3630.4s last=B_alpha1,r1=17.78,P2 only,coarse,beta=0.07499,n_target=0,gamma=30
+2026-10-09T02:31:21 done=6630/8015 elapsed=17239.5s eta=3601.3s last=B_alpha1,r1=17.78,P2 only,coarse,beta=0.3162,n_target=0,gamma=100
+2026-10-09T02:31:32 done=6640/8015 elapsed=17251.2s eta=3572.3s last=B_alpha1,r1=17.78,P2 only,coarse,beta=1.334,n_target=0,gamma=1000
+2026-10-09T02:31:44 done=6650/8015 elapsed=17262.7s eta=3543.4s last=B_alpha1,r1=17.78,P1 only (protect),coarse,beta=5.623,n_target=5,gamma=1
+2026-10-09T02:31:58 done=6660/8015 elapsed=17277.3s eta=3515.1s last=B_alpha1,r1=17.78,P1 only (protect),coarse,beta=5.623e-05,n_target=15,gamma=1
+2026-10-09T02:32:36 done=6670/8015 elapsed=17314.8s eta=3491.5s last=B_alpha1,r1=17.78,P1 only (protect),coarse,beta=0.0002371,n_target=20,gamma=1
+2026-10-09T02:33:36 done=6680/8015 elapsed=17375.1s eta=3472.4s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.001,n_target=5,gamma=3
+2026-10-09T02:33:48 done=6690/8015 elapsed=17386.9s eta=3443.6s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.004217,n_target=5,gamma=10
+2026-10-09T02:34:00 done=6700/8015 elapsed=17398.5s eta=3414.8s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.01778,n_target=5,gamma=30
+2026-10-09T02:34:11 done=6710/8015 elapsed=17410.1s eta=3386.0s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.07499,n_target=5,gamma=100
+2026-10-09T02:34:24 done=6720/8015 elapsed=17423.2s eta=3357.6s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.3162,n_target=10,gamma=3
+2026-10-09T02:34:38 done=6730/8015 elapsed=17437.4s eta=3329.4s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=1.334,n_target=10,gamma=10
+2026-10-09T02:34:52 done=6740/8015 elapsed=17451.1s eta=3301.2s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=5.623,n_target=10,gamma=30
+2026-10-09T02:35:12 done=6750/8015 elapsed=17471.5s eta=3274.3s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=5.623e-05,n_target=20,gamma=3
+2026-10-09T02:36:17 done=6758/8015 elapsed=17536.5s eta=3261.8s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=5.623,n_target=20,gamma=3
+2026-10-09T02:36:34 done=6760/8015 elapsed=17552.8s eta=3258.7s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.0002371,n_target=20,gamma=10
+2026-10-09T02:37:38 done=6768/8015 elapsed=17617.3s eta=3246.0s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=5.623e-05,n_target=20,gamma=30
+2026-10-09T02:37:54 done=6770/8015 elapsed=17632.9s eta=3242.7s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.001,n_target=20,gamma=30
+2026-10-09T02:38:56 done=6778/8015 elapsed=17695.3s eta=3229.4s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.0002371,n_target=20,gamma=100
+2026-10-09T02:39:12 done=6780/8015 elapsed=17710.7s eta=3226.1s last=B_alpha1,r1=17.78,P1+P2 (protect),coarse,beta=0.004217,n_target=20,gamma=100
+2026-10-09T02:39:53 done=6790/8015 elapsed=17751.9s eta=3202.7s last=B_alpha1,r1=17.78,Base,fine,beta=0.154,n_target=0,gamma=1
+2026-10-09T02:39:57 done=6800/8015 elapsed=17756.2s eta=3172.6s last=B_alpha1,r1=17.78,Base,fine,beta=0.7499,n_target=0,gamma=1
+2026-10-09T02:40:10 done=6810/8015 elapsed=17769.2s eta=3144.2s last=B_alpha1,r1=17.78,P1 only (protect),fine,beta=2.154,n_target=15,gamma=1
+2026-10-09T02:40:44 done=6815/8015 elapsed=17802.7s eta=3134.7s last=B_alpha1,r1=17.78 マス完了
+2026-10-09T02:40:46 done=6820/8015 elapsed=17804.9s eta=3119.8s last=B_alpha1,r1=100,Base,coarse,beta=0.003162,n_target=0,gamma=1
+2026-10-09T02:40:55 done=6830/8015 elapsed=17813.8s eta=3090.7s last=B_alpha1,r1=100,P2 only,coarse,beta=0.003162,n_target=0,gamma=3
+2026-10-09T02:41:05 done=6840/8015 elapsed=17824.3s eta=3061.9s last=B_alpha1,r1=100,P2 only,coarse,beta=0.01334,n_target=0,gamma=10
+2026-10-09T02:41:16 done=6850/8015 elapsed=17834.8s eta=3033.2s last=B_alpha1,r1=100,P2 only,coarse,beta=0.05623,n_target=0,gamma=30
+2026-10-09T02:41:27 done=6860/8015 elapsed=17845.5s eta=3004.6s last=B_alpha1,r1=100,P2 only,coarse,beta=0.2371,n_target=0,gamma=100
+2026-10-09T02:41:37 done=6870/8015 elapsed=17856.1s eta=2976.0s last=B_alpha1,r1=100,P2 only,coarse,beta=1,n_target=0,gamma=1000
+2026-10-09T02:41:48 done=6880/8015 elapsed=17867.2s eta=2947.6s last=B_alpha1,r1=100,P1 only (protect),coarse,beta=1e-05,n_target=10,gamma=1
+2026-10-09T02:42:04 done=6890/8015 elapsed=17882.6s eta=2919.9s last=B_alpha1,r1=100,P1 only (protect),coarse,beta=4.217e-05,n_target=15,gamma=1
+2026-10-09T02:42:45 done=6900/8015 elapsed=17923.5s eta=2896.3s last=B_alpha1,r1=100,P1 only (protect),coarse,beta=0.0001778,n_target=20,gamma=1
+2026-10-09T02:43:36 done=6910/8015 elapsed=17975.0s eta=2874.4s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.0007499,n_target=5,gamma=3
+2026-10-09T02:43:47 done=6920/8015 elapsed=17985.9s eta=2846.0s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.003162,n_target=5,gamma=10
+2026-10-09T02:43:58 done=6930/8015 elapsed=17996.8s eta=2817.7s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.01334,n_target=5,gamma=30
+2026-10-09T02:44:09 done=6940/8015 elapsed=18007.6s eta=2789.4s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.05623,n_target=5,gamma=100
+2026-10-09T02:44:21 done=6950/8015 elapsed=18020.2s eta=2761.4s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.2371,n_target=10,gamma=3
+2026-10-09T02:44:34 done=6960/8015 elapsed=18033.5s eta=2733.5s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=1,n_target=10,gamma=10
+2026-10-09T02:44:47 done=6970/8015 elapsed=18046.3s eta=2705.7s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=1e-05,n_target=10,gamma=100
+2026-10-09T02:45:14 done=6980/8015 elapsed=18073.1s eta=2679.9s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=4.217e-05,n_target=20,gamma=3
+2026-10-09T02:46:17 done=6988/8015 elapsed=18135.8s eta=2665.4s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=1e-05,n_target=20,gamma=10
+2026-10-09T02:46:33 done=6990/8015 elapsed=18151.5s eta=2661.7s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.0001778,n_target=20,gamma=10
+2026-10-09T02:47:35 done=6998/8015 elapsed=18214.3s eta=2647.0s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=4.217e-05,n_target=20,gamma=30
+2026-10-09T02:47:51 done=7000/8015 elapsed=18229.9s eta=2643.3s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.0007499,n_target=20,gamma=30
+2026-10-09T02:48:54 done=7008/8015 elapsed=18292.6s eta=2628.5s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.0001778,n_target=20,gamma=100
+2026-10-09T02:49:09 done=7010/8015 elapsed=18308.1s eta=2624.8s last=B_alpha1,r1=100,P1+P2 (protect),coarse,beta=0.003162,n_target=20,gamma=100
+2026-10-09T02:49:43 done=7020/8015 elapsed=18342.0s eta=2599.8s last=B_alpha1,r1=100,Base,fine,beta=0.1334,n_target=0,gamma=1
+2026-10-09T02:49:47 done=7030/8015 elapsed=18346.1s eta=2570.5s last=B_alpha1,r1=100,Base,fine,beta=0.6494,n_target=0,gamma=1
+2026-10-09T02:50:03 done=7040/8015 elapsed=18361.8s eta=2543.0s last=B_alpha1,r1=100,P1 only (protect),fine,beta=0.619,n_target=15,gamma=1
+2026-10-09T02:50:07 done=7044/8015 elapsed=18366.4s eta=2531.8s last=B_alpha1,r1=100 マス完了
+2026-10-09T02:50:10 done=7050/8015 elapsed=18368.9s eta=2514.3s last=B_alpha10,r1=0.1,Base,coarse,beta=133.4,n_target=0,gamma=1
+2026-10-09T02:50:19 done=7060/8015 elapsed=18377.7s eta=2485.9s last=B_alpha10,r1=0.1,P2 only,coarse,beta=133.4,n_target=0,gamma=3
+2026-10-09T02:50:28 done=7070/8015 elapsed=18387.4s eta=2457.7s last=B_alpha10,r1=0.1,P2 only,coarse,beta=562.3,n_target=0,gamma=10
+2026-10-09T02:50:38 done=7080/8015 elapsed=18397.2s eta=2429.6s last=B_alpha10,r1=0.1,P2 only,coarse,beta=2371,n_target=0,gamma=30
+2026-10-09T02:50:48 done=7090/8015 elapsed=18406.8s eta=2401.5s last=B_alpha10,r1=0.1,P2 only,coarse,beta=1e+04,n_target=0,gamma=100
+2026-10-09T02:50:58 done=7100/8015 elapsed=18416.5s eta=2373.4s last=B_alpha10,r1=0.1,P1 only (protect),coarse,beta=0.1,n_target=5,gamma=1
+2026-10-09T02:51:08 done=7110/8015 elapsed=18426.8s eta=2345.5s last=B_alpha10,r1=0.1,P1 only (protect),coarse,beta=0.4217,n_target=10,gamma=1
+2026-10-09T02:51:23 done=7120/8015 elapsed=18441.8s eta=2318.2s last=B_alpha10,r1=0.1,P1 only (protect),coarse,beta=1.778,n_target=15,gamma=1
+2026-10-09T02:52:05 done=7130/8015 elapsed=18484.4s eta=2294.3s last=B_alpha10,r1=0.1,P1 only (protect),coarse,beta=7.499,n_target=20,gamma=1
+2026-10-09T02:52:46 done=7140/8015 elapsed=18525.0s eta=2270.2s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=31.62,n_target=5,gamma=3
+2026-10-09T02:52:56 done=7150/8015 elapsed=18534.9s eta=2242.3s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=133.4,n_target=5,gamma=10
+2026-10-09T02:53:06 done=7160/8015 elapsed=18544.9s eta=2214.5s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=562.3,n_target=5,gamma=30
+2026-10-09T02:53:16 done=7170/8015 elapsed=18554.9s eta=2186.7s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=2371,n_target=5,gamma=100
+2026-10-09T02:53:28 done=7180/8015 elapsed=18566.7s eta=2159.2s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=1e+04,n_target=10,gamma=3
+2026-10-09T02:53:40 done=7190/8015 elapsed=18579.0s eta=2131.8s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=0.1,n_target=10,gamma=30
+2026-10-09T02:53:52 done=7200/8015 elapsed=18590.7s eta=2104.4s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=0.4217,n_target=10,gamma=100
+2026-10-09T02:54:21 done=7210/8015 elapsed=18620.2s eta=2079.0s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=1.778,n_target=20,gamma=3
+2026-10-09T02:55:25 done=7219/8015 elapsed=18684.1s eta=2060.2s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=1.778,n_target=20,gamma=10
+2026-10-09T02:55:33 done=7220/8015 elapsed=18691.8s eta=2058.2s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=7.499,n_target=20,gamma=10
+2026-10-09T02:56:37 done=7229/8015 elapsed=18756.4s eta=2039.4s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=7.499,n_target=20,gamma=30
+2026-10-09T02:56:45 done=7230/8015 elapsed=18763.5s eta=2037.3s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=31.62,n_target=20,gamma=30
+2026-10-09T02:57:49 done=7239/8015 elapsed=18827.6s eta=2018.3s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=31.62,n_target=20,gamma=100
+2026-10-09T02:57:56 done=7240/8015 elapsed=18834.8s eta=2016.2s last=B_alpha10,r1=0.1,P1+P2 (protect),coarse,beta=133.4,n_target=20,gamma=100
+2026-10-09T02:58:20 done=7250/8015 elapsed=18858.6s eta=1989.9s last=B_alpha10,r1=0.1,Base,fine,beta=4.87,n_target=0,gamma=1
+2026-10-09T02:58:23 done=7260/8015 elapsed=18862.5s eta=1961.6s last=B_alpha10,r1=0.1,Base,fine,beta=23.71,n_target=0,gamma=1
+2026-10-09T02:58:33 done=7270/8015 elapsed=18871.8s eta=1933.9s last=B_alpha10,r1=0.1,P1+P2 (protect),fine,beta=0.1616,n_target=5,gamma=30
+2026-10-09T02:58:36 done=7273/8015 elapsed=18874.9s eta=1925.6s last=B_alpha10,r1=0.1 マス完了
+2026-10-09T02:58:39 done=7280/8015 elapsed=18877.6s eta=1905.9s last=B_alpha10,r1=0.5623,Base,coarse,beta=100,n_target=0,gamma=1
+2026-10-09T02:58:48 done=7290/8015 elapsed=18886.6s eta=1878.3s last=B_alpha10,r1=0.5623,P2 only,coarse,beta=100,n_target=0,gamma=3
+2026-10-09T02:58:57 done=7300/8015 elapsed=18896.0s eta=1850.8s last=B_alpha10,r1=0.5623,P2 only,coarse,beta=421.7,n_target=0,gamma=10
+2026-10-09T02:59:07 done=7310/8015 elapsed=18905.8s eta=1823.3s last=B_alpha10,r1=0.5623,P2 only,coarse,beta=1778,n_target=0,gamma=30
+2026-10-09T02:59:16 done=7320/8015 elapsed=18915.4s eta=1795.9s last=B_alpha10,r1=0.5623,P2 only,coarse,beta=0.01778,n_target=0,gamma=1000
+2026-10-09T02:59:26 done=7330/8015 elapsed=18925.1s eta=1768.6s last=B_alpha10,r1=0.5623,P1 only (protect),coarse,beta=0.07499,n_target=5,gamma=1
+2026-10-09T02:59:37 done=7340/8015 elapsed=18935.6s eta=1741.4s last=B_alpha10,r1=0.5623,P1 only (protect),coarse,beta=0.3162,n_target=10,gamma=1
+2026-10-09T02:59:53 done=7350/8015 elapsed=18951.8s eta=1714.7s last=B_alpha10,r1=0.5623,P1 only (protect),coarse,beta=1.334,n_target=15,gamma=1
+2026-10-09T03:00:40 done=7360/8015 elapsed=18998.7s eta=1690.8s last=B_alpha10,r1=0.5623,P1 only (protect),coarse,beta=5.623,n_target=20,gamma=1
+2026-10-09T03:01:14 done=7370/8015 elapsed=19032.9s eta=1665.7s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=23.71,n_target=5,gamma=3
+2026-10-09T03:01:24 done=7380/8015 elapsed=19043.1s eta=1638.5s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=100,n_target=5,gamma=10
+2026-10-09T03:01:34 done=7390/8015 elapsed=19053.1s eta=1611.4s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=421.7,n_target=5,gamma=30
+2026-10-09T03:01:44 done=7400/8015 elapsed=19063.0s eta=1584.3s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=1778,n_target=5,gamma=100
+2026-10-09T03:01:56 done=7410/8015 elapsed=19074.8s eta=1557.4s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=0.01778,n_target=10,gamma=10
+2026-10-09T03:02:08 done=7420/8015 elapsed=19086.6s eta=1530.5s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=0.07499,n_target=10,gamma=30
+2026-10-09T03:02:19 done=7430/8015 elapsed=19098.4s eta=1503.7s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=0.3162,n_target=10,gamma=100
+2026-10-09T03:02:55 done=7440/8015 elapsed=19134.0s eta=1478.8s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=1.334,n_target=20,gamma=3
+2026-10-09T03:03:59 done=7449/8015 elapsed=19198.0s eta=1458.7s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=1.334,n_target=20,gamma=10
+2026-10-09T03:04:06 done=7450/8015 elapsed=19205.1s eta=1456.5s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=5.623,n_target=20,gamma=10
+2026-10-09T03:05:10 done=7459/8015 elapsed=19268.9s eta=1436.3s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=5.623,n_target=20,gamma=30
+2026-10-09T03:05:17 done=7460/8015 elapsed=19276.0s eta=1434.1s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=23.71,n_target=20,gamma=30
+2026-10-09T03:06:21 done=7469/8015 elapsed=19340.1s eta=1413.8s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=23.71,n_target=20,gamma=100
+2026-10-09T03:06:28 done=7470/8015 elapsed=19347.3s eta=1411.5s last=B_alpha10,r1=0.5623,P1+P2 (protect),coarse,beta=100,n_target=20,gamma=100
+2026-10-09T03:06:46 done=7480/8015 elapsed=19364.6s eta=1385.0s last=B_alpha10,r1=0.5623,Base,fine,beta=4.217,n_target=0,gamma=1
+2026-10-09T03:57:43 done=7490/8015 elapsed=2.1s eta=273.0s last=B_alpha10,r1=0.5623,Base,fine,beta=20.54,n_target=0,gamma=1
+2026-10-09T03:57:54 done=7500/8015 elapsed=13.4s eta=494.4s last=B_alpha10,r1=0.5623,P1+P2 (protect),fine,beta=0.5109,n_target=5,gamma=10
+2026-10-09T03:58:00 done=7506/8015 elapsed=19.6s eta=498.2s last=B_alpha10,r1=0.5623 マス完了
+2026-10-09T03:58:02 done=7510/8015 elapsed=21.2s eta=445.5s last=B_alpha10,r1=3.162,Base,coarse,beta=0.2371,n_target=0,gamma=1
+2026-10-09T03:58:09 done=7520/8015 elapsed=28.6s eta=417.0s last=B_alpha10,r1=3.162,P2 only,coarse,beta=0.2371,n_target=0,gamma=3
+2026-10-09T03:58:19 done=7530/8015 elapsed=38.6s eta=425.0s last=B_alpha10,r1=3.162,P2 only,coarse,beta=1,n_target=0,gamma=10
+2026-10-09T03:58:30 done=7540/8015 elapsed=49.2s eta=432.8s last=B_alpha10,r1=3.162,P2 only,coarse,beta=4.217,n_target=0,gamma=30
+2026-10-09T03:58:43 done=7550/8015 elapsed=62.8s eta=456.3s last=B_alpha10,r1=3.162,P2 only,coarse,beta=17.78,n_target=0,gamma=100
+2026-10-09T03:58:54 done=7560/8015 elapsed=73.1s eta=449.6s last=B_alpha10,r1=3.162,P2 only,coarse,beta=74.99,n_target=0,gamma=1000
+2026-10-09T03:59:04 done=7570/8015 elapsed=83.5s eta=442.3s last=B_alpha10,r1=3.162,P1 only (protect),coarse,beta=316.2,n_target=5,gamma=1
+2026-10-09T03:59:17 done=7580/8015 elapsed=96.7s eta=447.5s last=B_alpha10,r1=3.162,P1 only (protect),coarse,beta=0.003162,n_target=15,gamma=1
+2026-10-09T03:59:52 done=7590/8015 elapsed=130.9s eta=535.0s last=B_alpha10,r1=3.162,P1 only (protect),coarse,beta=0.01334,n_target=20,gamma=1
+2026-10-09T04:00:47 done=7600/8015 elapsed=186.3s eta=678.3s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.05623,n_target=5,gamma=3
+2026-10-09T04:00:57 done=7610/8015 elapsed=196.8s eta=642.7s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.2371,n_target=5,gamma=10
+2026-10-09T04:01:08 done=7620/8015 elapsed=207.1s eta=610.6s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=1,n_target=5,gamma=30
+2026-10-09T04:01:18 done=7630/8015 elapsed=217.5s eta=581.5s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=4.217,n_target=5,gamma=100
+2026-10-09T04:01:30 done=7640/8015 elapsed=229.1s eta=557.9s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=17.78,n_target=10,gamma=3
+2026-10-09T04:01:42 done=7650/8015 elapsed=241.4s eta=537.2s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=74.99,n_target=10,gamma=10
+2026-10-09T04:01:54 done=7660/8015 elapsed=253.5s eta=517.1s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=316.2,n_target=10,gamma=30
+2026-10-09T04:02:13 done=7670/8015 elapsed=271.9s eta=509.8s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.003162,n_target=20,gamma=3
+2026-10-09T04:03:19 done=7679/8015 elapsed=337.9s eta=588.2s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.003162,n_target=20,gamma=10
+2026-10-09T04:03:26 done=7680/8015 elapsed=345.4s eta=596.5s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.01334,n_target=20,gamma=10
+2026-10-09T04:04:32 done=7689/8015 elapsed=411.7s eta=661.2s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.01334,n_target=20,gamma=30
+2026-10-09T04:04:40 done=7690/8015 elapsed=419.1s eta=667.7s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.05623,n_target=20,gamma=30
+2026-10-09T04:05:40 done=7698/8015 elapsed=479.8s eta=717.4s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.01334,n_target=20,gamma=100
+2026-10-09T04:05:55 done=7700/8015 elapsed=494.5s eta=727.9s last=B_alpha10,r1=3.162,P1+P2 (protect),coarse,beta=0.2371,n_target=20,gamma=100
+2026-10-09T04:06:34 done=7710/8015 elapsed=533.3s eta=726.2s last=B_alpha10,r1=3.162,Base,fine,beta=8.66,n_target=0,gamma=1
+2026-10-09T04:06:38 done=7720/8015 elapsed=537.2s eta=677.3s last=B_alpha10,r1=3.162,Base,fine,beta=42.17,n_target=0,gamma=1
+2026-10-09T04:06:46 done=7730/8015 elapsed=545.5s eta=637.2s last=B_alpha10,r1=3.162,P1 only (protect),fine,beta=28.73,n_target=5,gamma=1
+2026-10-09T04:06:51 done=7735/8015 elapsed=550.7s eta=619.3s last=B_alpha10,r1=3.162 マス完了
+2026-10-09T04:06:53 done=7740/8015 elapsed=552.7s eta=598.4s last=B_alpha10,r1=17.78,Base,coarse,beta=0.1778,n_target=0,gamma=1
+2026-10-09T04:07:02 done=7750/8015 elapsed=561.0s eta=563.1s last=B_alpha10,r1=17.78,P2 only,coarse,beta=0.1778,n_target=0,gamma=3
+2026-10-09T04:07:11 done=7760/8015 elapsed=570.7s eta=531.1s last=B_alpha10,r1=17.78,P2 only,coarse,beta=0.7499,n_target=0,gamma=10
+2026-10-09T04:07:21 done=7770/8015 elapsed=580.7s eta=501.0s last=B_alpha10,r1=17.78,P2 only,coarse,beta=3.162,n_target=0,gamma=30
+2026-10-09T04:07:31 done=7780/8015 elapsed=590.8s eta=472.2s last=B_alpha10,r1=17.78,P2 only,coarse,beta=13.34,n_target=0,gamma=100
+2026-10-09T04:07:41 done=7790/8015 elapsed=600.6s eta=444.5s last=B_alpha10,r1=17.78,P2 only,coarse,beta=56.23,n_target=0,gamma=1000
+2026-10-09T04:07:52 done=7800/8015 elapsed=611.1s eta=418.4s last=B_alpha10,r1=17.78,P1 only (protect),coarse,beta=0.0005623,n_target=10,gamma=1
+2026-10-09T04:08:06 done=7810/8015 elapsed=625.8s eta=395.9s last=B_alpha10,r1=17.78,P1 only (protect),coarse,beta=0.002371,n_target=15,gamma=1
+2026-10-09T04:08:45 done=7820/8015 elapsed=664.5s eta=388.0s last=B_alpha10,r1=17.78,P1 only (protect),coarse,beta=0.01,n_target=20,gamma=1
+2026-10-09T04:09:33 done=7830/8015 elapsed=712.4s eta=383.1s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.04217,n_target=5,gamma=3
+2026-10-09T04:09:43 done=7840/8015 elapsed=722.5s eta=357.2s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.1778,n_target=5,gamma=10
+2026-10-09T04:09:54 done=7850/8015 elapsed=732.8s eta=332.2s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.7499,n_target=5,gamma=30
+2026-10-09T04:10:04 done=7860/8015 elapsed=743.2s eta=308.0s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=3.162,n_target=5,gamma=100
+2026-10-09T04:10:16 done=7870/8015 elapsed=755.0s eta=285.1s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=13.34,n_target=10,gamma=3
+2026-10-09T04:10:28 done=7880/8015 elapsed=767.1s eta=262.8s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=56.23,n_target=10,gamma=10
+2026-10-09T04:10:40 done=7890/8015 elapsed=779.4s eta=241.1s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.0005623,n_target=10,gamma=100
+2026-10-09T04:11:04 done=7900/8015 elapsed=803.7s eta=223.3s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.002371,n_target=20,gamma=3
+2026-10-09T04:12:11 done=7909/8015 elapsed=869.8s eta=218.0s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.002371,n_target=20,gamma=10
+2026-10-09T04:12:18 done=7910/8015 elapsed=877.2s eta=217.2s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.01,n_target=20,gamma=10
+2026-10-09T04:13:24 done=7919/8015 elapsed=943.3s eta=209.1s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.01,n_target=20,gamma=30
+2026-10-09T04:13:31 done=7920/8015 elapsed=950.8s eta=208.1s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.04217,n_target=20,gamma=30
+2026-10-09T04:14:38 done=7929/8015 elapsed=1017.1s eta=197.5s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.04217,n_target=20,gamma=100
+2026-10-09T04:14:45 done=7930/8015 elapsed=1024.5s eta=196.1s last=B_alpha10,r1=17.78,P1+P2 (protect),coarse,beta=0.1778,n_target=20,gamma=100
+2026-10-09T04:15:17 done=7940/8015 elapsed=1056.8s eta=174.6s last=B_alpha10,r1=17.78,Base,fine,beta=7.499,n_target=0,gamma=1
+2026-10-09T04:15:21 done=7950/8015 elapsed=1060.7s eta=148.6s last=B_alpha10,r1=17.78,Base,fine,beta=36.52,n_target=0,gamma=1
+2026-10-09T04:15:30 done=7960/8015 elapsed=1069.6s eta=124.1s last=B_alpha10,r1=17.78,P1 only (protect),fine,beta=34.81,n_target=5,gamma=1
+2026-10-09T04:15:34 done=7964/8015 elapsed=1073.8s eta=114.6s last=B_alpha10,r1=17.78 マス完了
+2026-10-09T04:15:37 done=7970/8015 elapsed=1076.1s eta=100.1s last=B_alpha10,r1=100,Base,coarse,beta=0.1334,n_target=0,gamma=1
+2026-10-09T04:15:46 done=7980/8015 elapsed=1084.8s eta=76.9s last=B_alpha10,r1=100,P2 only,coarse,beta=0.1334,n_target=0,gamma=3
+2026-10-09T04:15:55 done=7990/8015 elapsed=1094.6s eta=54.3s last=B_alpha10,r1=100,P2 only,coarse,beta=0.5623,n_target=0,gamma=10
+2026-10-09T04:16:05 done=8000/8015 elapsed=1104.4s eta=32.2s last=B_alpha10,r1=100,P2 only,coarse,beta=2.371,n_target=0,gamma=30
+2026-10-09T04:16:15 done=8010/8015 elapsed=1114.3s eta=10.6s last=B_alpha10,r1=100,P2 only,coarse,beta=10,n_target=0,gamma=100
+2026-10-09T04:16:25 done=8020/8015 elapsed=1124.2s eta=0.0s last=B_alpha10,r1=100,P1 only (protect),coarse,beta=0.0001,n_target=5,gamma=1
+2026-10-09T04:16:36 done=8030/8015 elapsed=1135.4s eta=0.0s last=B_alpha10,r1=100,P1 only (protect),coarse,beta=0.0004217,n_target=10,gamma=1
+2026-10-09T04:16:52 done=8040/8015 elapsed=1150.8s eta=0.0s last=B_alpha10,r1=100,P1 only (protect),coarse,beta=0.001778,n_target=15,gamma=1
+2026-10-09T04:17:35 done=8050/8015 elapsed=1194.7s eta=0.0s last=B_alpha10,r1=100,P1 only (protect),coarse,beta=0.007499,n_target=20,gamma=1
+2026-10-09T04:18:17 done=8060/8015 elapsed=1236.5s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.03162,n_target=5,gamma=3
+2026-10-09T04:18:27 done=8070/8015 elapsed=1246.8s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.1334,n_target=5,gamma=10
+2026-10-09T04:18:38 done=8080/8015 elapsed=1257.0s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.5623,n_target=5,gamma=30
+2026-10-09T04:18:48 done=8090/8015 elapsed=1267.2s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=2.371,n_target=5,gamma=100
+2026-10-09T04:19:00 done=8100/8015 elapsed=1279.2s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=10,n_target=10,gamma=3
+2026-10-09T04:19:12 done=8110/8015 elapsed=1291.2s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.0001,n_target=10,gamma=30
+2026-10-09T04:19:24 done=8120/8015 elapsed=1303.3s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.0004217,n_target=10,gamma=100
+2026-10-09T04:19:55 done=8130/8015 elapsed=1334.0s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.001778,n_target=20,gamma=3
+2026-10-09T04:21:01 done=8139/8015 elapsed=1400.7s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.001778,n_target=20,gamma=10
+2026-10-09T04:21:09 done=8140/8015 elapsed=1407.9s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.007499,n_target=20,gamma=10
+2026-10-09T04:22:15 done=8149/8015 elapsed=1473.8s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.007499,n_target=20,gamma=30
+2026-10-09T04:22:22 done=8150/8015 elapsed=1481.0s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.03162,n_target=20,gamma=30
+2026-10-09T04:23:28 done=8159/8015 elapsed=1547.2s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.03162,n_target=20,gamma=100
+2026-10-09T04:23:35 done=8160/8015 elapsed=1554.5s eta=0.0s last=B_alpha10,r1=100,P1+P2 (protect),coarse,beta=0.1334,n_target=20,gamma=100
+2026-10-09T04:24:00 done=8170/8015 elapsed=1579.1s eta=0.0s last=B_alpha10,r1=100,Base,fine,beta=3.924,n_target=0,gamma=1
+2026-10-09T04:24:04 done=8180/8015 elapsed=1583.0s eta=0.0s last=B_alpha10,r1=100,Base,fine,beta=8.058,n_target=0,gamma=1
+2026-10-09T04:24:13 done=8190/8015 elapsed=1591.9s eta=0.0s last=B_alpha10,r1=100,P1 only (protect),fine,beta=6.19,n_target=5,gamma=1
+2026-10-09T04:24:18 done=8195/8015 elapsed=1597.0s eta=0.0s last=B_alpha10,r1=100 マス完了

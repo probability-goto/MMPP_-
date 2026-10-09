@@ -47,6 +47,11 @@ pip install -e .
 
 ## 使い方
 
+実験を継続するコマンド
+'''
+while true; do echo "[$(date)] Codespacesのタイムアウトを防止中..."; sleep 60; done
+'''
+
 ```python
 import numpy as np
 from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
