@@ -36,3 +36,17 @@
 2026-10-09T06:13:21 done=310/324 elapsed=1045.6s eta=47.2s last=[A] B_alpha10,r1=17.8,P1+P2 (protect),gamma=2.0
 2026-10-09T06:13:32 done=320/324 elapsed=1057.0s eta=13.2s last=[A] B_alpha10,r1=17.8,P1+P2 (protect),beta_mult=0.5
 2026-10-09T06:13:36 done=324/324 elapsed=1061.4s eta=0.0s last=[A] B_alpha10,r1=17.8,P1+P2 (protect),beta_mult=10.0
+2026-10-09T06:14:21 done=10/140 elapsed=32.6s eta=424.1s last=[B] A_rhoB0.6,r1=3.16,P1 only (protect),config=P1 only (protect) n_target=20
+2026-10-09T06:14:47 done=20/140 elapsed=58.1s eta=348.4s last=[B] A_rhoB0.6,r1=100,P2 only,config=P2 only γ=10
+2026-10-09T06:15:19 done=30/140 elapsed=90.8s eta=332.9s last=[B] A_rhoB0.8,r1=3.16,P1 only (protect),config=P1 only (protect) n_target=20
+2026-10-09T06:15:45 done=40/140 elapsed=116.2s eta=290.5s last=[B] A_rhoB0.8,r1=100,P2 only,config=P2 only γ=10
+2026-10-09T06:16:17 done=50/140 elapsed=148.6s eta=267.5s last=[B] A_rhoB1.12,r1=3.16,P1 only (protect),config=P1 only (protect) n_target=20
+2026-10-09T06:16:42 done=60/140 elapsed=173.9s eta=231.9s last=[B] A_rhoB1.12,r1=100,P2 only,config=P2 only γ=10
+2026-10-09T06:17:15 done=70/140 elapsed=206.3s eta=206.3s last=[B] B_alpha0.005,r1=3.16,P1 only (protect),config=P1 only (protect) n_target=20
+2026-10-09T06:17:40 done=80/140 elapsed=232.0s eta=174.0s last=[B] B_alpha0.005,r1=100,P2 only,config=P2 only γ=10
+2026-10-09T06:18:15 done=90/140 elapsed=266.6s eta=148.1s last=[B] B_alpha0.02,r1=3.16,P1 only (protect),config=P1 only (protect) n_target=20
+2026-10-09T06:18:41 done=100/140 elapsed=292.4s eta=117.0s last=[B] B_alpha0.02,r1=100,P2 only,config=P2 only γ=10
+2026-10-09T06:19:14 done=110/140 elapsed=325.3s eta=88.7s last=[B] B_alpha1,r1=3.16,P1 only (protect),config=P1 only (protect) n_target=20
+2026-10-09T06:19:39 done=120/140 elapsed=350.5s eta=58.4s last=[B] B_alpha1,r1=100,P2 only,config=P2 only γ=10
+2026-10-09T06:20:12 done=130/140 elapsed=383.4s eta=29.5s last=[B] B_alpha10,r1=3.16,P1 only (protect),config=P1 only (protect) n_target=20
+2026-10-09T06:20:38 done=140/140 elapsed=409.3s eta=0.0s last=[B] B_alpha10,r1=100,P2 only,config=P2 only γ=10
