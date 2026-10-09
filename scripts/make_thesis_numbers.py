@@ -26,11 +26,13 @@ try:
     import experiment_8_map as e8
     import experiment_9_sensitivity as e9
     import blocking_reassessment as br
+    import evaluate_predictive_comparison as ev
 except ImportError:
     import scripts.experiment_7_frontier as e7
     import scripts.experiment_8_map as e8
     import scripts.experiment_9_sensitivity as e9
     import scripts.blocking_reassessment as br
+    import scripts.evaluate_predictive_comparison as ev
 
 OUT = "thesis_assets"
 P = "P_block_arrival_stable"
@@ -145,11 +147,89 @@ def exp7(m: Macros) -> dict:
                 continue
             m.add(f"ExpSeven{cn}{sn}ERPRel", spct(v["erp_rel"]),
                   f"{src}\n条件 {cond}, 系列 {s} の ERP 最小値の, Base の ERP 最小値に対する相対差")
+            m.add(f"ExpSeven{cn}{sn}PRatio", f"{v['p_ratio']:.2f}",
+                  f"{src}\n条件 {cond}, 系列 {s} の ERP 最小点の P_block_arrival_stable の, Base の ERP 最小点の値に対する比")
             m.add(f"ExpSeven{cn}{sn}SameRelImprovement",
                   "該当なし" if v["b_rel"] is None else spct(-v["b_rel"]),
                   f"{src}\n条件 {cond}, 系列 {s} の同じ信頼性での改善: P ≤ P_ref (Base の ERP 最小点の P) を"
                   "\n満たす点の中の ERP 最小値の, Base の ERP 最小値に対する −(相対差)")
+        m.add(f"ExpSeven{cn}BasePBlock", f"{a['p_ref']:.3g}",
+              f"{src}\n条件 {cond}, Base の ERP 最小点の P_block_arrival_stable (= P_ref)")
+        n_ok = sum(1 for s in ["Base"] + br.E7_SERIES if a["series"][s]["c"][1e-2]["pt"] is not None)
+        m.add(f"ExpSeven{cn}EpsTwoFeasibleCount", str(n_ok),
+              f"{src}\n条件 {cond}, P_block_arrival_stable ≤ 1e-2 を満たす点をもつ系列の数 (Base を含む 7 系列中)")
+    src = ("出典: results/experiment_7/ の CSV (scripts/blocking_reassessment.py の assess)\n"
+           "位相を使う 5 系列 (P2 only, P1 only, P1 only (protect), P1+P2, P1+P2 (protect)) と 5 条件で")
+    phase = [s for s in br.E7_SERIES if s != "NoCancel"]
+    m.add("ExpSevenMaxERPImprovement",
+          pct(max(-res[c]["series"][s]["erp_rel"] for c in res for s in phase)),
+          f"{src}\nERP 最小値の改善 (−相対差, 対 β を細かくした Base) の最大値")
+    m.add("ExpSevenMaxSameRelImprovement",
+          pct(max(-res[c]["series"][s]["b_rel"] for c in res for s in phase
+                  if res[c]["series"][s]["b_rel"] is not None)),
+          f"{src}\n同じ信頼性 (P ≤ P_ref) での改善の最大値")
+    nc = [res[c]["series"]["NoCancel"]["erp_rel"] for c in res]
+    m.add("ExpSevenNoCancelWorseMin", pct(min(nc)),
+          f"{src.splitlines()[0]}\nNoCancel の ERP 最小値の, Base に対する相対差の最小値 (5 条件すべてで正)")
+    m.add("ExpSevenNoCancelWorseMax", pct(max(nc)), f"{src.splitlines()[0]}\n同じく最大値")
     return res
+
+
+# ============================================================
+# 旧比較 (β 固定) と保護の比較
+# ============================================================
+
+def old_comparison(m: Macros) -> None:
+    """実験 1-P〜4-P と 1〜4 の旧比較 (保護なしの旧モデル, Base の β を固定)."""
+    for label, s14, s23, name in [("γ=5", "g5.0", "g5.0", "GammaFive"),
+                                  ("γ を最適化", "g1.0", "gmap", "GammaOpt")]:
+        pts = ev.load_experiment_1p("results", 10, s14)
+        for b in ("medium", "strong"):
+            pts += ev.load_experiment_2p("results", 10, s23, b)
+        for sw in ("delta", "sigma"):
+            pts += ev.load_experiment_3p("results", 10, s23, sw)
+        for b in ("weak", "medium", "strong"):
+            pts += ev.load_experiment_4p("results", 10, s14, b)
+        erp = np.array([p.improvement_pct for p in pts if p.metric == "ERP"])
+        src = (f"出典: results/experiment_{{1..4}}*.csv と experiment_{{1P..4P}}_*_{{{s14},{s23}}}.csv "
+               "(scripts/evaluate_predictive_comparison.py の load_experiment_*)\n"
+               f"旧比較 (保護なしの旧モデル, Base は β を走査の値に固定, Predictive は n_target=10, {label}) の ERP の改善率")
+        m.add(f"ExpOldBetaFixed{name}MaxERPImprovement", f"{erp.max():.2f}\\%", f"{src}\n405 点中の最大値")
+        m.add(f"ExpOldBetaFixed{name}CountOverFive", str(int((erp > 5).sum())),
+              f"{src}\n改善率が 5% を超える点の数 (405 点中)")
+        m.add(f"ExpOldBetaFixed{name}MeanERPImprovement", f"${erp.mean():+.2f}$\\%", f"{src}\n405 点の平均")
+
+
+def protect_comparison(m: Macros) -> None:
+    """保護の比較 (results/p1_protect/p1_protect.csv)."""
+    path = os.path.join("results", "p1_protect", "p1_protect.csv")
+    rows = list(csv.DictReader(open(path, encoding="utf-8")))
+
+    def get(burst, rho, alpha, beta, gamma, mode):
+        for r in rows:
+            if (r["burst_name"] == burst and float(r["rho"]) == rho and float(r["alpha"]) == alpha
+                    and float(r["beta"]) == beta and float(r["gamma"]) == gamma and r["mode"] == mode):
+                return r
+        raise KeyError((burst, rho, alpha, beta, gamma, mode))
+
+    src = (f"出典: {path}\n条件 medium, ρ=0.3, α=0.1, β=0.5 で, 保護なし (none, n_target=10, γ=1) の ERP に対する相対差")
+    none = float(get("medium", 0.3, 0.1, 0.5, 1.0, "none")["ERP"])
+    for mode, name in [("presetup", "Presetup"), ("both", "Both")]:
+        v = float(get("medium", 0.3, 0.1, 0.5, 1.0, mode)["ERP"]) / none - 1
+        m.add(f"ProtectExample{name}ERPChange", spct(v), f"{src}\n保護の設定 {mode} (n_target=10, γ=1)")
+    v = float(get("medium", 0.3, 0.1, 0.5, 1.0, "nocancel")["ERP"]) / none - 1
+    m.add("ProtectExampleNoCancelERPChange", spct(v), f"{src}\nNoCancel (never_cancel_setup, n_target=0, γ=1)")
+    # NoCancel が同じ γ=1 の none より悪い条件の数
+    worse, total = 0, 0
+    for r in rows:
+        if r["mode"] != "nocancel":
+            continue
+        n = get(r["burst_name"], float(r["rho"]), float(r["alpha"]), float(r["beta"]), 1.0, "none")
+        total += 1
+        worse += float(r["ERP"]) > float(n["ERP"])
+    m.add("ProtectNoCancelWorseCount", str(worse),
+          f"出典: {path}\nNoCancel の ERP が同じ (条件, α, β) の none (γ=1) より大きい組の数")
+    m.add("ProtectNoCancelTotal", str(total), f"出典: {path}\n上の組の総数")
 
 
 # ============================================================
@@ -172,6 +252,17 @@ def exp8(m: Macros) -> dict:
           f"{src}\n改善が 0.5% を超えるマスでの, 3 系列のうち最良の改善の最小値")
     m.add("ExpEightCoreImprovementMax", pct(max(best_core)),
           f"{src}\n改善が 0.5% を超えるマスでの, 3 系列のうち最良の改善の最大値")
+    # 中心の領域: r1=17.8 の列のうち ρ_B ≤ 0.8 かつ α ≤ 1 のマスと, α=1, r1=3.16 のマス
+    center = [k for k in sm if (abs(k[1] / e8.R1_LEVELS[3] - 1) < 1e-9 and e8.ROWS[k[0]][0] <= 0.8
+                                and e8.ROWS[k[0]][1] <= 1.0)
+              or (k[0] == "B_alpha1" and abs(k[1] / e8.R1_LEVELS[2] - 1) < 1e-9)]
+    cbest = [max(imp[k].values()) for k in center]
+    srcc = (f"{src}\n中心の領域 = r1=17.8 の列のうち ρ_B ≤ 0.8 かつ α ≤ 1 のマスと, α=1, r1=3.16 のマス "
+            "(地図 A・B で重複のないもの)\n該当: " + ", ".join(f"{r} r1={x:.3g}" for r, x in sorted(center)))
+    m.add("ExpEightCenterCellCount", str(len(center)), f"{srcc}\nマスの数")
+    m.add("ExpEightCenterImprovementMin", pct(min(cbest)),
+          f"{srcc}\n3 系列のうち最良の改善 (−ERP の相対差) の最小値")
+    m.add("ExpEightCenterImprovementMax", pct(max(cbest)), f"{srcc}\n同じく最大値")
     kmax, smax = max(((k, s) for k in sm for s in E8_SERIES), key=lambda t: imp[t[0]][t[1]])
     m.add("ExpEightMaxImprovement", pct(imp[kmax][smax]),
           f"{src}\n全マス・全系列で改善 (−ERP の相対差) の最大値")
@@ -232,7 +323,45 @@ def exp8(m: Macros) -> dict:
         m.add(f"ExpEight{sn}SameRelMaxImprovement", pct(v), f"{srcb}\n系列 {s} の最大値")
         m.add(f"ExpEight{sn}SameRelImprovedCells", str(sum(1 for x, _ in vals if x > 0.001)),
               f"{srcb}\n系列 {s} で 0.1% を超えて改善するマスの数")
+        pr = [c["series"][s]["p_ratio"] for c in ares.values()]
+        m.add(f"ExpEight{sn}PRatioMax", f"{max(pr):.2f}",
+              f"出典: results/experiment_8/ の CSV (assess)\n系列 {s} の ERP 最小点の P の, Base の ERP 最小点の P に対する比の最大値")
+    infeas = [k for k, c in ares.items() if c["base_eps"][1e-2] is None]
+    m.add("ExpEightBaseInfeasibleEpsTwoCount", str(len(infeas)),
+          "出典: results/experiment_8/ の CSV (assess)\nBase も 3 系列も P ≤ 1e-2 を満たせないマスの数\n"
+          "該当: " + ", ".join(f"{r} r1={x:.3g}" for r, x in sorted(infeas)))
+    # ERP だけの判定と同じ信頼性の判定で区分が変わった組 (blocking_reassessment と同じ定義)
+    changes = sum(1 for c in ares.values() for s in E8_SERIES
+                  if br._cat(c["series"][s]["erp_rel"]) != br._cat(c["series"][s]["b_rel"]))
+    m.add("ExpEightCategoryChangedCount", str(changes),
+          "出典: results/experiment_8/blocking_reassessment.md と同じ計算\n"
+          "ERP だけの判定と同じ信頼性での判定で, 区分 (改善 > 0.1%, 同等, 悪化, 該当なし) が変わった (マス, 系列) の数")
+    mechanism(m)
     return sm
+
+
+def mechanism(m: Macros) -> None:
+    path = os.path.join("results", "experiment_8", "mechanism_points.csv")
+    rows = list(csv.DictReader(open(path, encoding="utf-8")))
+    by = {}
+    for r in rows:
+        by.setdefault(r["case"], {})[r["series"]] = r
+    sel = [c for c in by if c == "実験7 C1" or c.startswith("実験8")]
+    d = lambda c, k: float(by[c]["P1 only (protect)"][k]) - float(by[c]["Base"][k])
+    rel = lambda c, k: float(by[c]["P1 only (protect)"][k]) / float(by[c]["Base"][k]) - 1
+    src = (f"出典: {path}\n実験 7 の C1 と実験 8 で改善が最大の 3 マスの, P1 only (protect) − Base (ERP 最小点どうし)")
+    idle = [-d(c, "E_I_F0") for c in sel]
+    m.add("MechIdleFZeroReductionMin", f"{min(idle):.2f}", f"{src}\n通常期 F=0 のアイドル台数 E[I]_F0 の減少量の最小値")
+    m.add("MechIdleFZeroReductionMax", f"{max(idle):.2f}", f"{src}\n同じく最大値")
+    c0 = [d(c, "Cost_F0") for c in sel]
+    c1 = [d(c, "Cost_F1") for c in sel]
+    m.add("MechCostFZeroChangeMin", f"${min(c0):+.2f}$", f"{src}\n通常期の Cost_F0 の差の最小値")
+    m.add("MechCostFZeroChangeMax", f"${max(c0):+.2f}$", f"{src}\n同じく最大値")
+    m.add("MechCostFOneChangeMin", f"${min(c1):+.2f}$", f"{src}\nバースト期の Cost_F1 の差の最小値")
+    m.add("MechCostFOneChangeMax", f"${max(c1):+.2f}$", f"{src}\n同じく最大値")
+    ct = [rel(c, "Cost") for c in sel]
+    m.add("MechCostChangeMin", spct(min(ct)), f"{src}\nCost の相対差の最小値")
+    m.add("MechCostChangeMax", spct(max(ct)), f"{src}\nCost の相対差の最大値")
 
 
 # ============================================================
@@ -258,6 +387,8 @@ def exp9(m: Macros) -> dict:
         out[name] = cats
         for c, cn in CAT_NAMES.items():
             m.add(f"ExpNine{short}{cn}Count", str(len(cats[c])), f"{src}\n設定 {name} で区分「{c}」のマスの数")
+        m.add(f"ExpNine{short}PUpCount", str(sum(1 for r in cr if 1 + float(r["rel_P"]) > e9.P_HI)),
+              f"{src}\n設定 {name} で P の比 (対同じ β* の Base) が 1.05 を超えるマスの数 (35 マス中)")
         if cats["改善"]:
             b = min(cats["改善"], key=lambda r: float(r["rel_ERP"]))
             m.add(f"ExpNine{short}MaxImprovement", pct(-float(b["rel_ERP"])),
@@ -408,6 +539,34 @@ def tables(sm, out9) -> List[str]:
                wide=True)
     files.append(_write(d, "exp8_mechanism.tex", t))
 
+    # 保護の比較: 保護なし / 両方 / NoCancel (α=0.1)
+    pp = os.path.join("results", "p1_protect", "p1_protect.csv")
+    prow = list(csv.DictReader(open(pp, encoding="utf-8")))
+
+    def pget(burst, rho, beta, gamma, mode):
+        return next(r for r in prow if r["burst_name"] == burst and float(r["rho"]) == rho
+                    and float(r["alpha"]) == 0.1 and float(r["beta"]) == beta
+                    and float(r["gamma"]) == gamma and r["mode"] == mode)
+    body = []
+    for burst, rho in [("medium", 0.7), ("strong", 0.7), ("medium", 0.3)]:
+        for beta in (0.005, 0.5):
+            n = pget(burst, rho, beta, 1.0, "none")
+            b = pget(burst, rho, beta, 1.0, "both")
+            c = pget(burst, rho, beta, 1.0, "nocancel")
+            e = float(n["ERP"])
+            body.append(f"{burst}, $\\rho={rho}$ & {beta:g} & {e:.4f} & {float(b['ERP']):.4f} & "
+                        f"${100 * (float(b['ERP']) / e - 1):+.2f}$ & {float(c['ERP']):.4f} & "
+                        f"${100 * (float(c['ERP']) / e - 1):+.2f}$ & {float(n['setup_cancel_rate']):.3f} & "
+                        f"{float(b['setup_cancel_rate']):.3f}")
+    t = _table("保護と NoCancel の比較 ($\\alpha=0.1$, $\\gamma=1$, $n_{\\mathrm{target}}=10$)",
+               "tab:protect-control", "lrrrrrrrr",
+               "条件 & $\\beta$ & ERP (none) & ERP (both) & 差 [\\%] & ERP (NoCancel) & 差 [\\%] & "
+               "取消率 (none) & 取消率 (both)", body,
+               "none = 保護なし, both = protect\\_presetup と protect\\_delayoff, NoCancel = never\\_cancel\\_setup "
+               "($n_{\\mathrm{target}}=0$). 差は none に対する ERP の相対差. "
+               "出典: results/p1\\_protect/p1\\_protect.csv.", wide=True)
+    files.append(_write(d, "protect_control.tex", t))
+
     # 実験 9 パート B: 5 区分のマス数
     body = []
     for name, short in B_NAMES.items():
@@ -451,31 +610,49 @@ def _write(d, name, text) -> str:
 # 図と README
 # ============================================================
 
-# (仮の節番号, 節の内容, 図のファイル名 (拡張子なし) の一覧, 表, 主なマクロの接頭辞)
+# 論文の節 (論理の流れ): (節, 問い, 使う実験, 結論, 図, 表, 主なマクロ)
 SECTIONS = [
-    (1, "研究の動機と問題設定", [], [], ""),
-    (2, "モデル (Base と Predictive, 保護)", [], [], ""),
-    (3, "数値解法と検証 (GTH, DES との照合, 計算時間)",
-     ["experiment_0_validation", "experiment_0P_validation"], [], "ExpZero, Bench"),
-    (4, "公平な比較: 各方策の最良の設定どうし (実験 7)",
+    (1, "解析は正しいか", "実験 0 / 0-P (と保護ありの DES 照合)", "理論と DES が一致",
+     ["experiment_0_validation", "experiment_0P_validation"], [],
+     "ExpZero*, Bench*"),
+    (2, "ベースモデルの特性", "実験 1〜4",
+     "バースト性と有限バッファの影響. ρ_B > 1 ではどの方策でも棄却を防げない",
+     ["experiment_1_traffic", "experiment_2_delayoff", "experiment_2_delayoff_strong",
+      "experiment_3_burstiness_delta", "experiment_3_burstiness_sigma",
+      "experiment_4_K_sensitivity_weak", "experiment_4_K_sensitivity_medium",
+      "experiment_4_K_sensitivity_strong"], [],
+     "ExpSevenCTwoBasePBlock, ExpSevenCTwoEpsTwoFeasibleCount, ExpEightBaseInfeasibleEpsTwoCount"),
+    (3, "評価の基準", "―",
+     "有限バッファでは ERP が棄却を含まない. 同じ信頼性での ERP を基準にする", [],
+     ["exp7_samerel.tex"], "ExpSeven*PRatio, ExpEight*PRatioMax, ExpEightCategoryChangedCount"),
+    (4, "各規則の働き", "保護の比較, NoCancel",
+     "保護が不可欠. 価値は位相で時期を選ぶことから来る", [], ["protect_control.tex"],
+     "ProtectExample*, ProtectNoCancel*, ExpSeven*NoCancel*, ExpSevenNoCancelWorse*"),
+    (5, "公平な比較", "実験 7",
+     "典型的な条件では差は小さい. β を固定した比較は過大評価だった",
      [f"experiment_7_{c}_EW_cost" for c in e7.CONDITIONS] +
-     [f"experiment_7_{c}_cost_pblock" for c in e7.CONDITIONS],
-     ["exp7_erp.tex", "exp7_samerel.tex"], "ExpSeven"),
-    (5, "位相の情報に価値がある領域の地図 (実験 8)",
+     [f"experiment_7_{c}_cost_pblock" for c in e7.CONDITIONS] +
+     ["compare_experiment_1_vs_1P", "compare_experiment_3_vs_3P_delta"],
+     ["exp7_erp.tex", "exp7_samerel.tex"],
+     "ExpSeven*ERPMin, ExpSeven*ERPRel, ExpSevenMax*, ExpOldBetaFixed*"),
+    (6, "どこで優位か", "実験 8 + 再判定",
+     "中心の領域で 2〜4%. 途中の領域では棄却との引き換え",
      ["experiment_8_A_erp", "experiment_8_A_cost", "experiment_8_B_erp", "experiment_8_B_cost",
-      "experiment_8_B_p1_alpha", "experiment_8_p1_fire"],
-     ["exp8_mapA.tex", "exp8_mapB.tex"], "ExpEight"),
-    (6, "Predictive が優位になる仕組み (電力と位相ごとの内訳)", [], ["exp8_mechanism.tex"],
-     "ExpEightR"),
-    (7, "ブロッキング確率を含めた判定 (同じ信頼性での比較)",
-     ["experiment_8_A_blk_b", "experiment_8_B_blk_b", "experiment_8_A_blk_c1e-3",
-      "experiment_8_B_blk_c1e-3"], [], "ExpSeven...SameRel, ExpEight...SameRel"),
-    (8, "パラメータが最適でないときの感度 (実験 9 パート A)",
-     [f"experiment_9_A_{row}_r1_{r1:.3g}" for row, r1 in e9.A_CELLS], ["exp9_beta2.tex"],
-     "ExpNineBetaTwo"),
-    (9, "Base の β のまま規則を ON にした場合 (実験 9 パート B) とまとめ",
+      "experiment_8_B_p1_alpha", "experiment_8_A_blk_b", "experiment_8_B_blk_b",
+      "experiment_8_A_blk_c1e-3", "experiment_8_B_blk_c1e-3"],
+     ["exp8_mapA.tex", "exp8_mapB.tex"],
+     "ExpEightCenter*, ExpEightCore*, ExpEightMaxImprovement*, ExpEight*SameRel*, ExpEightAlphaSpearman*"),
+    (7, "なぜ優位か", "仕組みの集計", "通常期にサーバーを早く切れる",
+     ["experiment_8_p1_fire"], ["exp8_mechanism.tex"],
+     "ExpEightR*, ExpEightFire*, Mech*"),
+    (8, "どこでベースモデルが優位か", "実験 9",
+     "価値のない領域, P2 を β の調整なしで使う場合, n_target が大きすぎる場合. "
+     "P1 は追加しても棄却を増やさない",
+     [f"experiment_9_A_{row}_r1_{r1:.3g}" for row, r1 in e9.A_CELLS] +
      [f"experiment_9_B_{w}_{m}" for w in ("A", "B") for m in ("ERP", "EW", "Cost", "P")],
-     ["exp9_partB.tex"], "ExpNine"),
+     ["exp9_partB.tex", "exp9_beta2.tex"], "ExpNine*"),
+    (9, "結論と限界", "―",
+     "位相の観測の仮定, 反応的な起動の理想化, 指数分布のセットアップ時間", [], [], "—"),
 ]
 
 
@@ -483,7 +660,7 @@ def figures_and_readme(macros: Macros, table_files: List[str]) -> List[str]:
     d = os.path.join(OUT, "figures")
     os.makedirs(d, exist_ok=True)
     copied, missing = [], []
-    for _, _, figs, _, _ in SECTIONS:
+    for _, _, _, _, figs, _, _ in SECTIONS:
         for stem in figs:
             for ext in ("pdf", "png"):
                 src = os.path.join("figures", f"{stem}.{ext}")
@@ -503,16 +680,19 @@ def figures_and_readme(macros: Macros, table_files: List[str]) -> List[str]:
              "数値マクロを参照する表は numbers.tex の後に読み込む).",
              "- `figures/`: figures/ からのコピー (PDF と PNG).", "",
              "## 論文の節と図・表の対応", "",
-             "**注意: 節の番号と内容は仮である.** 依頼文の「論理の流れ」の節 1〜9 がリポジトリに見つからなかったため, "
-             "実験の順に仮に割り当てた. 節の対応が決まったら scripts/make_thesis_numbers.py の SECTIONS を直して "
-             "再生成する.", "",
-             "| 節 (仮) | 内容 | 図 | 表 | 主なマクロ |", "|---|---|---|---|---|"]
-    for no, title, figs, tabs, mac in SECTIONS:
-        lines.append(f"| {no} | {title} | " + ("<br>".join(f"figures/{f}.pdf" for f in figs) or "—") +
-                     " | " + ("<br>".join(f"tables/{t}" for t in tabs) or "—") + f" | {mac or '—'} |")
-    lines += ["", "## 図の出典", "",
-              "- experiment_0*: scripts/experiment_0_validation.py, experiment_0P_validation.py "
-              "(保護を入れる前のモデル).",
+             "論文の論理の流れ (節 1〜9) に合わせた. 図は figures/ の PDF (同名の PNG もある).", "",
+             "| 節 | 問い | 使う実験 | 結論 | 図 | 表 | 主なマクロ |", "|---|---|---|---|---|---|---|"]
+    for no, q, exp, concl, figs, tabs, mac in SECTIONS:
+        lines.append(f"| {no} | {q} | {exp} | {concl} | " +
+                     ("<br>".join(f"figures/{f}.pdf" for f in figs) or "—") + " | " +
+                     ("<br>".join(f"tables/{t}" for t in tabs) or "—") + f" | {mac} |")
+    lines += ["", "## 図の出典と注意", "",
+              "- experiment_0*: scripts/experiment_0_validation.py, experiment_0P_validation.py. "
+              "0-P は保護を入れる前のモデル. 保護ありのモデルの DES 照合は results/protect_des/ "
+              "(図はなく, マクロ ExpZeroProtect* で引用する).",
+              "- experiment_1〜4_*: ベースモデルだけの実験 (保護の有無に関係しない).",
+              "- compare_experiment_*: β を固定した旧比較 (保護なしの旧モデル). 節 5 で "
+              "「β を固定した比較は過大評価だった」ことを示すために使う.",
               "- experiment_7_*: scripts/experiment_7_frontier.py --report",
               "- experiment_8_{A,B}_{erp,cost}, B_p1_alpha, p1_fire: scripts/experiment_8_map.py --report",
               "- experiment_8_*_blk_*: scripts/blocking_reassessment.py",
@@ -527,6 +707,8 @@ def main():
     m = Macros()
     exp0(m)
     exp7(m)
+    old_comparison(m)
+    protect_comparison(m)
     sm = exp8(m)
     out9 = exp9(m)
     bench(m)

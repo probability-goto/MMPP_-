@@ -1,0 +1,22 @@
+% scripts/make_thesis_numbers.py で生成 (手で編集しない)
+\begin{table}[tbp]
+\centering
+\caption{保護と NoCancel の比較 ($\alpha=0.1$, $\gamma=1$, $n_{\mathrm{target}}=10$)}
+\label{tab:protect-control}
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+条件 & $\beta$ & ERP (none) & ERP (both) & 差 [\%] & ERP (NoCancel) & 差 [\%] & 取消率 (none) & 取消率 (both) \\
+\midrule
+medium, $\rho=0.7$ & 0.005 & 9.4981 & 9.4981 & $-0.00$ & 9.4724 & $-0.27$ & 0.207 & 0.207 \\
+medium, $\rho=0.7$ & 0.5 & 12.2422 & 12.2215 & $-0.17$ & 12.7543 & $+4.18$ & 1.327 & 1.292 \\
+strong, $\rho=0.7$ & 0.005 & 10.2983 & 10.2982 & $-0.00$ & 10.3668 & $+0.66$ & 0.029 & 0.028 \\
+strong, $\rho=0.7$ & 0.5 & 9.1718 & 9.1711 & $-0.01$ & 9.5413 & $+4.03$ & 0.392 & 0.389 \\
+medium, $\rho=0.3$ & 0.005 & 4.0911 & 4.0801 & $-0.27$ & 4.7313 & $+15.65$ & 0.970 & 0.938 \\
+medium, $\rho=0.3$ & 0.5 & 7.4350 & 6.9481 & $-6.55$ & 8.3816 & $+12.73$ & 2.632 & 2.288 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip
+\footnotesize none = 保護なし, both = protect\_presetup と protect\_delayoff, NoCancel = never\_cancel\_setup ($n_{\mathrm{target}}=0$). 差は none に対する ERP の相対差. 出典: results/p1\_protect/p1\_protect.csv.
+\end{table}

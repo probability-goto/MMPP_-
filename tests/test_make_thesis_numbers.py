@@ -36,7 +36,8 @@ def test_generate(tmp_path, monkeypatch):
         assert key in names
     tables = sorted(os.listdir(tmp_path / "tables"))
     assert tables == sorted(["exp7_erp.tex", "exp7_samerel.tex", "exp8_mapA.tex", "exp8_mapB.tex",
-                             "exp8_mechanism.tex", "exp9_partB.tex", "exp9_beta2.tex"])
+                             "exp8_mechanism.tex", "exp9_partB.tex", "exp9_beta2.tex",
+                             "protect_control.tex"])
     for t in tables:
         body = (tmp_path / "tables" / t).read_text(encoding="utf-8")
         assert "\\begin{table}" in body and "\\end{table}" in body
