@@ -26,13 +26,11 @@ try:
     import experiment_8_map as e8
     import experiment_9_sensitivity as e9
     import blocking_reassessment as br
-    import evaluate_predictive_comparison as ev
 except ImportError:
     import scripts.experiment_7_frontier as e7
     import scripts.experiment_8_map as e8
     import scripts.experiment_9_sensitivity as e9
     import scripts.blocking_reassessment as br
-    import scripts.evaluate_predictive_comparison as ev
 
 OUT = "thesis_assets"
 P = "P_block_arrival_stable"
@@ -100,7 +98,7 @@ def cell_tex(row: str, r1: float) -> str:
 # ============================================================
 
 def exp0(m: Macros) -> None:
-    rep = os.path.join("results_gth", "VALIDATION_REPORT.md")
+    rep = os.path.join("results", "gth_validation", "VALIDATION_REPORT.md")
     text = open(rep, encoding="utf-8").read()
     mt = re.search(r"\| 実験 0 \| ベース[^|]*\| 全 (\d+) 点・全 (\d+) 指標が CI 内", text)
     npts, nmet = int(mt.group(1)), int(mt.group(2))
@@ -176,29 +174,8 @@ def exp7(m: Macros) -> dict:
 
 
 # ============================================================
-# 旧比較 (β 固定) と保護の比較
+# 保護の比較
 # ============================================================
-
-def old_comparison(m: Macros) -> None:
-    """実験 1-P〜4-P と 1〜4 の旧比較 (保護なしの旧モデル, Base の β を固定)."""
-    for label, s14, s23, name in [("γ=5", "g5.0", "g5.0", "GammaFive"),
-                                  ("γ を最適化", "g1.0", "gmap", "GammaOpt")]:
-        pts = ev.load_experiment_1p("results", 10, s14)
-        for b in ("medium", "strong"):
-            pts += ev.load_experiment_2p("results", 10, s23, b)
-        for sw in ("delta", "sigma"):
-            pts += ev.load_experiment_3p("results", 10, s23, sw)
-        for b in ("weak", "medium", "strong"):
-            pts += ev.load_experiment_4p("results", 10, s14, b)
-        erp = np.array([p.improvement_pct for p in pts if p.metric == "ERP"])
-        src = (f"出典: results/experiment_{{1..4}}*.csv と experiment_{{1P..4P}}_*_{{{s14},{s23}}}.csv "
-               "(scripts/evaluate_predictive_comparison.py の load_experiment_*)\n"
-               f"旧比較 (保護なしの旧モデル, Base は β を走査の値に固定, Predictive は n_target=10, {label}) の ERP の改善率")
-        m.add(f"ExpOldBetaFixed{name}MaxERPImprovement", f"{erp.max():.2f}\\%", f"{src}\n405 点中の最大値")
-        m.add(f"ExpOldBetaFixed{name}CountOverFive", str(int((erp > 5).sum())),
-              f"{src}\n改善率が 5% を超える点の数 (405 点中)")
-        m.add(f"ExpOldBetaFixed{name}MeanERPImprovement", f"${erp.mean():+.2f}$\\%", f"{src}\n405 点の平均")
-
 
 def protect_comparison(m: Macros) -> None:
     """保護の比較 (results/p1_protect/p1_protect.csv)."""
@@ -422,7 +399,7 @@ def exp9(m: Macros) -> dict:
 # ============================================================
 
 def bench(m: Macros) -> None:
-    path = os.path.join("results_gth", "benchmark.md")
+    path = os.path.join("results", "gth_validation", "benchmark.md")
     text = open(path, encoding="utf-8").read()
     src = f"出典: {path} (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)"
     b = re.search(r"\| 標準 \(c=20,K=200,b=5\) \| (\d+) \| (\d+) \| (\d+) \| \d+ \| [\d.]+ MB \| ([\d.]+) ms", text)
@@ -629,12 +606,11 @@ SECTIONS = [
      "保護が不可欠. 価値は位相で時期を選ぶことから来る", [], ["protect_control.tex"],
      "ProtectExample*, ProtectNoCancel*, ExpSeven*NoCancel*, ExpSevenNoCancelWorse*"),
     (5, "公平な比較", "実験 7",
-     "典型的な条件では差は小さい. β を固定した比較は過大評価だった",
+     "典型的な条件では差は小さい",
      [f"experiment_7_{c}_EW_cost" for c in e7.CONDITIONS] +
-     [f"experiment_7_{c}_cost_pblock" for c in e7.CONDITIONS] +
-     ["compare_experiment_1_vs_1P", "compare_experiment_3_vs_3P_delta"],
+     [f"experiment_7_{c}_cost_pblock" for c in e7.CONDITIONS],
      ["exp7_erp.tex", "exp7_samerel.tex"],
-     "ExpSeven*ERPMin, ExpSeven*ERPRel, ExpSevenMax*, ExpOldBetaFixed*"),
+     "ExpSeven*ERPMin, ExpSeven*ERPRel, ExpSevenMax*"),
     (6, "どこで優位か", "実験 8 + 再判定",
      "中心の領域で 2〜4%. 途中の領域では棄却との引き換え",
      ["experiment_8_A_erp", "experiment_8_A_cost", "experiment_8_B_erp", "experiment_8_B_cost",
@@ -691,8 +667,6 @@ def figures_and_readme(macros: Macros, table_files: List[str]) -> List[str]:
               "0-P は保護を入れる前のモデル. 保護ありのモデルの DES 照合は results/protect_des/ "
               "(図はなく, マクロ ExpZeroProtect* で引用する).",
               "- experiment_1〜4_*: ベースモデルだけの実験 (保護の有無に関係しない).",
-              "- compare_experiment_*: β を固定した旧比較 (保護なしの旧モデル). 節 5 で "
-              "「β を固定した比較は過大評価だった」ことを示すために使う.",
               "- experiment_7_*: scripts/experiment_7_frontier.py --report",
               "- experiment_8_{A,B}_{erp,cost}, B_p1_alpha, p1_fire: scripts/experiment_8_map.py --report",
               "- experiment_8_*_blk_*: scripts/blocking_reassessment.py",
@@ -707,7 +681,6 @@ def main():
     m = Macros()
     exp0(m)
     exp7(m)
-    old_comparison(m)
     protect_comparison(m)
     sm = exp8(m)
     out9 = exp9(m)

@@ -1,14 +1,14 @@
 % 論文で引用する数値. scripts/make_thesis_numbers.py で生成 (手で編集しない).
 
-% 出典: results_gth/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
+% 出典: results/gth_validation/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
 % 実験 0 (ベースモデル) で DES と照合した ρ の点の数
 \newcommand{\ExpZeroBasePoints}{10}
 
-% 出典: results_gth/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
+% 出典: results/gth_validation/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
 % 照合した指標の数 (P_block, E[N], E[W], λ_eff, ρ_server, Cost)
 \newcommand{\ExpZeroMetrics}{6}
 
-% 出典: results_gth/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
+% 出典: results/gth_validation/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
 % 理論値が DES の 95% 信頼区間に入った (点, 指標) の組の数 (全点・全指標が CI 内)
 \newcommand{\ExpZeroBaseInCI}{60}
 
@@ -620,36 +620,6 @@
 % 同じく最大値
 \newcommand{\ExpSevenNoCancelWorseMax}{8.56\%}
 
-% 出典: results/experiment_{1..4}*.csv と experiment_{1P..4P}_*_{g5.0,g5.0}.csv (scripts/evaluate_predictive_comparison.py の load_experiment_*)
-% 旧比較 (保護なしの旧モデル, Base は β を走査の値に固定, Predictive は n_target=10, γ=5) の ERP の改善率
-% 405 点中の最大値
-\newcommand{\ExpOldBetaFixedGammaFiveMaxERPImprovement}{11.77\%}
-
-% 出典: results/experiment_{1..4}*.csv と experiment_{1P..4P}_*_{g5.0,g5.0}.csv (scripts/evaluate_predictive_comparison.py の load_experiment_*)
-% 旧比較 (保護なしの旧モデル, Base は β を走査の値に固定, Predictive は n_target=10, γ=5) の ERP の改善率
-% 改善率が 5% を超える点の数 (405 点中)
-\newcommand{\ExpOldBetaFixedGammaFiveCountOverFive}{85}
-
-% 出典: results/experiment_{1..4}*.csv と experiment_{1P..4P}_*_{g5.0,g5.0}.csv (scripts/evaluate_predictive_comparison.py の load_experiment_*)
-% 旧比較 (保護なしの旧モデル, Base は β を走査の値に固定, Predictive は n_target=10, γ=5) の ERP の改善率
-% 405 点の平均
-\newcommand{\ExpOldBetaFixedGammaFiveMeanERPImprovement}{$-1.77$\%}
-
-% 出典: results/experiment_{1..4}*.csv と experiment_{1P..4P}_*_{g1.0,gmap}.csv (scripts/evaluate_predictive_comparison.py の load_experiment_*)
-% 旧比較 (保護なしの旧モデル, Base は β を走査の値に固定, Predictive は n_target=10, γ を最適化) の ERP の改善率
-% 405 点中の最大値
-\newcommand{\ExpOldBetaFixedGammaOptMaxERPImprovement}{28.14\%}
-
-% 出典: results/experiment_{1..4}*.csv と experiment_{1P..4P}_*_{g1.0,gmap}.csv (scripts/evaluate_predictive_comparison.py の load_experiment_*)
-% 旧比較 (保護なしの旧モデル, Base は β を走査の値に固定, Predictive は n_target=10, γ を最適化) の ERP の改善率
-% 改善率が 5% を超える点の数 (405 点中)
-\newcommand{\ExpOldBetaFixedGammaOptCountOverFive}{66}
-
-% 出典: results/experiment_{1..4}*.csv と experiment_{1P..4P}_*_{g1.0,gmap}.csv (scripts/evaluate_predictive_comparison.py の load_experiment_*)
-% 旧比較 (保護なしの旧モデル, Base は β を走査の値に固定, Predictive は n_target=10, γ を最適化) の ERP の改善率
-% 405 点の平均
-\newcommand{\ExpOldBetaFixedGammaOptMeanERPImprovement}{$+0.38$\%}
-
 % 出典: results/p1_protect/p1_protect.csv
 % 条件 medium, ρ=0.3, α=0.1, β=0.5 で, 保護なし (none, n_target=10, γ=1) の ERP に対する相対差
 % 保護の設定 presetup (n_target=10, γ=1)
@@ -1148,46 +1118,46 @@
 % 上の組の P の比の最大値
 \newcommand{\ExpNineBetaTwoMaxPRatio}{2.951}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % ベースモデル標準設定の状態数 N
 \newcommand{\BenchBaseN}{8{,}442}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % ベースモデル標準設定の下帯幅 p
 \newcommand{\BenchBaseP}{210}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % ベースモデル標準設定の上帯幅 q
 \newcommand{\BenchBaseQ}{42}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % ベースモデル標準設定の GTH の計算時間 [ms]
 \newcommand{\BenchBaseGTHms}{102.5}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % Predictive 標準設定の名目の状態数
 \newcommand{\BenchPredNominalN}{92{,}862}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % Predictive 標準設定の到達可能状態に縮約した後の状態数
 \newcommand{\BenchPredReducedN}{12{,}292}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % Predictive 標準設定の縮約後の下帯幅 p
 \newcommand{\BenchPredP}{760}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % Predictive 標準設定の縮約後の上帯幅 q
 \newcommand{\BenchPredQ}{152}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % Predictive 標準設定の GTH の計算時間 [s]
 \newcommand{\BenchPredGTHs}{0.97}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % Predictive K=1000 の縮約後の状態数
 \newcommand{\BenchPredKThousandReducedN}{45{,}892}
 
-% 出典: results_gth/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
+% 出典: results/gth_validation/benchmark.md (2 コア, numba JIT のウォームアップ後の 3 回中の最良値)
 % Predictive K=1000 の GTH の計算時間 [s]
 \newcommand{\BenchPredKThousandGTHs}{2.33}

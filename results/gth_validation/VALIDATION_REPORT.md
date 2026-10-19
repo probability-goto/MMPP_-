@@ -1,5 +1,7 @@
 # GTH ソルバー導入 検証レポート
 
+> 2026-10-19 にファイルを移動した: `results_gth/` の CSV → `archive/gth_migration_results_subtraction_pblock/`, `figures_gth/` → `archive/gth_migration_figures_subtraction_pblock/` と `archive/splu_vs_gth_comparison_figures/`, このレポート・ベンチマーク・計測時間 → `results/gth_validation/`. 本文のパスは移動後のものに置き換えた (本文中の「旧 `results/`」は当時の splu の結果で, もう残っていない). 詳細は `archive/README.md`.
+
 定常分布ソルバーを疎 LU 分解 (scipy `spsolve`, 以下 splu) から
 GTH 法 (Grassmann-Taksar-Heyman, O'Cinneide 1993/1996) へ置き換えた際の検証記録。
 
@@ -157,8 +159,8 @@ GTH に切り替えた状態で、理論値が独立な DES シミュレーシ�
 
 | 実験 | モデル | 結果 | 図 |
 |---|---|---|---|
-| 実験 0 | ベース (delayoff) | 全 10 点・全 6 指標が CI 内 | `figures_gth/experiment_0_validation.png` |
-| 実験 0P | Predictive | 全 10 点で概ね CI 内 (低 ρ の 2 点で E[W], E[N] が僅かに外れる) | `figures_gth/experiment_0P_validation.png` |
+| 実験 0 | ベース (delayoff) | 全 10 点・全 6 指標が CI 内 | `archive/gth_migration_figures_subtraction_pblock/experiment_0_validation.png` |
+| 実験 0P | Predictive | 全 10 点で概ね CI 内 (低 ρ の 2 点で E[W], E[N] が僅かに外れる) | `archive/gth_migration_figures_subtraction_pblock/experiment_0P_validation.png` |
 
 比較指標は P_block, E[N], E[W], λ_eff, ρ_server, Cost の 6 つ。
 
@@ -207,7 +209,7 @@ DES 側のバイアス (ウォームアップ長・測定長に起因) である
 ### 4.1 手法
 
 `results/` の既存 CSV は splu (旧既定値) で計算されたものである。
-同一のスクリプト・同一のパラメータ格子を新既定値 (GTH) で再実行して `results_gth/` に保存し、
+同一のスクリプト・同一のパラメータ格子を新既定値 (GTH) で再実行して `archive/gth_migration_results_subtraction_pblock/` に保存し、
 パラメータ列で突き合わせて指標ごとの相対差を計算した
 (`scripts/compare_gth_vs_splu_results.py`)。
 加えて、各実験スクリプトのパラメータ格子を直接再現して両ソルバーを同一 Q 上で
@@ -370,7 +372,7 @@ GTH 側は正しい。一方 P_block^arrival の境界超過は、
 
 ### 4.5 低 ρ 領域のノイズ解消 (図による確認)
 
-`figures_gth/comparison/compare_experiment_4_*.png` に旧新比較図を出力した。
+`archive/splu_vs_gth_comparison_figures/compare_experiment_4_*.png` に旧新比較図を出力した。
 
 実験 4 (K 感度) の P_block^arrival パネルには 3 本の曲線を重ねている:
 
@@ -388,7 +390,7 @@ GTH 側は正しい。一方 P_block^arrival の境界超過は、
 
 ### 5.1 ベースモデル
 
-計測環境: 2 コア、numba JIT ウォームアップ後の 3 回中の最良値 (`results_gth/benchmark.md`)。
+計測環境: 2 コア、numba JIT ウォームアップ後の 3 回中の最良値 (`results/gth_validation/benchmark.md`)。
 
 | 設定 | N | p | q | 帯幅 W | 帯格納メモリ | GTH | splu | GTH/splu |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -402,7 +404,7 @@ GTH は splu より 1.6〜1.8 倍遅いが、小規模設定では逆に GTH の
 (splu の疎行列分解のオーバーヘッドが相対的に大きいため)。
 帯幅 p, q は K に依存せず (p = bD, q = D)、メモリ・計算量はいずれも N に線形。
 
-実験スクリプト全体の実行時間 (`results_gth/timing_report*.txt` の実測):
+実験スクリプト全体の実行時間 (`results/gth_validation/timing_report*.txt` の実測):
 
 | 実験 | 実行時間 | 備考 |
 |---|---|---|
@@ -475,7 +477,7 @@ p, q は 1042/942 → 610/611 (計算量 1.2e10 → 4.6e9, 約 2.6 倍の改善)
 | `scripts/validate_gth_mpmath.py` | V2: mpmath 50 桁による高精度検証 |
 | `scripts/validate_gth_mpmath_predictive.py` | V2-P: Predictive モデルでの mpmath 検証 |
 | `scripts/validate_gth_v6_base.py` | V6: ベース実験の全格子点で GTH vs splu (415 点) |
-| `scripts/compare_gth_vs_splu_results.py` | V6: `results/` と `results_gth/` の CSV 比較 |
+| `scripts/compare_gth_vs_splu_results.py` | V6: `results/` と `archive/gth_migration_results_subtraction_pblock/` の CSV 比較 |
 | `scripts/run_gth_regen_v2.sh` | 全実験 (実験 0/0P を除く) を GTH + 安定版指標で再実行 |
 | `scripts/run_all_gth_regen.sh` | (初版) 実験 0〜4 を GTH で再実行 |
 | `scripts/run_predictive_gth_regen.sh` | (初版) Predictive 実験を GTH で再実行 |
@@ -486,9 +488,9 @@ p, q は 1042/942 → 610/611 (計算量 1.2e10 → 4.6e9, 約 2.6 倍の改善)
 
 | ディレクトリ | 内容 |
 |---|---|
-| `results_gth/` | GTH で再計算した CSV (旧 `results/` は未変更) |
-| `figures_gth/` | GTH で再生成した図 (旧 `figures/` は未変更) |
-| `figures_gth/comparison/` | 旧 (splu) vs 新 (GTH) の比較図 |
+| `archive/gth_migration_results_subtraction_pblock/` | GTH で再計算した CSV (旧 `results/` は未変更) |
+| `archive/gth_migration_figures_subtraction_pblock/` | GTH で再生成した図 (旧 `figures/` は未変更) |
+| `archive/splu_vs_gth_comparison_figures/` | 旧 (splu) vs 新 (GTH) の比較図 |
 
 既存の `results/` および `figures/` は一切変更・削除していない。
 

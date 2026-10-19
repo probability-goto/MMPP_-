@@ -261,4 +261,4 @@ pi = solve_stationary(Q, solver="splu")   # 従来の疎行列 LU 分解
 - 反復法 (GMRES 等) は本モデルの剛性 (κ ~ 10^3) と動的レンジ
   (κ_π ~ 10^10 - 10^20) では不適
 
-検証の詳細は `results_gth/VALIDATION_REPORT.md` を参照。
+検証の詳細は `results/gth_validation/VALIDATION_REPORT.md` を参照。
