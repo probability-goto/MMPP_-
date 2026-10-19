@@ -8,6 +8,7 @@
 | `gth_migration_figures_subtraction_pblock/` | GTH 法を既定ソルバーにした直後 (2026-09-25) に再計算した実験 0〜6 の図. P_block は引き算版の式 | `figures_gth/experiment_*` |
 | `gth_migration_results_subtraction_pblock/` | 上の図の元になった CSV (実験 1〜6, 1P〜4P) | `results_gth/*.csv` |
 | `splu_vs_gth_comparison_figures/` | splu と GTH の精度比較図 (`scripts/make_gth_vs_splu_figures.py`) | `figures_gth/comparison/` |
+| `old_comparison_beta_fixed_no_protect/` | 旧比較 (β 固定, 保護なしの旧モデル) の図. 論文では使わないが再現できるように残す. CSV は `results/` のまま. 詳細と再生成の手順は中の README | `figures/compare_experiment_*`, `figures/experiment_{1P..4P,5,6}_*`, `figures/*_a0.1.*` |
 | `pre_gth_splu_figures/` | GTH 導入より前 (splu 時代, 2026-07〜08) の図. `theory_vs_sim_*` は生成スクリプトが残っていない. `experiment_6_extended/experiment_6_*_nt10` は `figures/experiment_6_*_nt10` の古い版 | `figures/theory_vs_sim_*`, `figures/experiment_6_extended/experiment_6_*_nt10.*` |
 
 GTH 移行の検証レポート・ベンチマーク・計測時間は論文の数値の出典なので, アーカイブではなく
