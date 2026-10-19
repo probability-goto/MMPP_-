@@ -587,48 +587,31 @@ def _write(d, name, text) -> str:
 # 図と README
 # ============================================================
 
-# 論文の節 (論理の流れ): (節, 問い, 使う実験, 結論, 図, 表, 主なマクロ)
-SECTIONS = [
-    (1, "解析は正しいか", "実験 0 / 0-P (と保護ありの DES 照合)", "理論と DES が一致",
-     ["experiment_0_validation", "experiment_0P_validation"], [],
-     "ExpZero*, Bench*"),
-    (2, "ベースモデルの特性", "実験 1〜4",
-     "バースト性と有限バッファの影響. ρ_B > 1 ではどの方策でも棄却を防げない",
+# thesis_assets/figures/ にコピーする図: (図のまとまり, 作るスクリプトと注意, figures/ の図の名前)
+FIGURES = [
+    ("実験 0 / 0-P (理論と DES の照合)",
+     "scripts/experiment_0_validation.py, experiment_0P_validation.py. 0-P は保護を入れる前のモデル. "
+     "保護ありのモデルの DES 照合は results/protect_des/ (図はなく, マクロ ExpZeroProtect* で引用する)",
+     ["experiment_0_validation", "experiment_0P_validation"]),
+    ("実験 1〜4 (ベースモデル)",
+     "scripts/experiment_{1_traffic,2_delayoff,3_burstiness,4_K_sensitivity}.py. "
+     "ベースモデルだけの実験 (保護の有無に関係しない)",
      ["experiment_1_traffic", "experiment_2_delayoff", "experiment_2_delayoff_strong",
       "experiment_3_burstiness_delta", "experiment_3_burstiness_sigma",
       "experiment_4_K_sensitivity_weak", "experiment_4_K_sensitivity_medium",
-      "experiment_4_K_sensitivity_strong"], [],
-     "ExpSevenCTwoBasePBlock, ExpSevenCTwoEpsTwoFeasibleCount, ExpEightBaseInfeasibleEpsTwoCount"),
-    (3, "評価の基準", "―",
-     "有限バッファでは ERP が棄却を含まない. 同じ信頼性での ERP を基準にする", [],
-     ["exp7_samerel.tex"], "ExpSeven*PRatio, ExpEight*PRatioMax, ExpEightCategoryChangedCount"),
-    (4, "各規則の働き", "保護の比較, NoCancel",
-     "保護が不可欠. 価値は位相で時期を選ぶことから来る", [], ["protect_control.tex"],
-     "ProtectExample*, ProtectNoCancel*, ExpSeven*NoCancel*, ExpSevenNoCancelWorse*"),
-    (5, "公平な比較", "実験 7",
-     "典型的な条件では差は小さい",
+      "experiment_4_K_sensitivity_strong"]),
+    ("実験 7", "scripts/experiment_7_frontier.py --report",
      [f"experiment_7_{c}_EW_cost" for c in e7.CONDITIONS] +
-     [f"experiment_7_{c}_cost_pblock" for c in e7.CONDITIONS],
-     ["exp7_erp.tex", "exp7_samerel.tex"],
-     "ExpSeven*ERPMin, ExpSeven*ERPRel, ExpSevenMax*"),
-    (6, "どこで優位か", "実験 8 + 再判定",
-     "中心の領域で 2〜4%. 途中の領域では棄却との引き換え",
+     [f"experiment_7_{c}_cost_pblock" for c in e7.CONDITIONS]),
+    ("実験 8", "scripts/experiment_8_map.py --report",
      ["experiment_8_A_erp", "experiment_8_A_cost", "experiment_8_B_erp", "experiment_8_B_cost",
-      "experiment_8_B_p1_alpha", "experiment_8_A_blk_b", "experiment_8_B_blk_b",
-      "experiment_8_A_blk_c1e-3", "experiment_8_B_blk_c1e-3"],
-     ["exp8_mapA.tex", "exp8_mapB.tex"],
-     "ExpEightCenter*, ExpEightCore*, ExpEightMaxImprovement*, ExpEight*SameRel*, ExpEightAlphaSpearman*"),
-    (7, "なぜ優位か", "仕組みの集計", "通常期にサーバーを早く切れる",
-     ["experiment_8_p1_fire"], ["exp8_mechanism.tex"],
-     "ExpEightR*, ExpEightFire*, Mech*"),
-    (8, "どこでベースモデルが優位か", "実験 9",
-     "価値のない領域, P2 を β の調整なしで使う場合, n_target が大きすぎる場合. "
-     "P1 は追加しても棄却を増やさない",
+      "experiment_8_B_p1_alpha", "experiment_8_p1_fire"]),
+    ("実験 8 (棄却の再判定)", "scripts/blocking_reassessment.py",
+     ["experiment_8_A_blk_b", "experiment_8_B_blk_b",
+      "experiment_8_A_blk_c1e-3", "experiment_8_B_blk_c1e-3"]),
+    ("実験 9", "scripts/experiment_9_sensitivity.py --report",
      [f"experiment_9_A_{row}_r1_{r1:.3g}" for row, r1 in e9.A_CELLS] +
-     [f"experiment_9_B_{w}_{m}" for w in ("A", "B") for m in ("ERP", "EW", "Cost", "P")],
-     ["exp9_partB.tex", "exp9_beta2.tex"], "ExpNine*"),
-    (9, "結論と限界", "―",
-     "位相の観測の仮定, 反応的な起動の理想化, 指数分布のセットアップ時間", [], [], "—"),
+     [f"experiment_9_B_{w}_{m}" for w in ("A", "B") for m in ("ERP", "EW", "Cost", "P")]),
 ]
 
 
@@ -636,7 +619,7 @@ def figures_and_readme(macros: Macros, table_files: List[str]) -> List[str]:
     d = os.path.join(OUT, "figures")
     os.makedirs(d, exist_ok=True)
     copied, missing = [], []
-    for _, _, _, _, figs, _, _ in SECTIONS:
+    for _, _, figs in FIGURES:
         for stem in figs:
             for ext in ("pdf", "png"):
                 src = os.path.join("figures", f"{stem}.{ext}")
@@ -655,22 +638,13 @@ def figures_and_readme(macros: Macros, table_files: List[str]) -> List[str]:
              "- `tables/*.tex`: table 環境の表 (booktabs と graphicx (幅の広い表の \\resizebox) を使う. "
              "数値マクロを参照する表は numbers.tex の後に読み込む).",
              "- `figures/`: figures/ からのコピー (PDF と PNG).", "",
-             "## 論文の節と図・表の対応", "",
-             "論文の論理の流れ (節 1〜9) に合わせた. 図は figures/ の PDF (同名の PNG もある).", "",
-             "| 節 | 問い | 使う実験 | 結論 | 図 | 表 | 主なマクロ |", "|---|---|---|---|---|---|---|"]
-    for no, q, exp, concl, figs, tabs, mac in SECTIONS:
-        lines.append(f"| {no} | {q} | {exp} | {concl} | " +
-                     ("<br>".join(f"figures/{f}.pdf" for f in figs) or "—") + " | " +
-                     ("<br>".join(f"tables/{t}" for t in tabs) or "—") + f" | {mac} |")
-    lines += ["", "## 図の出典と注意", "",
-              "- experiment_0*: scripts/experiment_0_validation.py, experiment_0P_validation.py. "
-              "0-P は保護を入れる前のモデル. 保護ありのモデルの DES 照合は results/protect_des/ "
-              "(図はなく, マクロ ExpZeroProtect* で引用する).",
-              "- experiment_1〜4_*: ベースモデルだけの実験 (保護の有無に関係しない).",
-              "- experiment_7_*: scripts/experiment_7_frontier.py --report",
-              "- experiment_8_{A,B}_{erp,cost}, B_p1_alpha, p1_fire: scripts/experiment_8_map.py --report",
-              "- experiment_8_*_blk_*: scripts/blocking_reassessment.py",
-              "- experiment_9_*: scripts/experiment_9_sensitivity.py --report", ""]
+             "## 表", ""]
+    lines += [f"- tables/{os.path.basename(t)}" for t in sorted(table_files)]
+    lines += ["", "## 図と出典", ""]
+    for group, note, figs in FIGURES:
+        lines.append(f"- {group}: {note}")
+        lines += [f"  - figures/{f}.pdf" for f in figs]
+    lines.append("")
     with open(os.path.join(OUT, "README.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     return copied

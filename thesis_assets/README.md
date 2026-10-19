@@ -6,27 +6,66 @@
 - `tables/*.tex`: table 環境の表 (booktabs と graphicx (幅の広い表の \resizebox) を使う. 数値マクロを参照する表は numbers.tex の後に読み込む).
 - `figures/`: figures/ からのコピー (PDF と PNG).
 
-## 論文の節と図・表の対応
+## 表
 
-論文の論理の流れ (節 1〜9) に合わせた. 図は figures/ の PDF (同名の PNG もある).
+- tables/exp7_erp.tex
+- tables/exp7_samerel.tex
+- tables/exp8_mapA.tex
+- tables/exp8_mapB.tex
+- tables/exp8_mechanism.tex
+- tables/exp9_beta2.tex
+- tables/exp9_partB.tex
+- tables/protect_control.tex
 
-| 節 | 問い | 使う実験 | 結論 | 図 | 表 | 主なマクロ |
-|---|---|---|---|---|---|---|
-| 1 | 解析は正しいか | 実験 0 / 0-P (と保護ありの DES 照合) | 理論と DES が一致 | figures/experiment_0_validation.pdf<br>figures/experiment_0P_validation.pdf | — | ExpZero*, Bench* |
-| 2 | ベースモデルの特性 | 実験 1〜4 | バースト性と有限バッファの影響. ρ_B > 1 ではどの方策でも棄却を防げない | figures/experiment_1_traffic.pdf<br>figures/experiment_2_delayoff.pdf<br>figures/experiment_2_delayoff_strong.pdf<br>figures/experiment_3_burstiness_delta.pdf<br>figures/experiment_3_burstiness_sigma.pdf<br>figures/experiment_4_K_sensitivity_weak.pdf<br>figures/experiment_4_K_sensitivity_medium.pdf<br>figures/experiment_4_K_sensitivity_strong.pdf | — | ExpSevenCTwoBasePBlock, ExpSevenCTwoEpsTwoFeasibleCount, ExpEightBaseInfeasibleEpsTwoCount |
-| 3 | 評価の基準 | ― | 有限バッファでは ERP が棄却を含まない. 同じ信頼性での ERP を基準にする | — | tables/exp7_samerel.tex | ExpSeven*PRatio, ExpEight*PRatioMax, ExpEightCategoryChangedCount |
-| 4 | 各規則の働き | 保護の比較, NoCancel | 保護が不可欠. 価値は位相で時期を選ぶことから来る | — | tables/protect_control.tex | ProtectExample*, ProtectNoCancel*, ExpSeven*NoCancel*, ExpSevenNoCancelWorse* |
-| 5 | 公平な比較 | 実験 7 | 典型的な条件では差は小さい | figures/experiment_7_C1_EW_cost.pdf<br>figures/experiment_7_C2_EW_cost.pdf<br>figures/experiment_7_C3_EW_cost.pdf<br>figures/experiment_7_C4_EW_cost.pdf<br>figures/experiment_7_C5_EW_cost.pdf<br>figures/experiment_7_C1_cost_pblock.pdf<br>figures/experiment_7_C2_cost_pblock.pdf<br>figures/experiment_7_C3_cost_pblock.pdf<br>figures/experiment_7_C4_cost_pblock.pdf<br>figures/experiment_7_C5_cost_pblock.pdf | tables/exp7_erp.tex<br>tables/exp7_samerel.tex | ExpSeven*ERPMin, ExpSeven*ERPRel, ExpSevenMax* |
-| 6 | どこで優位か | 実験 8 + 再判定 | 中心の領域で 2〜4%. 途中の領域では棄却との引き換え | figures/experiment_8_A_erp.pdf<br>figures/experiment_8_A_cost.pdf<br>figures/experiment_8_B_erp.pdf<br>figures/experiment_8_B_cost.pdf<br>figures/experiment_8_B_p1_alpha.pdf<br>figures/experiment_8_A_blk_b.pdf<br>figures/experiment_8_B_blk_b.pdf<br>figures/experiment_8_A_blk_c1e-3.pdf<br>figures/experiment_8_B_blk_c1e-3.pdf | tables/exp8_mapA.tex<br>tables/exp8_mapB.tex | ExpEightCenter*, ExpEightCore*, ExpEightMaxImprovement*, ExpEight*SameRel*, ExpEightAlphaSpearman* |
-| 7 | なぜ優位か | 仕組みの集計 | 通常期にサーバーを早く切れる | figures/experiment_8_p1_fire.pdf | tables/exp8_mechanism.tex | ExpEightR*, ExpEightFire*, Mech* |
-| 8 | どこでベースモデルが優位か | 実験 9 | 価値のない領域, P2 を β の調整なしで使う場合, n_target が大きすぎる場合. P1 は追加しても棄却を増やさない | figures/experiment_9_A_B_alpha1_r1_3.16.pdf<br>figures/experiment_9_A_A_rhoB0.8_r1_17.8.pdf<br>figures/experiment_9_A_B_alpha0.005_r1_17.8.pdf<br>figures/experiment_9_A_A_rhoB0.6_r1_3.16.pdf<br>figures/experiment_9_A_A_rhoB0.8_r1_0.1.pdf<br>figures/experiment_9_A_B_alpha10_r1_17.8.pdf<br>figures/experiment_9_B_A_ERP.pdf<br>figures/experiment_9_B_A_EW.pdf<br>figures/experiment_9_B_A_Cost.pdf<br>figures/experiment_9_B_A_P.pdf<br>figures/experiment_9_B_B_ERP.pdf<br>figures/experiment_9_B_B_EW.pdf<br>figures/experiment_9_B_B_Cost.pdf<br>figures/experiment_9_B_B_P.pdf | tables/exp9_partB.tex<br>tables/exp9_beta2.tex | ExpNine* |
-| 9 | 結論と限界 | ― | 位相の観測の仮定, 反応的な起動の理想化, 指数分布のセットアップ時間 | — | — | — |
+## 図と出典
 
-## 図の出典と注意
-
-- experiment_0*: scripts/experiment_0_validation.py, experiment_0P_validation.py. 0-P は保護を入れる前のモデル. 保護ありのモデルの DES 照合は results/protect_des/ (図はなく, マクロ ExpZeroProtect* で引用する).
-- experiment_1〜4_*: ベースモデルだけの実験 (保護の有無に関係しない).
-- experiment_7_*: scripts/experiment_7_frontier.py --report
-- experiment_8_{A,B}_{erp,cost}, B_p1_alpha, p1_fire: scripts/experiment_8_map.py --report
-- experiment_8_*_blk_*: scripts/blocking_reassessment.py
-- experiment_9_*: scripts/experiment_9_sensitivity.py --report
+- 実験 0 / 0-P (理論と DES の照合): scripts/experiment_0_validation.py, experiment_0P_validation.py. 0-P は保護を入れる前のモデル. 保護ありのモデルの DES 照合は results/protect_des/ (図はなく, マクロ ExpZeroProtect* で引用する)
+  - figures/experiment_0_validation.pdf
+  - figures/experiment_0P_validation.pdf
+- 実験 1〜4 (ベースモデル): scripts/experiment_{1_traffic,2_delayoff,3_burstiness,4_K_sensitivity}.py. ベースモデルだけの実験 (保護の有無に関係しない)
+  - figures/experiment_1_traffic.pdf
+  - figures/experiment_2_delayoff.pdf
+  - figures/experiment_2_delayoff_strong.pdf
+  - figures/experiment_3_burstiness_delta.pdf
+  - figures/experiment_3_burstiness_sigma.pdf
+  - figures/experiment_4_K_sensitivity_weak.pdf
+  - figures/experiment_4_K_sensitivity_medium.pdf
+  - figures/experiment_4_K_sensitivity_strong.pdf
+- 実験 7: scripts/experiment_7_frontier.py --report
+  - figures/experiment_7_C1_EW_cost.pdf
+  - figures/experiment_7_C2_EW_cost.pdf
+  - figures/experiment_7_C3_EW_cost.pdf
+  - figures/experiment_7_C4_EW_cost.pdf
+  - figures/experiment_7_C5_EW_cost.pdf
+  - figures/experiment_7_C1_cost_pblock.pdf
+  - figures/experiment_7_C2_cost_pblock.pdf
+  - figures/experiment_7_C3_cost_pblock.pdf
+  - figures/experiment_7_C4_cost_pblock.pdf
+  - figures/experiment_7_C5_cost_pblock.pdf
+- 実験 8: scripts/experiment_8_map.py --report
+  - figures/experiment_8_A_erp.pdf
+  - figures/experiment_8_A_cost.pdf
+  - figures/experiment_8_B_erp.pdf
+  - figures/experiment_8_B_cost.pdf
+  - figures/experiment_8_B_p1_alpha.pdf
+  - figures/experiment_8_p1_fire.pdf
+- 実験 8 (棄却の再判定): scripts/blocking_reassessment.py
+  - figures/experiment_8_A_blk_b.pdf
+  - figures/experiment_8_B_blk_b.pdf
+  - figures/experiment_8_A_blk_c1e-3.pdf
+  - figures/experiment_8_B_blk_c1e-3.pdf
+- 実験 9: scripts/experiment_9_sensitivity.py --report
+  - figures/experiment_9_A_B_alpha1_r1_3.16.pdf
+  - figures/experiment_9_A_A_rhoB0.8_r1_17.8.pdf
+  - figures/experiment_9_A_B_alpha0.005_r1_17.8.pdf
+  - figures/experiment_9_A_A_rhoB0.6_r1_3.16.pdf
+  - figures/experiment_9_A_A_rhoB0.8_r1_0.1.pdf
+  - figures/experiment_9_A_B_alpha10_r1_17.8.pdf
+  - figures/experiment_9_B_A_ERP.pdf
+  - figures/experiment_9_B_A_EW.pdf
+  - figures/experiment_9_B_A_Cost.pdf
+  - figures/experiment_9_B_A_P.pdf
+  - figures/experiment_9_B_B_ERP.pdf
+  - figures/experiment_9_B_B_EW.pdf
+  - figures/experiment_9_B_B_Cost.pdf
+  - figures/experiment_9_B_B_P.pdf
