@@ -45,8 +45,10 @@ except ImportError:  # pragma: no cover
 
 from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
 try:
+    from _figure_labels import log_scale_label
     from _mmpp_burst import build_mmpp, compute_interarrival_cv
 except ImportError:
+    from scripts._figure_labels import log_scale_label
     from scripts._mmpp_burst import build_mmpp, compute_interarrival_cv
 
 
@@ -347,6 +349,7 @@ def _plot(
             # 安定版は 1e-12 未満でも相対精度を保つので下限で切らずに全点を描く.
             # ブロッキング確率なので上端は 1. 対数軸の自動余白で 1 を超えないようにする
             ax.set_ylim(top=1)
+            ylabel = log_scale_label(ylabel)
 
         ax.set_xlabel(r"$\rho$", fontsize=16)
         ax.set_ylabel(ylabel, fontsize=16)

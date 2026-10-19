@@ -51,10 +51,12 @@ try:
     import compare_map as cm
     import experiment_8_map as e8
     import experiment_9_sensitivity as e9
+    from _figure_labels import log_scale_label
 except ImportError:
     import scripts.compare_map as cm
     import scripts.experiment_8_map as e8
     import scripts.experiment_9_sensitivity as e9
+    from scripts._figure_labels import log_scale_label
 
 warnings.filterwarnings("ignore", message="Predictive モデルの縮約後の帯幅が大きい")
 
@@ -607,7 +609,7 @@ def plot_A(key, cr, s, fig_dir) -> List[str]:
             axes[1, j].set_xscale("log")
         axes[1, j].set_xlabel(xlabels[sw], fontsize=14)
     axes[0, 0].set_ylabel(r"$\Delta$ERP vs Base min [%]", fontsize=12)
-    axes[1, 0].set_ylabel(r"$P / P_{\mathrm{ref}}$", fontsize=12)
+    axes[1, 0].set_ylabel(log_scale_label(r"$P / P_{\mathrm{ref}}$"), fontsize=12)
     fig.text(0.62, 0.985, f"dashed: +{100 * ERP_TIE:g}% / {P_HI:g}, dotted: reference point",
              ha="center", va="top", fontsize=10, color="#52514e")
     handles, labels = [], []

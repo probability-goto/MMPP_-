@@ -41,8 +41,10 @@ except ImportError:  # pragma: no cover
 
 from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
 try:
+    from _figure_labels import log_scale_label
     from _mmpp_burst import build_mmpp, compute_interarrival_cv
 except ImportError:
+    from scripts._figure_labels import log_scale_label
     from scripts._mmpp_burst import build_mmpp, compute_interarrival_cv
 
 
@@ -379,6 +381,7 @@ def _plot(
         # P_block^arrival のみ縦軸対数
         if key == "P_block_arrival_stable":
             ax.set_yscale("log")
+            ylabel = log_scale_label(ylabel)
 
         xlabel_map = {"delta": r"$\delta$", "sigma": r"$\sigma$"}
         ax.set_xlabel(xlabel_map[args.sweep], fontsize=16)
