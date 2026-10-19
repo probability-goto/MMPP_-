@@ -104,7 +104,8 @@ def replot_exp1(csv_dir, out_dir):
     groups = [name for name, _, _ in e1.BURST_LEVELS]
     vals = _theory_vals(rows, lambda r: r["burst_name"], "rho", e1.METRIC_SPECS, groups)
     rho_values = _sorted_unique(r["rho"] for r in rows)
-    e1._plot(argparse.Namespace(out_dir=out_dir), rho_values, vals)
+    # 無印の CSV は既定の alpha (ファイル名に _a が付かない) の結果
+    e1._plot(argparse.Namespace(out_dir=out_dir, alpha=e1.DEFAULT_ALPHA), rho_values, vals)
 
 
 def replot_exp2(csv_dir, out_dir):
@@ -146,7 +147,7 @@ def replot_exp4(csv_dir, out_dir):
     for level_name, _, _ in e4.BURST_LEVELS:
         _replot_k_sensitivity(
             e4, os.path.join(csv_dir, f"experiment_4_{level_name}.csv"),
-            argparse.Namespace(out_dir=out_dir),
+            argparse.Namespace(out_dir=out_dir, alpha=e4.DEFAULT_ALPHA),
         )
 
 

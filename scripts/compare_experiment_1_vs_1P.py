@@ -6,9 +6,12 @@
 描きする. 3 バースト水準 x 4 指標の 2x2 サブプロット図を作成し, 代表的な
 rho 点でベースに対する Predictive の改善率を標準出力にサマライズする.
 
+ベースの CSV は Predictive と同じ alpha=0.1 の結果 (ファイル名に _a0.1 が付いたもの)
+を使う (ベースの実験の既定値は alpha=0.005 に変えた).
+
 使用例:
     python scripts/compare_experiment_1_vs_1P.py \\
-        --base-csv results/experiment_1.csv \\
+        --base-csv results/experiment_1_a0.1.csv \\
         --pred-csv results/experiment_1P_nt10_g5.0.csv \\
         --meta "n_target=10, gamma=5.0"
 """

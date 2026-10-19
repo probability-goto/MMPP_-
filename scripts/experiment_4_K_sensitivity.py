@@ -7,12 +7,20 @@ rho = lambda_bar / (c*b*mu) を [0.1, 0.95] でスイープしながら 4 指標
 (P_block^arrival, E[W], Cost, ERP) を理論解析 (mmpp) のみで計算し, K が
 大きいほど指標がどこに収束していくかを観察する.
 
-c, b, mu, alpha, beta は実験 1 と同じ値 (先行研究 Fig.10 の規模) に固定する.
+c, b, mu, alpha, beta は実験 1 と同じ値に固定する (alpha=0.005, 1/alpha=200s.
+セットアップ時間がサービス時間に比べて非常に長いという序章の前提に合わせ,
+先行研究の規模の 1/alpha=10s から変更した).
 
 使用例:
     python scripts/experiment_4_K_sensitivity.py --burst medium
     python scripts/experiment_4_K_sensitivity.py --burst all
     python scripts/experiment_4_K_sensitivity.py --burst medium --quick  # 開発中の軽量実行 (n-points=5)
+    python scripts/experiment_4_K_sensitivity.py --alpha 0.1  # セットアップ率だけを変える
+
+--alpha が既定値 (0.005) と異なるときは, 出力ファイル名の末尾に _a{alpha:g} を付ける
+(例: results/experiment_4_medium_a0.1.csv). CSV には 4 指標に加えて台数・流量の列
+(E_N, lambda_eff, E_B, E_S, E_I, E_off, N_states) と各点の検査列 (min_pi, cons_err,
+flow_rel_err, check) を付ける.
 """
 import argparse
 import os
@@ -47,9 +55,15 @@ BASELINE = dict(
     c=20,       # サーバー数 (実験 1 と同じ)
     b=5,        # バッチサイズ (実験 1 と同じ)
     mu=1.0,     # サービス率
-    alpha=0.1,  # セットアップ率 (1/alpha = 10 s)
+    alpha=0.005,  # セットアップ率 (1/alpha = 200 s)
     beta=0.005,  # Delayoff 率 (1/beta = 200 s)
 )
+
+# セットアップ率の既定値 (--alpha の既定値. これと異なるときだけファイル名に _a を付ける)
+DEFAULT_ALPHA = BASELINE["alpha"]
+
+# 各点の検査のしきい値 (保存則は絶対誤差, 流量バランスは相対誤差)
+CHECK_TOL = 1e-9
 
 # 走査対象の K 水準 (有限バッファ設計の妥当性検証)
 K_LEVELS: List[int] = [100, 200, 500, 1000]
@@ -82,10 +96,60 @@ METRIC_SPECS: List[Tuple[str, str, str]] = [
 ]
 
 
-def build_params(K: int, rho: float, delta: float, sigma: float) -> ModelParameters:
-    """K, rho, delta, sigma に対応する ModelParameters を構築する (BASELINE 固定)."""
+def build_params(
+    K: int, rho: float, delta: float, sigma: float, alpha: float = DEFAULT_ALPHA,
+) -> ModelParameters:
+    """K, rho, delta, sigma に対応する ModelParameters を構築する (alpha 以外は BASELINE 固定)."""
     C0, C1 = build_mmpp(rho, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
-    return ModelParameters(C0=C0, C1=C1, K=K, **BASELINE)
+    return ModelParameters(C0=C0, C1=C1, K=K, **{**BASELINE, "alpha": alpha})
+
+
+def alpha_suffix(alpha: float) -> str:
+    """出力ファイル名の接尾辞. alpha が既定値なら空文字, 異なれば _a{alpha:g}."""
+    return "" if alpha == DEFAULT_ALPHA else f"_a{alpha:g}"
+
+
+def point_checks(params: ModelParameters, theory: Metrics) -> Dict[str, object]:
+    """1 点の検査 (保存則, 流量バランス, min pi >= 0, P_block > 0) の結果を返す.
+
+    Returns:
+        min_pi, cons_err (絶対誤差), flow_rel_err (相対誤差) と,
+        違反した検査名を ";" でつないだ check ("ok" なら違反なし).
+    """
+    lambda_eff = theory.effective_arrival_rate()
+    cons_err = abs(
+        theory.mean_busy() + theory.mean_idle() + theory.mean_setup()
+        + theory.mean_off() - params.c
+    )
+    flow_rel_err = abs(lambda_eff - params.b * params.mu * theory.mean_busy()) / abs(lambda_eff)
+    min_pi = float(theory.pi.min())
+    violations = []
+    if not cons_err <= CHECK_TOL:
+        violations.append("conservation")
+    if not flow_rel_err <= CHECK_TOL:
+        violations.append("flow_balance")
+    if not min_pi >= 0.0:
+        violations.append("min_pi")
+    if not theory.arrival_blocking_probability_stable() > 0.0:
+        violations.append("P_block")
+    return dict(
+        min_pi=min_pi, cons_err=cons_err, flow_rel_err=flow_rel_err,
+        check=";".join(violations) if violations else "ok",
+    )
+
+
+def extended_columns(params: ModelParameters, theory: Metrics) -> Dict[str, object]:
+    """CSV に 4 指標と並べて書く列 (台数・流量と各点の検査) を返す."""
+    return dict(
+        E_N=theory.mean_queue_length(),
+        lambda_eff=theory.effective_arrival_rate(),
+        E_B=theory.mean_busy(),
+        E_S=theory.mean_setup(),
+        E_I=theory.mean_idle(),
+        E_off=theory.mean_off(),
+        N_states=params.N,
+        **point_checks(params, theory),
+    )
 
 
 def run_theory(params: ModelParameters) -> Metrics:
@@ -108,6 +172,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--quick", action="store_true",
         help="開発中の軽量実行用 (n-points=5)",
+    )
+    parser.add_argument(
+        "--alpha", type=float, default=DEFAULT_ALPHA,
+        help=f"セットアップ率 (既定: {DEFAULT_ALPHA:g}). 既定値以外ではファイル名に _a{{alpha:g}} を付ける",
+    )
+    parser.add_argument(
+        "--K-levels", type=int, nargs="+", default=K_LEVELS,
+        help=f"走査する K 水準 (既定: {' '.join(map(str, K_LEVELS))}. テスト用に減らせる)",
     )
     args = parser.parse_args()
     if args.quick:
@@ -149,12 +221,17 @@ def main() -> None:
 
     max_conservation_error = 0.0
     max_flow_balance_error = 0.0
+    n_points_total = 0
+    n_violations = 0
+    print(f"alpha = {args.alpha:g} (1/alpha = {1.0 / args.alpha:g})")
 
     for level_name, delta, sigma in _burst_levels_to_run(args.burst):
         # 結果格納: theory_vals[K][metric_key] = [値, ...] (rho 順)
         theory_vals: Dict[int, Dict[str, List[float]]] = {
-            K: {k: [] for k, _, _ in METRIC_SPECS} for K in K_LEVELS
+            K: {k: [] for k, _, _ in METRIC_SPECS} for K in args.K_levels
         }
+        # CSV 用: extra_vals[K] = [extended_columns の辞書, ...] (rho 順)
+        extra_vals: Dict[int, List[Dict[str, object]]] = {K: [] for K in args.K_levels}
 
         cv_mid = compute_interarrival_cv(
             *build_mmpp(0.5, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
@@ -164,10 +241,10 @@ def main() -> None:
             f"(delta={delta}, sigma={sigma}, CV@rho=0.5={cv_mid:.4f}) ##########"
         )
 
-        for K in K_LEVELS:
+        for K in args.K_levels:
             for rho in tqdm(rho_values, desc=f"burst={level_name}, K={K}"):
                 rho = float(rho)
-                params = build_params(K, rho, delta, sigma)
+                params = build_params(K, rho, delta, sigma, args.alpha)
                 theory = run_theory(params)
 
                 print(
@@ -194,13 +271,21 @@ def main() -> None:
                 max_conservation_error = max(max_conservation_error, cons_err)
                 max_flow_balance_error = max(max_flow_balance_error, flow_err)
 
+                extra = extended_columns(params, theory)
+                n_points_total += 1
+                if extra["check"] != "ok":
+                    n_violations += 1
+                    print(f"  [検査違反] {extra['check']}")
+                extra_vals[K].append(extra)
+
         _print_caption_summary(level_name, rho_values, theory_vals)
         _plot(args, level_name, delta, sigma, rho_values, theory_vals)
-        _save_csv(args, level_name, delta, sigma, rho_values, theory_vals)
+        _save_csv(args, level_name, delta, sigma, rho_values, theory_vals, extra_vals)
 
     print("\n=== サマリ ===")
     print(f"保存則の最大誤差: {max_conservation_error:.3e}")
     print(f"流量バランスの最大誤差: {max_flow_balance_error:.3e}")
+    print(f"検査違反の点数: {n_violations} / {n_points_total}")
 
 
 def _print_caption_summary(
@@ -214,7 +299,7 @@ def _print_caption_summary(
     print(f"[最軽 rho={rho_values[lo_idx]:.4g} と最重 rho={rho_values[hi_idx]:.4g} での指標値 (K 別)]")
     header = f"  {'K':<8}{'rho':>8}" + "".join(f"{k:>18}" for k, _, _ in METRIC_SPECS)
     print(header)
-    for K in K_LEVELS:
+    for K in theory_vals:
         for idx, tag in [(lo_idx, "theory(lo)"), (hi_idx, "theory(hi)")]:
             row = f"  {K:<8}{rho_values[idx]:>8.3g}"
             for key, _, _ in METRIC_SPECS:
@@ -222,7 +307,9 @@ def _print_caption_summary(
             print(row + f"  [{tag}]")
 
     # 最大 2 水準の K 間の差 (無限バッファ近似への収束具合の目安, 最重 rho で評価)
-    K_max, K_prev = K_LEVELS[-1], K_LEVELS[-2]
+    if len(theory_vals) < 2:
+        return
+    K_max, K_prev = list(theory_vals)[-1], list(theory_vals)[-2]
     print(f"\n[K={K_prev} -> K={K_max} での指標変化 (収束の目安, rho={rho_values[hi_idx]:.4g})]")
     for key, _, _ in METRIC_SPECS:
         v_prev = theory_vals[K_prev][key][hi_idx]
@@ -247,7 +334,7 @@ def _plot(
     fig, axes = plt.subplots(2, 2, figsize=(11, 9))
 
     for ax, (key, _, ylabel) in zip(axes.flat, METRIC_SPECS):
-        for K in K_LEVELS:
+        for K in theory_vals:
             style = K_STYLE[K]
             ax.plot(
                 rho_values, theory_vals[K][key], "-",
@@ -277,15 +364,16 @@ def _plot(
     # 題名に載せていた設定情報はコンソールに出力して残す.
     _caption = (
         f"Experiment 4: Sensitivity to Buffer Capacity $K$ ({level_name} burst)\n"
-        rf"($c=20$, $b=5$, $1/\mu=1$, $1/\alpha=10$s, $1/\beta=200$s, "
+        rf"($c=20$, $b=5$, $1/\mu=1$, $1/\alpha={1.0 / args.alpha:g}$s, $1/\beta=200$s, "
         rf"delta={delta}, sigma={sigma})"
     )
     print(f"\nキャプション用情報: {_caption}")
     fig.tight_layout(rect=(0, 0, 1, 0.93))
 
     os.makedirs(args.out_dir, exist_ok=True)
-    png_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}.png")
-    pdf_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}.pdf")
+    suffix = alpha_suffix(args.alpha)
+    png_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}{suffix}.png")
+    pdf_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}{suffix}.pdf")
     fig.savefig(png_path, dpi=150)
     fig.savefig(pdf_path, dpi=100)
     print(f"\n図を保存しました: {png_path}, {pdf_path}")
@@ -298,22 +386,27 @@ def _save_csv(
     sigma: float,
     rho_values: np.ndarray,
     theory_vals: Dict[int, Dict[str, List[float]]],
+    extra_vals: Dict[int, List[Dict[str, object]]],
 ) -> None:
     """4 指標の K 別・rho 別データを CSV に書き出す (比較スクリプト用)."""
     import csv
     os.makedirs(args.csv_dir, exist_ok=True)
-    csv_path = os.path.join(args.csv_dir, f"experiment_4_{level_name}.csv")
+    csv_path = os.path.join(
+        args.csv_dir, f"experiment_4_{level_name}{alpha_suffix(args.alpha)}.csv"
+    )
 
     fieldnames = [
         "burst_name", "delta", "sigma", "K", "rho",
         "P_block_arrival_stable", "E_W", "Cost", "ERP",
+        "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off", "N_states",
+        "min_pi", "cons_err", "flow_rel_err", "check",
     ]
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        for K in K_LEVELS:
+        for K in theory_vals:
             for i, rho in enumerate(rho_values):
-                writer.writerow({
+                row = {
                     "burst_name": level_name,
                     "delta": delta,
                     "sigma": sigma,
@@ -323,7 +416,9 @@ def _save_csv(
                     "E_W": theory_vals[K]["E[W]"][i],
                     "Cost": theory_vals[K]["Cost"][i],
                     "ERP": theory_vals[K]["ERP"][i],
-                })
+                }
+                row.update(extra_vals[K][i])
+                writer.writerow(row)
     print(f"CSV 保存: {csv_path}")
 
 

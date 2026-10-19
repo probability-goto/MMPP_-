@@ -215,7 +215,8 @@ def load_experiment_1p(results_dir: str, n_target: int, suffix: str) -> List[Com
 
     suffix は Predictive CSV のファイル名末尾 (例: 'g5.0', 'g1.0', 'gmap').
     """
-    base_rows = load_csv(os.path.join(results_dir, "experiment_1.csv"))
+    # Predictive (1-P) は alpha=0.1 なので, ベースも alpha=0.1 の結果と比べる
+    base_rows = load_csv(os.path.join(results_dir, "experiment_1_a0.1.csv"))
     pred_rows = load_csv(os.path.join(results_dir, f"experiment_1P_nt{n_target}_{suffix}.csv"))
     return build_comparison_points(
         "1P", base_rows, pred_rows,
@@ -267,7 +268,8 @@ def load_experiment_4p(
     results_dir: str, n_target: int, suffix: str, burst_name: str,
 ) -> List[ComparisonPoint]:
     """実験 4 vs 4-P の比較点を生成 (バースト別, K 厳密一致 x rho 線形最近傍)."""
-    base_rows = load_csv(os.path.join(results_dir, f"experiment_4_{burst_name}.csv"))
+    # Predictive (4-P) は alpha=0.1 なので, ベースも alpha=0.1 の結果と比べる
+    base_rows = load_csv(os.path.join(results_dir, f"experiment_4_{burst_name}_a0.1.csv"))
     pred_rows = load_csv(os.path.join(
         results_dir, f"experiment_4P_{burst_name}_nt{n_target}_{suffix}.csv"
     ))

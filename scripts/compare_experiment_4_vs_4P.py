@@ -9,10 +9,13 @@ scripts/experiment_4P_K_sensitivity.py の出力) を読み込み, 同じ 4 指�
 
 比較図は指標 (4 枚) × K (4 水準) の grid で構成する.
 
+ベースの CSV は Predictive と同じ alpha=0.1 の結果 (ファイル名に _a0.1 が付いたもの)
+を使う (ベースの実験の既定値は alpha=0.005 に変えた).
+
 使用例:
     python scripts/compare_experiment_4_vs_4P.py \\
         --burst medium \\
-        --base-csv results/experiment_4_medium.csv \\
+        --base-csv results/experiment_4_medium_a0.1.csv \\
         --pred-csv results/experiment_4P_medium_nt10_g5.0.csv \\
         --meta "medium burst, n_target=10, gamma=5.0"
 """
