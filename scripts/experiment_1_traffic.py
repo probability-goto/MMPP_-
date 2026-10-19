@@ -331,6 +331,7 @@ def _plot(
             ax.set_yscale("log")
             # ブロッキング確率なので上端は 1. 対数軸の自動余白で 1 を超えないようにする
             ax.set_ylim(top=1)
+            ylabel = r"$P_{\mathrm{block}}$ (log scale)"
 
         ax.set_xlabel(r"$\rho$", fontsize=16)
         ax.set_ylabel(ylabel, fontsize=16)
