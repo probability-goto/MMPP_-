@@ -1,0 +1,23 @@
+2026-10-19T12:27:15 [B] 開始: 総点数 60 (計算済み 0, 今回計算 60)
+2026-10-19T12:27:15 [A] 開始: 総点数 108 (計算済み 0, 今回計算 108)
+2026-10-19T12:28:29 done=4/108 elapsed=73.9s eta=1922.3s last=[A] ρ_B=0.8, r1=17.8,beta_mult=1
+2026-10-19T12:28:35 done=10/60 elapsed=79.5s eta=397.3s last=[B] ρ_B=0.6, r1=3.16,presetup nt=20
+2026-10-19T12:29:24 done=20/60 elapsed=128.1s eta=256.1s last=[B] ρ_B=0.6, r1=100,delayoff g=10
+2026-10-19T12:29:25 done=10/108 elapsed=129.3s eta=1267.2s last=[A] ρ_B=0.8, r1=17.8,n_target=4
+2026-10-19T12:30:19 done=30/60 elapsed=183.2s eta=183.2s last=[B] ρ_B=0.8, r1=3.16,presetup nt=20
+2026-10-19T12:30:32 done=20/108 elapsed=196.7s eta=865.7s last=[A] ρ_B=0.8, r1=17.8,gamma=2
+2026-10-19T12:31:02 done=40/60 elapsed=226.8s eta=113.4s last=[B] ρ_B=0.8, r1=100,delayoff g=10
+2026-10-19T12:31:41 done=25/108 elapsed=265.1s eta=880.0s last=[A] ρ_B=0.8, r1=17.8,gamma=100
+2026-10-19T12:31:56 done=50/60 elapsed=280.6s eta=56.1s last=[B] ρ_B=1.12, r1=3.16,presetup nt=20
+2026-10-19T12:32:38 done=60/60 elapsed=322.3s eta=0.0s last=[B] ρ_B=1.12, r1=100,delayoff g=10
+2026-10-19T12:32:38 [B] 完了: 今回計算 60 点, 検査違反 0 件, 経過 322.3s
+2026-10-19T12:32:45 done=30/108 elapsed=329.9s eta=857.7s last=[A] ρ_B=0.8, r1=100,beta_mult=0.5
+2026-10-19T12:33:29 done=40/108 elapsed=373.5s eta=634.9s last=[A] ρ_B=0.8, r1=100,n_target=10
+2026-10-19T12:34:26 done=50/108 elapsed=430.2s eta=499.0s last=[A] ρ_B=0.8, r1=100,gamma=10
+2026-10-19T12:35:09 done=60/108 elapsed=473.5s eta=378.8s last=[A] ρ_B=0.8, r1=0.1,beta_mult=3
+2026-10-19T12:35:24 done=70/108 elapsed=488.3s eta=265.1s last=[A] ρ_B=0.8, r1=0.1,n_target=16
+2026-10-19T12:35:54 done=80/108 elapsed=518.8s eta=181.6s last=[A] ρ_B=0.8, r1=0.1,gamma=300
+2026-10-19T12:36:06 done=90/108 elapsed=530.9s eta=106.2s last=[A] ρ_B=1.12, r1=3.16,n_target=2
+2026-10-19T12:36:30 done=100/108 elapsed=554.9s eta=44.4s last=[A] ρ_B=1.12, r1=3.16,gamma=1
+2026-10-19T12:36:38 done=108/108 elapsed=562.8s eta=0.0s last=[A] ρ_B=1.12, r1=3.16,gamma=1000
+2026-10-19T12:36:38 [A] 完了: 今回計算 108 点, 検査違反 0 件, 経過 562.8s
