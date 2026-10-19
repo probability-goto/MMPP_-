@@ -63,3 +63,22 @@ def test_part_B_neutral_config_matches_base(cell):
                   ("P_block_arrival_stable", "P_ref")]:
         assert _rel(out[k], s[sk]) <= TOL, (k, out[k], s[sk])
     assert out["category"] == "同等"
+
+
+def test_betagamma_points():
+    """βγ の検査の点: パート A にない n_target* = c のマスで, 最良点と beta*gamma が同じ点を 2 点ずつ."""
+    c = 20
+    pts = rb.points_BG(SM)
+    bg = [p for p in pts if p["kind"] == "βγ"]
+    want = {k for k in SM if SM[k]["pred_n_target"] == c} - set(A_CELLS)
+    assert {(p["rho_B"], p["r1"]) for p in bg} == want
+    for k in want:
+        assert len([p for p in bg if (p["rho_B"], p["r1"]) == k]) == 2
+    for p in bg:
+        assert p["n_target"] == c and p["gamma"] != p["ref_gamma"]
+        assert _rel(p["beta"] * p["gamma"], p["ref_beta"] * p["ref_gamma"]) <= TOL
+    ctrl = [p for p in pts if p["kind"] != "βγ"]
+    assert len(ctrl) <= 1
+    for p in ctrl:
+        assert p["n_target"] == c - 2
+        assert _rel(p["beta"] * p["gamma"], p["ref_beta"] * p["ref_gamma"]) <= TOL

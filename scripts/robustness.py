@@ -20,6 +20,12 @@ results/compare_map/summary.csv の値を使う.
     15 マスすべてで Base の ERP 最小点の beta* を固定し, 事前セットアップ (n_target, gamma) =
     (10, 1), (20, 1) と Delayoff の加速 (0, 3), (0, 10) を計算して, 同じ beta* の Base と比べる.
     判定は旧実験 9 のしきい値付きの 5 区分 (改善 / 同等 / 棄却のみ改善 / 引き換え / 悪化).
+    beta は設定ごとに最適化しない (どの設定も Base の beta*).
+βγ の検査 (--part BG; レポートの注意のため):
+    n_target* = c のマスでは, 保護ありならバースト中の Delayoff が常に止まり, 結果は beta*gamma
+    でしか決まらない. パート A にないそのマスでは, 最良点 (beta*, c, gamma*) と beta*gamma が同じ
+    点を 2 点計算して summary.csv の最良点と比べる. 対照として, 改善率の上位 1 のマスで
+    n_target = c-2 の点を 1 点計算して, パート A の n_target の行の点と比べる.
 
 計算結果は 1 点ごとに results/robustness/robustness_{A,B}.csv に追記し, 再実行時は計算済みの点を
 飛ばして再開する. 進捗は results/robustness/progress.log に追記する.
@@ -27,6 +33,7 @@ results/compare_map/summary.csv の値を使う.
 使用例:
     python scripts/robustness.py --part A
     python scripts/robustness.py --part B
+    python scripts/robustness.py --part BG
     python scripts/robustness.py --count
     python scripts/robustness.py --report
 """
@@ -88,6 +95,11 @@ FIELDS_A = (["part", "cell_role", "sweep", "value"] + e8.FIELDNAMES + REF
             + ["worse_erp", "worse_p", "worse"])
 FIELDS_B = (["part", "config", "rule"] + e8.FIELDNAMES + REF
             + ["base_E_W", "base_Cost", "rel_E_W", "rel_Cost", "rel_ERP", "category"])
+# βγ の検査: 比べる相手の点 (ref_*) と, 相手との ERP と P の相対差
+FIELDS_BG = (["part", "kind"] + e8.FIELDNAMES
+             + ["ref_source", "ref_beta", "ref_n_target", "ref_gamma", "ref_ERP", "ref_P",
+                "relerr_ERP", "relerr_P"])
+BG_PARTNER_GAMMAS = [1.0, 10.0, 3.0]  # gamma* 以外から 2 つ
 
 
 def csv_path(part: str, out_dir: str = OUT_DIR) -> str:
@@ -189,8 +201,43 @@ def points_B(sm=None) -> List[dict]:
     return pts
 
 
+def points_BG(sm=None, rows_a=None) -> List[dict]:
+    """βγ の検査の点: パート A にない n_target* = c のマス (各 2 点) と, n_target = c-2 の対照 1 点."""
+    sm = load_summary() if sm is None else sm
+    rows_a = read_rows(csv_path("A")) if rows_a is None else rows_a
+    c = e8.BASELINE["c"]
+    sel = select_A_cells(sm)
+    a_keys = [k for k, _ in sel]
+    pts = []
+    for key in sorted(sm):
+        s = sm[key]
+        if s["pred_n_target"] != c or key in a_keys:
+            continue
+        b0, g0 = s["pred_beta"], s["pred_gamma"]
+        for g in [g for g in BG_PARTNER_GAMMAS if g != g0][:2]:
+            pts.append(dict(rho_B=key[0], r1=key[1], kind="βγ", beta=b0 * g0 / g, n_target=c,
+                            gamma=g, ref_source="summary.csv", ref_beta=b0, ref_n_target=c,
+                            ref_gamma=g0, ref_ERP=s["pred_ERP"], ref_P=s["pred_P"]))
+    top1 = sel[0][0]
+    ref = [r for r in _cell_rows(rows_a, top1)
+           if r["sweep"] == "n_target" and _f(r, "value") == c - 2]
+    if ref:
+        r = ref[0]
+        pts.append(dict(rho_B=top1[0], r1=top1[1], kind=f"対照 (n_target={c - 2})",
+                        beta=_f(r, "beta") * _f(r, "gamma"), n_target=c - 2, gamma=1.0,
+                        ref_source="robustness_A.csv", ref_beta=_f(r, "beta"),
+                        ref_n_target=c - 2, ref_gamma=_f(r, "gamma"), ref_ERP=_f(r, "ERP"),
+                        ref_P=_f(r, P)))
+    return pts
+
+
 def pkey(p) -> Tuple:
-    tail = (p["sweep"], float(p["value"])) if "sweep" in p and p.get("sweep") else (p["config"],)
+    if p.get("kind"):
+        tail = (p["kind"], float(p["beta"]), int(p["n_target"]), float(p["gamma"]))
+    elif p.get("sweep"):
+        tail = (p["sweep"], float(p["value"]))
+    else:
+        tail = (p["config"],)
     return (float(p["rho_B"]), float(p["r1"])) + tail
 
 
@@ -206,6 +253,12 @@ def compute(part: str, p: dict, sm=None) -> dict:
     out, _ = e8.compute_predictive(cm.row_name(rho_B), cp, "Predictive", f"robust{part}",
                                    float(p["beta"]), int(p["n_target"]), float(p["gamma"]), True)
     out["part"] = part
+    if part == "BG":
+        out.update({k: p[k] for k in ("kind", "ref_source", "ref_beta", "ref_n_target",
+                                      "ref_gamma", "ref_ERP", "ref_P")})
+        out["relerr_ERP"] = abs(out["ERP"] / p["ref_ERP"] - 1)
+        out["relerr_P"] = abs(out[P] / p["ref_P"] - 1)
+        return out
     out["base_ERP_min"] = s["base_ERP"]
     out["P_ref"] = s["P_ref"]
     out["base_beta_star"] = s["base_beta"]
@@ -230,13 +283,14 @@ def compute(part: str, p: dict, sm=None) -> dict:
 def run(part: str, out_dir: str = OUT_DIR) -> None:
     os.makedirs(out_dir, exist_ok=True)
     sm = load_summary()
-    pts = points_A(sm) if part == "A" else points_B(sm)
+    pts = {"A": points_A, "B": points_B,
+           "BG": lambda s: points_BG(s, read_rows(csv_path("A", out_dir)))}[part](sm)
     path = csv_path(part, out_dir)
     done_keys = {pkey(r) for r in read_rows(path)}
     todo = [p for p in pts if pkey(p) not in done_keys]
     total, done = len(pts), len(pts) - len(todo)
     log_progress(out_dir, f"[{part}] 開始: 総点数 {total} (計算済み {done}, 今回計算 {len(todo)})")
-    fields = FIELDS_A if part == "A" else FIELDS_B
+    fields = {"A": FIELDS_A, "B": FIELDS_B, "BG": FIELDS_BG}[part]
     t0 = time.time()
     last_log = t0
     n_bad = 0
@@ -244,7 +298,9 @@ def run(part: str, out_dir: str = OUT_DIR) -> None:
         row = compute(part, p, sm)
         append_row(path, fields, row)
         done += 1
-        tail = f"{p['sweep']}={p['value']:g}" if part == "A" else p["config"]
+        tail = {"A": lambda: f"{p['sweep']}={p['value']:g}", "B": lambda: p["config"],
+                "BG": lambda: f"{p['kind']} ({p['beta']:.4g}, {p['n_target']}, {p['gamma']:g})"
+                }[part]()
         last = f"[{part}] {cell_label((p['rho_B'], p['r1']))},{tail}"
         if row["check"] != "ok":
             n_bad += 1
@@ -292,7 +348,8 @@ def a_intervals(cr) -> Dict[str, Tuple[str, str, str]]:
     return out
 
 
-def report_A(rows: List[dict], sm, fig_dir: str = FIG_DIR) -> Tuple[List[str], List[str]]:
+def report_A(rows: List[dict], sm, fig_dir: str = FIG_DIR, rows_bg=(), rows_b=()
+             ) -> Tuple[List[str], List[str]]:
     lines = ["## パート A: 最良点の周りでの感度", "",
              "基準点は各マスの Predictive の主な基準での最良点 (summary.csv の pred_*). "
              "1 つのパラメータだけを動かし, 他は基準点に固定する (β は基準点の β に対する倍率). "
@@ -335,34 +392,162 @@ def report_A(rows: List[dict], sm, fig_dir: str = FIG_DIR) -> Tuple[List[str], L
                            f"{_f(r, 'p_ratio'):.3f}{'*' if b else ''}"
                            for r, b in zip(pts, fp)) + " |", ""]
         figs += plot_A(key, cr, sm[key], fig_dir)
-    lines += [""] + _a_notes(rows, sm)
+    lines += [""] + _a_notes(rows, sm, rows_bg, rows_b)
     lines += ["### 各値の ERP の相対差と P の比 (悪い値に *)", ""] + detail
     return lines, figs
 
 
-def _a_notes(rows, sm) -> List[str]:
+def _same_bg(x, y) -> bool:
+    """beta*gamma が同じか (相対 1e-9)."""
+    return np.isclose(x[0] * x[1], y[0] * y[1], rtol=1e-9, atol=0)
+
+
+def _a_pairs(cr) -> List[Tuple[dict, dict]]:
+    """パート A の beta の行と gamma の行から, beta*gamma が同じで (beta, gamma) が違う点の組.
+
+    基準点 (beta x1 と gamma = gamma*) は両方の行に入るが, 同じ点なので組に数えない."""
+    bm = _sweep_rows(cr, "beta_mult")
+    gm = _sweep_rows(cr, "gamma")
+    bg = lambda r: (_f(r, "beta"), _f(r, "gamma"))
+    return [(x, y) for x in bm for y in gm
+            if _same_bg(bg(x), bg(y)) and not np.isclose(_f(x, "beta"), _f(y, "beta"), rtol=1e-9)]
+
+
+def _relerr(x, y, kx=("ERP", P), ky=("ERP", P)) -> Tuple[float, float]:
+    return tuple(abs(_f(x, a) / _f(y, b) - 1) for a, b in zip(kx, ky))
+
+
+def _a_notes(rows, sm, rows_bg=(), rows_b=()) -> List[str]:
     """表を読むときの注意: 格子に入らない基準点と, beta と gamma が積でしか効かないマス."""
+    c = e8.BASELINE["c"]
+    sel = select_A_cells(sm)
+    roles = dict(sel)
     notes = []
-    for key, role in select_A_cells(sm):
+    for key, role in sel:
         s = sm[key]
         if s["pred_n_target"] not in NT_SWEEP:
             notes.append(f"- {cell_label(key)} ({role}): n_target* = {s['pred_n_target']} は "
                          "n_target の格子に入らない (表の n_target の行に基準点はない).")
-        cr = [r for r in _cell_rows(rows, key) if r["sweep"] in ("beta_mult", "gamma")]
-        same = {}
-        for r in cr:
-            same.setdefault(float(f"{_f(r, 'beta') * _f(r, 'gamma'):.12e}"), set()).add(
-                (r["sweep"], _f(r, "value"), _f(r, "ERP"), _f(r, P)))
-        pairs = [v for v in same.values() if len({(a, b) for a, b, _, _ in v}) > 1]
-        if pairs and s["pred_n_target"] == e8.BASELINE["c"]:
-            err = max(max(abs(x[2] / y[2] - 1), abs(x[3] / y[3] - 1))
-                      for v in pairs for x in v for y in v)
-            notes.append(
-                f"- {cell_label(key)} ({role}): n_target* = c = {e8.BASELINE['c']} で保護ありなので, "
-                "バースト中は台を切らず, β と γ は積 βγ (通常期の切る速さ) でしか効かない. "
-                f"βγ が同じ点 ({len(pairs)} 組) で ERP と P の相対差は最大 {err:.1e}. "
-                "このマスの β の行と γ の行は同じ 1 次元の走査を別の格子で見たもの.")
-    return (["注意:", ""] + notes + [""]) if notes else []
+    cells_c = sorted(k for k in sm if sm[k]["pred_n_target"] == c)
+    if not cells_c:
+        return (["注意:", ""] + notes + [""]) if notes else []
+    notes.append(
+        f"- n_target* = c = {c} のマス ({len(cells_c)} マス) では, 結果は積 βγ でしか決まらず, "
+        "β と γ を別々には決められない. 保護ありでは, バースト中 (F=1) に i+s ≤ n_target の間 "
+        f"Delayoff が止まる (mmpp_predictive/generator.py の 4.). n_target = c なら i+s ≤ c は常に"
+        "成り立つので, バースト中は β が一度も使われず, 通常期の Delayoff の率 γβ だけが残る. "
+        "βγ が同じで (β, γ) が違う点の組で, ERP と P の相対差を確かめた (同じ点の組は数えない):")
+    tab = ["", "| マス | 最良点 (β*, γ*) | βγ が同じ点の組 | 出所 | ERP の相対差の最大 | P の相対差の最大 |",
+           "|---|---|---|---|---|---|"]
+    b20 = {(_f(r, "rho_B"), _f(r, "r1")): r for r in rows_b
+           if int(r["n_target"]) == c and _f(r, "gamma") == 1.0}
+    for key in cells_c:
+        s = sm[key]
+        label = cell_label(key) + (f" ({roles[key]})" if key in roles else "")
+        ref = f"({s['pred_beta']:.4g}, {s['pred_gamma']:g})"
+        groups = []  # (説明, 出所, [(ERP の相対差, P の相対差)])
+        if key in roles:
+            pr = _a_pairs(_cell_rows(rows, key))
+            if pr:
+                groups.append((", ".join(f"β×{_f(x, 'value'):g} と γ={_f(y, 'value'):g}"
+                                         for x, y in pr), "パート A", [_relerr(x, y) for x, y in pr]))
+        bg = [r for r in rows_bg if (_f(r, "rho_B"), _f(r, "r1")) == key and r["kind"] == "βγ"]
+        if bg:
+            groups.append((", ".join(f"({_f(r, 'beta'):.4g}, {_f(r, 'gamma'):g}) と最良点"
+                                     for r in bg), "追加計算",
+                           [(_f(r, "relerr_ERP"), _f(r, "relerr_P")) for r in bg]))
+        r = b20.get(key)
+        if r is not None and _same_bg((_f(r, "beta"), 1.0), (s["pred_beta"], s["pred_gamma"])) \
+                and not np.isclose(_f(r, "beta"), s["pred_beta"], rtol=1e-9):
+            groups.append((f"({_f(r, 'beta'):.4g}, 1) と最良点", "パート B (presetup nt=20)",
+                           [_relerr(r, {"E": s["pred_ERP"], "P": s["pred_P"]}, ky=("E", "P"))]))
+        for i, (desc, src, errs) in enumerate(groups):
+            head = f"| {label} | {ref} |" if i == 0 else "| | |"
+            tab.append(f"{head} {len(errs)} 組: {desc} | {src} | "
+                       f"{max(e for e, _ in errs):.1e} | {max(p for _, p in errs):.1e} |")
+        if not groups:
+            tab.append(f"| {label} | {ref} | なし | — | — | — |")
+    notes.append("\n".join("  " + t if t else "" for t in tab))
+    # β の行と γ の行の対応: β×v は γ = γ*·v と同じ点
+    for key, role in sel:
+        s = sm[key]
+        if s["pred_n_target"] != c:
+            continue
+        pr = _a_pairs(_cell_rows(rows, key))
+        if not pr:
+            continue
+        x, y = pr[0]
+        notes.append(
+            f"- {cell_label(key)} ({role}) は γ* = {s['pred_gamma']:g} なので, β の行の β×v は γ の行の "
+            f"γ = {s['pred_gamma']:g}·v と同じ点になる. 両方の格子に入る v の組は上の表のもの "
+            f"(例: β×{_f(x, 'value'):g} と γ={_f(y, 'value'):g} はどちらも ERP の相対差 "
+            f"{100 * _f(x, 'erp_rel'):+.3f}%, P の比 {_f(x, 'p_ratio'):.3f}).")
+    ctrl = [r for r in rows_bg if r["kind"] != "βγ"]
+    others = [(k, rl) for k, rl in sel if sm[k]["pred_n_target"] != c]
+    errs_o = [_relerr(x, y) for k, _ in others
+              for x, y in _a_pairs(_cell_rows(rows, k))]
+    parts = []
+    for r in ctrl:
+        parts.append(f"{cell_label((_f(r, 'rho_B'), _f(r, 'r1')))} で n_target = {r['n_target']} "
+                     f"(< c) にすると, βγ が同じ ({_f(r, 'ref_beta'):.4g}, {r['n_target']}, "
+                     f"{_f(r, 'ref_gamma'):g}) と ({_f(r, 'beta'):.4g}, {r['n_target']}, "
+                     f"{_f(r, 'gamma'):g}) で ERP が {_f(r, 'relerr_ERP'):.1e}, P が "
+                     f"{_f(r, 'relerr_P'):.1e} ずれる (追加計算)")
+    if errs_o:
+        parts.append(", ".join(f"n_target* = {sm[k]['pred_n_target']} の{rl}" for k, rl in others)
+                     + f" でも, パート A の βγ が同じ組 ({len(errs_o)} 組) で ERP が最大 "
+                     f"{max(e for e, _ in errs_o):.1e}, P が最大 {max(p for _, p in errs_o):.1e} ずれる")
+    if parts:
+        notes.append("- 対照: " + ". ".join(parts) + ". βγ だけで決まるのは n_target = c のときに限る.")
+    same_base = [k for k in cells_c
+                 if np.isclose(sm[k]["pred_beta"] * sm[k]["pred_gamma"], sm[k]["base_beta"], rtol=1e-9)]
+    if same_base:
+        notes.append(
+            "- " + "; ".join(cell_label(k) for k in same_base) + " では, 最良点の βγ が Base の β* に"
+            f"一致する. つまり最良点は (Base の β*, n_target = {c}, γ = 1) と同じ点で, パート B の "
+            "presetup nt=20 と同じ (γ* = 1000 のような値そのものに意味はない).")
+    return ["注意:", ""] + notes + [""]
+
+
+def _b_notes(rows_a, rows_b, sm) -> List[str]:
+    """パート A の n_target=0 の点と, パート B の (0, gamma*) の点が違う理由."""
+    notes, pairs = [], []
+    for key, role in select_A_cells(sm):
+        s = sm[key]
+        a = [r for r in _cell_rows(rows_a, key) if r["sweep"] == "n_target" and _f(r, "value") == 0]
+        cfg = [(name, g) for name, _, nt, g in B_CONFIGS if nt == 0 and g == s["pred_gamma"]]
+        if not a or not cfg:
+            continue
+        b = [r for r in _cell_rows(rows_b, key) if r["config"] == cfg[0][0]]
+        if not b:
+            continue
+        a, b = a[0], b[0]
+        pairs.append((a, b))
+        fmt = lambda r: (f"(β, n_target, γ) = ({_f(r, 'beta'):.4g}, 0, {_f(r, 'gamma'):g}): "
+                         f"E[W] = {_f(r, 'E_W'):.4f}, Cost = {_f(r, 'Cost'):.4f}, "
+                         f"P = {_f(r, P):.4e}, ERP = {_f(r, 'ERP'):.5f} "
+                         f"(相対差 {100 * _f(r, 'erp_rel'):+.3f}%, P の比 {_f(r, 'p_ratio'):.3f})")
+        notes.append(
+            f"- {cell_label(key)} ({role}, γ* = {s['pred_gamma']:g}): パート A の n_target=0 の点と"
+            f"パート B の {cfg[0][0]} は (n_target, γ) が同じだが β が違う. "
+            f"パート A は Predictive の最良点の β* を使う: {fmt(a)}. "
+            f"パート B は Base の β* を使う: {fmt(b)}. β の比は {_f(b, 'beta') / _f(a, 'beta'):.3g}.")
+    if not notes:
+        return []
+    if all(_f(b, "beta") > _f(a, "beta") and _f(b, "Cost") < _f(a, "Cost")
+           and _f(b, "E_W") > _f(a, "E_W") and _f(b, P) > _f(a, P) for a, b in pairs):
+        notes.append("- どちらのマスでも Base の β* のほうが大きく, パート B の点はどちらの期間も早く台を"
+                     "切る. そのため Cost は下がるが, E[W] と P が上がり, ERP は上がる.")
+    return (["注意 (パート A との違い):", "",
+             "- パート B の β は, 4 つの設定とも各マスの Base の ERP 最小点の β* "
+             "(summary.csv の base_beta) で, 設定ごとに最適化していない. パート A の基準点の β は "
+             "Predictive の最良点の β* (summary.csv の pred_beta) で, n_target や γ を動かしても β は"
+             "そのまま. このため (n_target, γ) が同じでも, 2 つのパートの点は β が違えば別の点になる. "
+             "ERP の相対差と P の比の基準 (Base の ERP 最小値と P_ref) はどちらのパートも同じ.",
+             "- n_target = 0 では保護も事前セットアップも働かず (i+s ≤ 0 の状態では Delayoff も"
+             "取り消しももともと起こらない), 規則は Delayoff の加速だけになる. 切る速さは通常期 γβ, "
+             "バースト中 β なので, β が違えばどちらの期間の速さも同じ比で変わる."]
+            + notes + [""])
 
 
 def _style(ax):
@@ -460,10 +645,12 @@ def b_categories(rows: List[dict]) -> Dict[str, Dict[str, List[dict]]]:
     return per
 
 
-def report_B(rows: List[dict], fig_dir: str = FIG_DIR) -> Tuple[List[str], List[str]]:
+def report_B(rows: List[dict], fig_dir: str = FIG_DIR, rows_a=(), sm=None
+             ) -> Tuple[List[str], List[str]]:
     lines = ["## パート B: Base の最良の β のまま規則を加える", "",
-             "各マスで Base の ERP 最小点の β* を固定し, 規則を加えた Predictive (保護あり) を "
-             "同じ β* の Base (= Base の ERP 最小点) と比べる. "
+             "各マスで Base の ERP 最小点の β* (summary.csv の base_beta) を固定し, 規則を加えた "
+             "Predictive (保護あり) を同じ β* の Base (= Base の ERP 最小点) と比べる. β は設定ごとに "
+             "最適化しない (4 つの設定とも Base の β*). "
              f"改善 = ERP が {100 * ERP_TIE:g}% 以上下がり, P の比が {P_HI:g} を超えない. "
              "同等 = ERP も P も同等. 棄却のみ改善 = ERP は同等で, P の比が "
              f"{P_LO:g} 未満. 引き換え = 片方が改善し, もう片方が悪化する. "
@@ -475,6 +662,8 @@ def report_B(rows: List[dict], fig_dir: str = FIG_DIR) -> Tuple[List[str], List[
         lines.append(f"| {name} | {rule} | ({nt}, {g:g}) | "
                      + " | ".join(str(len(per[name][c])) for c in CATEGORIES5) + " |")
     lines.append("")
+    if rows_a and sm is not None:
+        lines += _b_notes(rows_a, rows, sm)
     for name, rule, nt, g in B_CONFIGS:
         cats = per[name]
         lines += [f"### {name} ({rule}, (n_target, γ) = ({nt}, {g:g}))", ""]
@@ -573,7 +762,8 @@ def plot_B(rows, fig_dir) -> List[str]:
 def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
     sm = load_summary()
     rows_a, rows_b = read_rows(csv_path("A", out_dir)), read_rows(csv_path("B", out_dir))
-    bad = [r for r in rows_a + rows_b if r["check"] != "ok"]
+    rows_bg = read_rows(csv_path("BG", out_dir))
+    bad = [r for r in rows_a + rows_b + rows_bg if r["check"] != "ok"]
     t_a = sum(_f(r, "elapsed_s") for r in rows_a)
     t_b = sum(_f(r, "elapsed_s") for r in rows_b)
     lines = ["# 頑健性: Predictive のパラメータが最適でないとき (α=0.005)", "",
@@ -584,14 +774,16 @@ def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
              "## 点数と検査", "",
              f"- パート A: {len(rows_a)} / {len(points_A(sm))} 点 (求解時間の合計 {t_a:.0f} s)",
              f"- パート B: {len(rows_b)} / {len(points_B(sm))} 点 (求解時間の合計 {t_b:.0f} s)",
+             f"- βγ の検査 (パート A の注意に使う): {len(rows_bg)} / {len(points_BG(sm, rows_a))} 点 "
+             f"(求解時間の合計 {sum(_f(r, 'elapsed_s') for r in rows_bg):.0f} s)",
              f"- check 列の違反 (台数の保存, 流量バランス, min π ≥ 0, P_block > 0): {len(bad)} 件", ""]
     figs = []
     if rows_a:
-        la, fa = report_A(rows_a, sm, fig_dir)
+        la, fa = report_A(rows_a, sm, fig_dir, rows_bg, rows_b)
         lines += la
         figs += fa
     if rows_b:
-        lb, fb = report_B(rows_b, fig_dir)
+        lb, fb = report_B(rows_b, fig_dir, rows_a, sm)
         lines += lb
         figs += fb
     lines += ["## 図", ""] + [f"- {f}" for f in figs] + [""]
@@ -604,7 +796,7 @@ def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--part", choices=["A", "B"])
+    parser.add_argument("--part", choices=["A", "B", "BG"])
     parser.add_argument("--report", action="store_true")
     parser.add_argument("--count", action="store_true")
     args = parser.parse_args()
