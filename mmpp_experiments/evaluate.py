@@ -15,6 +15,10 @@ from mmpp_predictive import Metrics, PredictiveModelParameters, build_generator,
 METRIC_FIELDS = ["P_block", "P_block_arrival_stable", "E_N", "E_B", "E_I", "E_S",
                  "E_off", "lambda_eff", "E_W", "rho_server", "Cost", "ERP"]
 
+# ベースモデルと Predictive の all_metrics に共通のキー (両者の整合性の検査に使う)
+COMMON_KEYS = ["P_block", "P_block_arrival_stable", "E[j]", "E[B]", "E[I]", "E[S]",
+               "E[Off]", "lambda_eff", "E[W]", "rho", "cost_paper", "ERP_paper"]
+
 # Predictive だけにある診断指標 (P1 の発動・起動, セットアップの完了・取り消し, Delayoff の率)
 DIAG_FIELDS = ["p1_fire_rate", "p1_launch_rate", "setup_completion_rate",
                "setup_cancel_rate", "delayoff_rate"]

@@ -49,14 +49,8 @@ from mmpp_predictive import PredictiveModelParameters
 from mmpp_experiments import evaluate
 from mmpp_experiments.checks import row_check
 from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
+from mmpp_experiments.frontier import dominance, interp_cost, pareto_front
 from mmpp_experiments.params import SYSTEM, build_mmpp
-
-try:
-    from experiment_7_frontier import pareto_front, interp_cost, dominance, COMMON_KEYS
-except ImportError:
-    from scripts.experiment_7_frontier import (
-        pareto_front, interp_cost, dominance, COMMON_KEYS,
-    )
 
 
 # ============================================================
@@ -344,7 +338,7 @@ def run(rows_order: List[str], out_dir: str = OUT_DIR) -> None:
                         dp, db = m_p.all_metrics(), m_b.all_metrics()
                         rel = max(0.0 if max(abs(db[k]), abs(dp[k])) == 0 else
                                   abs(db[k] - dp[k]) / max(abs(db[k]), abs(dp[k]))
-                                  for k in COMMON_KEYS)
+                                  for k in evaluate.COMMON_KEYS)
                         out["consistency_max_relerr"] = rel
                         if rel > CONSISTENCY_TOL:
                             out["check"] = (out["check"] + ";" if out["check"] != "ok"

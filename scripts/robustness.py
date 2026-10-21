@@ -46,17 +46,19 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
+# しきい値付きの判定は実験 9 と同じ
+from mmpp_experiments.classify import (
+    CATEGORIES5, ERP_TIE, P_HI, P_LO, category5, erp_state, intervals, p_state,
+)
 from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
 from mmpp_experiments.plotting import log_scale_label
 
 try:
     import compare_map as cm
     import experiment_8_map as e8
-    import experiment_9_sensitivity as e9
 except ImportError:
     import scripts.compare_map as cm
     import scripts.experiment_8_map as e8
-    import scripts.experiment_9_sensitivity as e9
 
 warnings.filterwarnings("ignore", message="Predictive モデルの縮約後の帯幅が大きい")
 
@@ -82,15 +84,6 @@ B_CONFIGS = [("presetup nt=10", "事前セットアップ", 10, 1.0),
              ("presetup nt=20", "事前セットアップ", 20, 1.0),
              ("delayoff g=3", "Delayoff の加速", 0, 3.0),
              ("delayoff g=10", "Delayoff の加速", 0, 10.0)]
-
-# しきい値 (旧実験 9 のしきい値付きの判定と同じ)
-ERP_TIE = e9.ERP_TIE
-P_LO, P_HI = e9.P_LO, e9.P_HI
-CATEGORIES5 = e9.CATEGORIES5
-category5 = e9.category5
-erp_state = e9.erp_state
-p_state = e9.p_state
-intervals = e9.intervals
 
 REF = ["base_ERP_min", "P_ref", "base_beta_star", "erp_rel", "p_ratio"]
 FIELDS_A = (["part", "cell_role", "sweep", "value"] + e8.FIELDNAMES + REF

@@ -55,13 +55,12 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import numpy as np
 
 from mmpp_experiments.csvio import append_row, log_line, read_rows
+from mmpp_experiments.evaluate import COMMON_KEYS
 
 try:
     import experiment_8_map as e8
-    from experiment_7_frontier import COMMON_KEYS
 except ImportError:
     import scripts.experiment_8_map as e8
-    from scripts.experiment_7_frontier import COMMON_KEYS
 
 
 # ============================================================
