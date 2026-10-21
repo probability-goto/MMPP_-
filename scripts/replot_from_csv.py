@@ -10,8 +10,8 @@ CSV の P_block_arrival_stable 列など図に使う列を読み込んで渡す�
     実験 1-P, 2-P, 3-P, 4-P, 5, 6 (results/ にある CSV すべて)
 
 ベース vs Predictive の比較図 (compare_experiment_*.py) はもともと CSV を
-読むスクリプトなので, README の「ベース vs Predictive の比較図」の手順で
-そのまま再生成できる。
+読むスクリプトなので, archive/old_comparison_beta_fixed_no_protect/README.md の
+手順でそのまま再生成できる。
 
 使用例:
     python scripts/replot_from_csv.py

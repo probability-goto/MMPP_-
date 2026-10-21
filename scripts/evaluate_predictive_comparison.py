@@ -16,7 +16,7 @@
 対応付けている. alpha, K, burst_name のような離散変数は厳密一致を要求する.
 
 使用例:
-    python scripts/evaluate_predictive_comparison.py > evaluation_report.md
+    python scripts/evaluate_predictive_comparison.py > archive/old_comparison_beta_fixed_no_protect/reports/evaluation_report.md
     python scripts/evaluate_predictive_comparison.py --n-target 10 --gamma 5.0
 """
 import argparse

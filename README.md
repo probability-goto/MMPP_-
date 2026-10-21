@@ -2,9 +2,11 @@
 
 MMPP (Markov Modulated Poisson Process) 到着を持ち、c 個のサーバー、
 バッチサイズ b でのバッチサービス、セットアップ遅延、Delayoff タイムアウトを含む
-待ち行列モデルの数値解析ライブラリ。
+待ち行列モデルの数値解析ライブラリと、その数値実験。
 
 ## モデル概要
+
+### ベースモデル (`mmpp`)
 
 - **状態**: (i, j, F)
   - i: アクティブサーバー数 (Busy または Delayoff/Idle)
@@ -15,63 +17,94 @@ MMPP (Markov Modulated Poisson Process) 到着を持ち、c 個のサーバー�
 - **Delayoff タイムアウト**: 率 β, アイドルサーバーの自動オフ
 - **バッファ容量**: K (満杯時は到着ブロック)
 
+### Predictive モデル (`mmpp_predictive`)
+
+ベースモデルに MMPP の位相の情報を使う 2 つの規則を足したもの。状態は (i, s, j, F)
+(s: セットアップ中のサーバー数)。n_target=0, γ=1 でベースモデルと一致する。
+
+- **P1 (事前セットアップ)**: 位相が通常 (F=0) からバースト (F=1) に変わったとき,
+  i+s が `n_target` になるまでセットアップを始める
+- **P2 (Delayoff の加速)**: 通常期 (F=0) の Delayoff 率を β → γ·β にする (`gamma` ≥ 1)
+- **保護** (`protect_presetup`, `protect_delayoff`): バースト中 (F=1) に i+s ≤ n_target なら,
+  バッチ完了によるセットアップの取り消し (`protect_presetup`) と Delayoff (`protect_delayoff`) を
+  起こさない. 両方 True で, P1 の発動後のバースト中は i+s ≥ n_target が保たれる
+- **NoCancel** (`never_cancel_setup`): 位相を使わない対照. バッチ完了でのセットアップの取り消しを,
+  位相によらず一切行わない
+
 ## ディレクトリ構成
 
 ```
 MMPP_-/
-├── README.md
-├── requirements.txt
-├── pyproject.toml
-├── mmpp/
-│   ├── __init__.py
-│   ├── model.py         # モデルパラメータ (ModelParameters)
-│   ├── state_space.py   # 状態空間のインデックス変換 (StateSpace)
-│   ├── generator.py     # 生成行列 Q の構築 (build_generator)
-│   ├── solver.py        # 定常分布ソルバー (solve_stationary)
-│   └── metrics.py       # 性能指標 (Metrics)
-├── tests/
-│   ├── conftest.py
-│   ├── test_model.py
-│   ├── test_state_space.py
-│   ├── test_generator.py
-│   ├── test_solver.py
-│   ├── test_metrics.py
-│   └── test_integration.py
+├── mmpp/                  # ベースモデルの解析 (生成行列, GTH/splu ソルバー, 性能指標)
+├── mmpp_predictive/       # Predictive モデルの解析
+├── mmpp_sim/              # ベースモデルの DES (離散事象シミュレーション)
+├── mmpp_predictive_sim/   # Predictive モデルの DES
+├── mmpp_experiments/      # 数値実験のスクリプトで共通に使う部品
+├── scripts/               # 数値実験のスクリプト
+├── tests/                 # pytest
+├── examples/              # 使用例 (basic_example.py)
+├── results/               # 実験の CSV とレポート (results/gth_validation/ は GTH 移行の検証記録)
+├── figures/               # 現行の図 (GTH 法 + 安定版の P_block)
+├── thesis_assets/         # 論文用の数値マクロ・表・図 (scripts/make_thesis_numbers.py が生成)
+├── docs/                  # モデルと解法の説明 (model_and_methods.tex)
+└── archive/               # 使わないが記録として残すもの (旧比較, GTH 移行時の図・CSV・スクリプト)
 ```
+
+### 解析と DES は独立に実装している
+
+DES (`mmpp_sim`, `mmpp_predictive_sim`) は解析 (`mmpp`, `mmpp_predictive`) の正しさを検証するための
+**独立な実装**で, 生成行列や状態空間の関数を import しない (サーバー数の関数なども別に書いている)。
+また, Predictive (n_target=0, γ=1) がベースモデルと一致することを, 解析と DES の両方でテストしている
+(`tests/test_predictive_baseline_consistency.py`, `tests/test_predictive_sim_baseline_consistency.py`)。
+同じ計算が複数のパッケージにあるのはこのためなので, 共通化しない。
+
+### `mmpp_experiments/` (スクリプトの共通部品)
+
+| モジュール | 中身 |
+|---|---|
+| `params` | 共通のシステム規模 `SYSTEM` (c=20, K=200, b=5, μ=1), バースト水準 `BURST_LEVELS`, 対称 2 位相 MMPP の構築 `build_mmpp` |
+| `evaluate` | 1 点を GTH で解く (`solve_base`, `solve_predictive`), 指標を CSV の列名にそろえる |
+| `checks` | 1 点の検査 (保存則, 流量バランス, min π ≥ 0, P_block > 0), DES のウォームアップの診断 |
+| `csvio` | CSV の読み書き (1 点ごとに追記して中断から再開する), 進捗ログ |
+| `frontier` | 2 指標をともに最小化する意味でのフロンティアと支配 |
+| `classify` | Base と比べた判定の区分 (改善 / 同等 / 引き換え / 悪化 など) |
+| `plotting` | 図の軸ラベル |
 
 ## インストール
 
 ```bash
-pip install -e .
+pip install -e ".[dev,sim]"
 ```
+
+新しいパッケージを足したときは `pip install -e .` をやり直す。
 
 ## 使い方
 
-実験を継続するコマンド
-'''
-while true; do echo "[$(date)] Codespacesのタイムアウトを防止中..."; sleep 60; done
-'''
-
 ```python
-import numpy as np
-from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
+from mmpp import ModelParameters, Metrics, build_generator, solve_stationary
+from mmpp_experiments.params import SYSTEM, build_mmpp
 
+# rho=0.5, 中バースト (delta=0.6, sigma=0.1) の対称 2 位相 MMPP
+C0, C1 = build_mmpp(0.5, 0.6, 0.1, SYSTEM["c"], SYSTEM["b"], SYSTEM["mu"])
+params = ModelParameters(C0=C0, C1=C1, alpha=0.005, beta=0.005, **SYSTEM)
 
-# 生成行列 Q を構築
-Q = build_generator(params)
-
-# 定常分布を求める
-pi = solve_stationary(Q)
-
-# 性能指標を計算
-metrics = Metrics(params, pi)
-print(metrics.all_metrics())
+Q = build_generator(params)   # 生成行列
+pi = solve_stationary(Q)      # 定常分布 (既定: GTH 法)
+print(Metrics(params, pi).all_metrics())
 ```
 
-## テスト実行
+`examples/basic_example.py` も参照。
+
+長い実験を Codespaces で動かし続けるときは, タイムアウトを防ぐために別の端末で次を実行しておく:
 
 ```bash
-pytest tests/
+while true; do echo "[$(date)] Codespacesのタイムアウトを防止中..."; sleep 60; done
+```
+
+## テスト
+
+```bash
+pytest
 pytest -m legacy    # 旧比較 (β 固定, 保護なし) のスクリプトのテスト (通常は実行しない)
 ```
 
@@ -81,11 +114,14 @@ pytest -m legacy    # 旧比較 (β 固定, 保護なし) のスクリプトの�
 python scripts/check_reproduction.py
 ```
 
-## 数値実験の実行
+実験 1〜4 はコマンドを実行し直して CSV と図をバイト単位で, 実験 7 以降は CSV から抜き取った行を
+計算し直して, レポートは作り直して git の差分で照合する (PDF は作成日時を除く)。
+
+## 数値実験
 
 ### バーストパラメータ δ, σ の定義
 
-全実験の到着過程は対称 2 位相 MMPP (`mmpp_experiments/params.py` の `build_mmpp`):
+到着過程は対称 2 位相 MMPP (`mmpp_experiments/params.py` の `build_mmpp`):
 
 - 平均到着率: λ̄ = ρ · c · b · μ
 - 位相 0 (通常) の到着率: λ₀ = λ̄ (1 − δ)
@@ -94,158 +130,43 @@ python scripts/check_reproduction.py
 
 δ ∈ [0, 1) はバーストの**振幅** (δ=0 でポアソン到着), σ はバーストの**時定数**
 (小さいほど 1 回のバーストが長く続く) を表す。定常位相確率は (1/2, 1/2) なので
-δ, σ を変えても平均到着率 λ̄ は変わらない。
+δ, σ を変えても平均到着率 λ̄ は変わらない。実験 7 以降では, バースト中の負荷
+ρ_B = ρ(1+δ) と, 位相の長さとセットアップ時間の比 r1 = α/σ でマスを決める。
 
-### 共通パラメータ
+バースト水準 (`BURST_LEVELS`): weak (δ=0.3, σ=1), medium (δ=0.6, σ=0.1), strong (δ=0.9, σ=0.01)。
 
-```python
-BASELINE = dict(c=20, K=200, b=5, mu=1.0, alpha=0.1, beta=0.005)
-BURST_LEVELS = {            # (delta, sigma)
-    "weak":   (0.3, 1.0),
-    "medium": (0.6, 0.1),
-    "strong": (0.9, 0.01),
-}
-ALPHA_LEVELS = [0.1, 1.0, 10.0]                          # 実験 2, 3, 5, 6 で走査
-ALPHA_GAMMA_MAP = {0.1: 1.0, 1.0: 100.0, 10.0: 1000.0}   # --alpha-gamma-map 指定時の alpha 別 gamma
-```
+### スクリプト
 
-Predictive 拡張 (P 付き) の追加パラメータ:
-`n_target` = バースト予測時 (位相 0→1) の目標稼働サーバー数 (0 ≤ n_target ≤ c),
-`gamma` = 通常位相 (F=0) での Delayoff 加速係数 (beta → gamma·beta, gamma ≥ 1)。
-既定値は `n_target=10, gamma=5.0`。
+固定の設定はどれも c=20, K=200, b=5, μ=1 (実験 4 は K を走査)。出力先は既定のもの。
 
-### 実験 1 / 1-P: トラフィック強度 ρ の走査
+| スクリプト | 内容 | 出力 |
+|---|---|---|
+| `experiment_0_validation.py` / `experiment_0P_validation.py` | 解析と DES の照合 (ベース / Predictive. 0-P は保護を入れる前のモデル) | `figures/experiment_0*_validation.*` |
+| `validate_protect_des.py` | 保護ありの Predictive と NoCancel の解析と DES の照合 | `results/protect_des/` |
+| `experiment_1_traffic.py` | ベースモデル: ρ の走査 (α=β=0.005) | `results/experiment_1.csv`, `figures/experiment_1_traffic.*` |
+| `experiment_2_delayoff.py` | ベースモデル: β の走査 (ρ=0.7, α ∈ {0.1, 1, 10}. `--strong-burst` で strong) | `results/experiment_2_{medium,strong}.csv` |
+| `experiment_3_burstiness.py` | ベースモデル: δ または σ の走査 (`--sweep delta/sigma`) | `results/experiment_3_{delta,sigma}.csv` |
+| `experiment_4_K_sensitivity.py` | ベースモデル: K ∈ {100, 200, 500, 1000} の感度 | `results/experiment_4_{weak,medium,strong}.csv` |
+| `experiment_p1_protect.py` | 保護の有無による P1 の比較 | `results/p1_protect/` |
+| `experiment_7_frontier.py` | 実験 7: 5 条件で各方策が β を最適化した公平な比較 (`--report` で図とレポート) | `results/experiment_7/`, `figures/experiment_7_*` |
+| `experiment_8_map.py` | 実験 8: 位相の情報に価値がある領域の地図 (α=0.1 中心, Base と 3 系列) | `results/experiment_8/`, `figures/experiment_8_*` |
+| `blocking_reassessment.py` | 実験 7・8 を同じ信頼性 (棄却を含めた基準) で判定し直す | `results/experiment_{7,8}/blocking_reassessment.md` |
+| `analyze_mechanism.py` | 実験 7・8 で Predictive が優位になる仕組みの集計 | `results/experiment_8/mechanism*` |
+| `experiment_9_sensitivity.py` | 実験 9: Predictive のパラメータが最適でないときの感度 (実験 8 が基準) | `results/experiment_9/`, `figures/experiment_9_*` |
+| `compare_map.py` | 比較の地図: α=0.005 で Base と Predictive の 2 者を比べる | `results/compare_map/`, `figures/compare_map_improvement.*` |
+| `robustness.py` | 頑健性: 比較の地図を基準にした感度 (α=0.005) | `results/robustness/`, `figures/robustness_*` |
+| `make_thesis_numbers.py` | 論文用の数値マクロ・表・図を CSV から生成 (新しい計算はしない) | `thesis_assets/` |
+| `benchmark_gth_vs_splu.py`, `validate_gth_mpmath*.py` | GTH 法の計算時間と精度 (mpmath 50 桁との照合) | `results/gth_validation/` |
+| `replot_from_csv.py` | 実験 1〜4 (と旧比較の実験) の図を CSV から描き直す (計算はしない) | `figures/` |
+| `check_reproduction.py`, `check_results_integrity.py` | コミット済みの結果との照合, CSV の健全性の検査 | — |
 
-```python
-params = BASELINE                         # c=20, K=200, b=5, mu=1.0, alpha=0.1, beta=0.005
-bursts = ["weak", "medium", "strong"]
-rho    = np.linspace(0.1, 0.95, 15)
-# 1-P: n_target=10, gamma=5.0 (既定) / gamma=1.0
-```
+長い実験は 1 点ごとに CSV に追記し, 再実行すると計算済みの点を飛ばして再開する
+(進捗は各出力先の `progress.log`)。
 
-```bash
-python scripts/experiment_1_traffic.py                 # -> results/experiment_1.csv
-python scripts/experiment_1P_traffic.py                # -> results/experiment_1P_nt10_g5.0.csv
-python scripts/experiment_1P_traffic.py --gamma 1.0    # -> results/experiment_1P_nt10_g1.0.csv
-```
-
-### 実験 2 / 2-P: Delayoff 率 β の走査
-
-```python
-params = dict(c=20, K=200, b=5, mu=1.0)
-rho    = 0.7
-alpha  = [0.1, 1.0, 10.0]
-beta   = np.logspace(-2, 2, 15)           # 1e-2 .. 1e2
-burst  = "medium"  # (delta=0.6, sigma=0.1), --strong-burst で "strong" (delta=0.9, sigma=0.01)
-# 2-P: n_target=10, gamma=5.0 (既定) / --alpha-gamma-map で alpha 別 gamma
-```
-
-```bash
-python scripts/experiment_2_delayoff.py                    # -> results/experiment_2_medium.csv
-python scripts/experiment_2_delayoff.py --strong-burst     # -> results/experiment_2_strong.csv
-python scripts/experiment_2P_delayoff.py                   # -> results/experiment_2P_medium_nt10_g5.0.csv
-python scripts/experiment_2P_delayoff.py --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"   # -> ..._medium_nt10_gmap.csv
-python scripts/experiment_2P_delayoff.py --strong-burst    # -> results/experiment_2P_strong_nt10_g5.0.csv
-python scripts/experiment_2P_delayoff.py --strong-burst --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"   # -> ..._strong_nt10_gmap.csv
-```
-
-### 実験 3 / 3-P: バースト性 (δ, σ) の走査
-
-```python
-params = BASELINE                         # beta=0.005 固定
-rho    = 0.7
-alpha  = [0.1, 1.0, 10.0]
-# --sweep delta (3-A):
-delta  = np.linspace(0.0, 0.95, 15);  sigma = 0.1
-# --sweep sigma (3-B):
-sigma  = np.logspace(-3, 1, 15);      delta = 0.6     # 1e-3 .. 1e1
-# 3-P: n_target=10, gamma=5.0 (既定) / --alpha-gamma-map で alpha 別 gamma
-```
-
-```bash
-python scripts/experiment_3_burstiness.py --sweep delta    # -> results/experiment_3_delta.csv
-python scripts/experiment_3_burstiness.py --sweep sigma    # -> results/experiment_3_sigma.csv
-python scripts/experiment_3P_burstiness.py --sweep delta   # -> results/experiment_3P_delta_nt10_g5.0.csv
-python scripts/experiment_3P_burstiness.py --sweep delta --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"   # -> ..._delta_nt10_gmap.csv
-python scripts/experiment_3P_burstiness.py --sweep sigma   # -> results/experiment_3P_sigma_nt10_g5.0.csv
-python scripts/experiment_3P_burstiness.py --sweep sigma --alpha-gamma-map "0.1:1.0,1.0:100.0,10.0:1000.0"   # -> ..._sigma_nt10_gmap.csv
-```
-
-### 実験 4 / 4-P: バッファ容量 K の感度
-
-```python
-params = dict(c=20, b=5, mu=1.0, alpha=0.1, beta=0.005)
-K      = [100, 200, 500, 1000]
-bursts = ["weak", "medium", "strong"]
-rho    = np.linspace(0.1, 0.95, 15)
-# 4-P: n_target=10, gamma=5.0 (既定) / gamma=1.0
-```
-
-```bash
-python scripts/experiment_4_K_sensitivity.py --burst all                 # -> results/experiment_4_{weak,medium,strong}.csv
-python scripts/experiment_4P_K_sensitivity.py --burst all                # -> results/experiment_4P_{burst}_nt10_g5.0.csv
-python scripts/experiment_4P_K_sensitivity.py --burst all --gamma 1.0    # -> results/experiment_4P_{burst}_nt10_g1.0.csv
-```
-
-### 実験 5: n_target の感度 (Predictive のみ)
-
-```python
-params   = BASELINE
-rho      = 0.7
-alpha    = [0.1, 1.0, 10.0]
-bursts   = ["weak", "medium", "strong"]
-gamma    = 5.0
-n_target = [0, 1, 3, 4, 6, 7, 9, 10, 11, 13, 14, 16, 17, 19, 20]
-```
-
-```bash
-python scripts/experiment_5_n_target.py --burst all    # -> results/experiment_5_{burst}_g5.0.csv
-```
-
-### 実験 6: gamma の感度 (Predictive のみ)
-
-```python
-params   = BASELINE
-rho      = 0.7
-alpha    = [0.1, 1.0, 10.0]
-bursts   = ["weak", "medium", "strong"]
-n_target = 10
-gamma    = np.logspace(0, np.log10(20.0), 15)   # 1 .. 20 の対数 15 点のうち 5.54 を 5.0 に置換
-# = [1.0, 1.239, 1.534, 1.900, 2.354, 2.915, 3.611, 4.472, 5.0, 6.861, 8.498, 10.525, 13.037, 16.147, 20.0]
-```
-
-```bash
-python scripts/experiment_6_gamma.py --burst all       # -> results/experiment_6_{burst}_nt10.csv
-```
-
-### ベース vs Predictive の比較図
-
-```bash
-python scripts/compare_experiment_1_vs_1P.py \
-  --base-csv results/experiment_1.csv \
-  --pred-csv results/experiment_1P_nt10_g1.0.csv
-python scripts/compare_experiment_2_vs_2P.py --burst-name medium \
-  --base-csv results/experiment_2_medium.csv \
-  --pred-csv results/experiment_2P_medium_nt10_gmap.csv
-python scripts/compare_experiment_2_vs_2P.py --burst-name strong \
-  --base-csv results/experiment_2_strong.csv \
-  --pred-csv results/experiment_2P_strong_nt10_gmap.csv
-python scripts/compare_experiment_3_vs_3P.py --sweep delta \
-  --base-csv results/experiment_3_delta.csv \
-  --pred-csv results/experiment_3P_delta_nt10_gmap.csv
-python scripts/compare_experiment_3_vs_3P.py --sweep sigma \
-  --base-csv results/experiment_3_sigma.csv \
-  --pred-csv results/experiment_3P_sigma_nt10_gmap.csv
-python scripts/compare_experiment_4_vs_4P.py --burst weak \
-  --base-csv results/experiment_4_weak.csv \
-  --pred-csv results/experiment_4P_weak_nt10_g1.0.csv
-python scripts/compare_experiment_4_vs_4P.py --burst medium \
-  --base-csv results/experiment_4_medium.csv \
-  --pred-csv results/experiment_4P_medium_nt10_g1.0.csv
-python scripts/compare_experiment_4_vs_4P.py --burst strong \
-  --base-csv results/experiment_4_strong.csv \
-  --pred-csv results/experiment_4P_strong_nt10_g1.0.csv
-```
+旧比較 (β 固定, 保護なしの旧モデル) のスクリプト (`experiment_{1P,2P,3P,4P}_*.py`, `experiment_5_n_target.py`,
+`experiment_6_gamma.py`, `compare_experiment_*.py`, `evaluate_predictive_comparison.py`) は
+論文では使わないが, 再現できるように残している。図と再生成の手順は
+`archive/old_comparison_beta_fixed_no_protect/README.md` を参照。
 
 ## 数値解法の方針
 

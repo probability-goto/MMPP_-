@@ -12,6 +12,7 @@ Predictive モデルに保護 (`protect_presetup` / `protect_delayoff`, 2026-10-
 | `predictive_1P_4P/` | `experiment_{1P..4P}_*` | `scripts/experiment_{1P_traffic,2P_delayoff,3P_burstiness,4P_K_sensitivity}.py` | `experiment_{1P..4P}_*.csv` |
 | `predictive_5_6/` | `experiment_5_*`, `experiment_6_*_nt10` | `scripts/experiment_5_n_target.py`, `scripts/experiment_6_gamma.py` | `experiment_5_*.csv`, `experiment_6_*_nt10.csv` |
 | `predictive_5_6/experiment_6_extended/` | `experiment_6_extended_*` | `scripts/compare_experiment_6_extended.py` | `experiment_6_*_nt10.csv`, `experiment_6_extended/*.csv` |
+| `reports/` | `evaluation_report*.md` (旧比較の勝敗と改善率の集計. γ=5 と γ を最適化した 2 通り. `evaluation_report.md` と `evaluation_report_gamma5.md` は同じ設定) | `scripts/evaluate_predictive_comparison.py` | 実験 1〜4 と 1P〜4P の CSV (旧パス: リポジトリのルート) |
 | `base_alpha0.1/` | `experiment_1_traffic_a0.1`, `experiment_4_K_sensitivity_*_a0.1` | `scripts/experiment_1_traffic.py --alpha 0.1`, `scripts/experiment_4_K_sensitivity.py --alpha 0.1` | `experiment_1_a0.1.csv`, `experiment_4_*_a0.1.csv` |
 
 ベースの実験 1・4 の既定は α=0.005 に変わったが, 旧比較は Predictive に合わせて
