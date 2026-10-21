@@ -1,35 +1,20 @@
 """イベント種別と 1 イベント実行結果の型定義.
 
 DES 本体 (simulator.py) が扱うイベントの種別と, `PredictiveSimulator.step()` の
-戻り値の型を定義する軽量なモジュール. mmpp_predictive パッケージには依存しない
-(mmpp_sim.event と同じ 5 種のイベント; 状態タプルが (i, j, F) から
-(i, s, j, F) に拡張されている点のみが違い).
+戻り値の型を定義する軽量なモジュール. mmpp_predictive パッケージには依存しない.
+
+イベントの種別はベースの DES と同じ 5 種なので mmpp_sim.event.EventType を使う.
+Predictive モデルでの意味の違い (状態タプルは (i, s, j, F)):
+    SETUP_COMPLETION: 率 s * alpha. i が 1 増え, s が 1 減る.
+    DELAYOFF_TIMEOUT: 率 I(i,j) * beta_F (F=0 では gamma * beta). i が 1 減る.
+    PHASE_TRANSITION: F: 0 -> 1 の場合のみ, 事前セットアップ (Predictive 拡張) を伴い
+        s が delta_eff だけ瞬時に増加する (同一イベント内で処理される).
 """
-from enum import Enum, auto
 from typing import NamedTuple, Optional, Tuple
 
+from mmpp_sim.event import EventType
 
-class EventType(Enum):
-    """DES で発生しうるイベントの種別."""
-
-    ARRIVAL = auto()
-    """到着 (現位相の lambda_F で発生)."""
-
-    SERVICE_COMPLETION = auto()
-    """バッチサービス完了 (率 B(i,j) * mu). 1 イベントで j が b 減る."""
-
-    SETUP_COMPLETION = auto()
-    """セットアップ完了 (率 s * alpha). i が 1 増え, s が 1 減る."""
-
-    DELAYOFF_TIMEOUT = auto()
-    """Delayoff タイムアウト (率 I(i,j) * beta_F). i が 1 減る."""
-
-    PHASE_TRANSITION = auto()
-    """MMPP 位相遷移 (到着を伴わない C0 由来の遷移).
-
-    F: 0 -> 1 の場合のみ, 事前セットアップ (Predictive 拡張) を伴い
-    s が delta_eff だけ瞬時に増加する (同一イベント内で処理される).
-    """
+__all__ = ["EventType", "StepResult"]
 
 
 class StepResult(NamedTuple):

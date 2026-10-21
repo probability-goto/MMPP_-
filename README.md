@@ -56,7 +56,15 @@ DES (`mmpp_sim`, `mmpp_predictive_sim`) は解析 (`mmpp`, `mmpp_predictive`) �
 **独立な実装**で, 生成行列や状態空間の関数を import しない (サーバー数の関数なども別に書いている)。
 また, Predictive (n_target=0, γ=1) がベースモデルと一致することを, 解析と DES の両方でテストしている
 (`tests/test_predictive_baseline_consistency.py`, `tests/test_predictive_sim_baseline_consistency.py`)。
-同じ計算が複数のパッケージにあるのはこのためなので, 共通化しない。
+そのため, **解析と DES の間**で同じ計算 (サーバー数の関数など) が重複しているのは意図したもので, 共通化しない。
+
+一方, 同じ側どうしは共通化している:
+
+- DES: Predictive 版は, ベース版の `SimStats`, サーバー数の関数, `EventType`, `run_replications`
+  (シミュレータのクラスを渡す) を使い, `SimMetrics` はベース版を継承して E[S] と電力の係数だけを上書きする。
+  シミュレータ本体 (イベントの規則) は別々に書いている (両者の一致をテストで確かめるため)
+- 解析: Predictive 版は, 生成行列の成分を積む `mmpp.generator.TransitionBuilder` と,
+  ベースモデルのソルバー (`mmpp.solver`) を使う。遷移の規則は別々に書いている
 
 ### `mmpp_experiments/` (スクリプトの共通部品)
 
