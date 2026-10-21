@@ -16,7 +16,7 @@ import csv
 import os
 import re
 import shutil
-from typing import Dict, List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 from scipy.stats import pearsonr, spearmanr

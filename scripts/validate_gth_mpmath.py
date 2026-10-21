@@ -15,9 +15,9 @@ import numpy as np
 import mpmath as mp
 from scipy.sparse import csr_matrix
 
-from mmpp import ModelParameters, build_generator, Metrics
+from mmpp import ModelParameters, build_generator
 from mmpp.solver import solve_stationary
-from mmpp.gth_solver import bandwidths, to_banded, check_reachability
+from mmpp.gth_solver import bandwidths, check_reachability
 
 
 S_VALUES = [0.05, 0.1, 0.2, 0.4, 1, 2]
