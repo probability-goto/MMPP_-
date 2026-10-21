@@ -23,10 +23,7 @@ from mmpp import ModelParameters, build_generator, Metrics
 from mmpp.solver import solve_stationary
 from mmpp.state_space import StateSpace
 
-try:
-    from scripts._mmpp_burst import build_mmpp
-except ImportError:
-    from _mmpp_burst import build_mmpp
+from mmpp_experiments.params import build_mmpp
 
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

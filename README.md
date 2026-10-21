@@ -85,7 +85,7 @@ python scripts/check_reproduction.py
 
 ### バーストパラメータ δ, σ の定義
 
-全実験の到着過程は対称 2 位相 MMPP (`scripts/_mmpp_burst.py` の `build_mmpp`):
+全実験の到着過程は対称 2 位相 MMPP (`mmpp_experiments/params.py` の `build_mmpp`):
 
 - 平均到着率: λ̄ = ρ · c · b · μ
 - 位相 0 (通常) の到着率: λ₀ = λ̄ (1 − δ)

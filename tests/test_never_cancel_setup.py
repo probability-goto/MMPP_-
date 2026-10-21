@@ -19,10 +19,7 @@ from mmpp_predictive.state_space import (
 )
 from mmpp_predictive_sim import PredictiveSimulator, SimMetrics
 
-try:
-    from scripts._mmpp_burst import build_mmpp
-except ImportError:
-    from _mmpp_burst import build_mmpp
+from mmpp_experiments.params import build_mmpp
 
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

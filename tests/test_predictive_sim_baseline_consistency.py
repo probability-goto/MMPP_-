@@ -25,10 +25,7 @@ from mmpp_predictive_sim.simulator import PredictiveSimulator
 from mmpp_predictive_sim.metrics import SimMetrics as PredSimMetrics
 from mmpp_predictive_sim.replication import run_replications as run_pred_replications
 
-try:
-    from scripts._mmpp_burst import build_mmpp
-except ImportError:
-    from _mmpp_burst import build_mmpp
+from mmpp_experiments.params import build_mmpp
 
 
 def _matched_params(c=5, K=20, b=2, delta=0.6, sigma=0.1, rho=0.5):
