@@ -64,10 +64,7 @@ from mmpp_predictive import (
     PredictiveModelParameters, build_generator, solve_stationary, Metrics,
 )
 
-try:
-    from _mmpp_burst import build_mmpp
-except ImportError:
-    from scripts._mmpp_burst import build_mmpp
+from mmpp_experiments.params import build_mmpp
 
 
 # ============================================================

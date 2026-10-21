@@ -45,12 +45,8 @@ except ImportError:  # pragma: no cover
             yield item
 
 from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
-try:
-    from _figure_labels import log_scale_label
-    from _mmpp_burst import build_mmpp, compute_interarrival_cv
-except ImportError:
-    from scripts._figure_labels import log_scale_label
-    from scripts._mmpp_burst import build_mmpp, compute_interarrival_cv
+from mmpp_experiments.params import build_mmpp, compute_interarrival_cv
+from mmpp_experiments.plotting import log_scale_label
 
 
 # 実験計画のベースラインパラメータ (先行研究 Fig.10 と同じ規模)

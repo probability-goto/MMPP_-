@@ -11,24 +11,24 @@ rho を振って P_block が極小になる領域まで走査する。
 使用例:
     python scripts/validate_gth_mpmath_predictive.py
 """
-import os
 import sys
 
 import numpy as np
 import mpmath as mp
 from scipy.sparse.csgraph import breadth_first_order
 
-sys.path.insert(0, os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from _mmpp_burst import build_mmpp
 from mmpp_predictive.model import PredictiveModelParameters
 from mmpp_predictive.generator import build_generator
 from mmpp_predictive.solver import solve_stationary
 from mmpp_predictive.metrics import Metrics
 from mmpp_predictive.state_space import level_slice
 from mmpp.gth_solver import bandwidths
-from validate_gth_mpmath import gth_mpmath
+from mmpp_experiments.params import build_mmpp
+
+try:
+    from validate_gth_mpmath import gth_mpmath
+except ImportError:
+    from scripts.validate_gth_mpmath import gth_mpmath
 
 RHO_VALUES = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 C, K, B = 5, 60, 2

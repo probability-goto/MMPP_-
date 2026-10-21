@@ -10,15 +10,10 @@
 使用例:
     python scripts/validate_gth_mpmath.py
 """
-import sys
-import os
 
 import numpy as np
 import mpmath as mp
 from scipy.sparse import csr_matrix
-
-sys.path.insert(0, os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from mmpp import ModelParameters, build_generator, Metrics
 from mmpp.solver import solve_stationary

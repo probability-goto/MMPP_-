@@ -47,16 +47,16 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
+from mmpp_experiments.plotting import log_scale_label
+
 try:
     import compare_map as cm
     import experiment_8_map as e8
     import experiment_9_sensitivity as e9
-    from _figure_labels import log_scale_label
 except ImportError:
     import scripts.compare_map as cm
     import scripts.experiment_8_map as e8
     import scripts.experiment_9_sensitivity as e9
-    from scripts._figure_labels import log_scale_label
 
 warnings.filterwarnings("ignore", message="Predictive モデルの縮約後の帯幅が大きい")
 

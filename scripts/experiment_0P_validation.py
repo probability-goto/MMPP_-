@@ -27,18 +27,8 @@ import matplotlib.pyplot as plt
 
 from mmpp_predictive import PredictiveModelParameters, build_generator, solve_stationary, Metrics
 from mmpp_predictive_sim import SimMetrics, run_replications
-try:
-    from _mmpp_burst import (
-        build_mmpp as _build_mmpp_generic,
-        compute_interarrival_cv,
-        check_warmup_duration,
-    )
-except ImportError:
-    from scripts._mmpp_burst import (
-        build_mmpp as _build_mmpp_generic,
-        compute_interarrival_cv,
-        check_warmup_duration,
-    )
+from mmpp_experiments.checks import check_warmup_duration
+from mmpp_experiments.params import build_mmpp as _build_mmpp_generic, compute_interarrival_cv
 
 
 # 実験計画のベースラインパラメータ (実験 0 と同じ規模)
@@ -77,7 +67,7 @@ def build_mmpp(
     b: int = BASELINE["b"],
     mu: float = BASELINE["mu"],
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """rho を与えて対称 2 位相 MMPP の C0, C1 を構築する (_mmpp_burst.build_mmpp の薄いラッパー)."""
+    """rho を与えて対称 2 位相 MMPP の C0, C1 を構築する (mmpp_experiments.params.build_mmpp の薄いラッパー)."""
     return _build_mmpp_generic(rho, delta, sigma, c, b, mu)
 
 

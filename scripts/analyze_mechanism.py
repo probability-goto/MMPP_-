@@ -32,14 +32,14 @@ from mmpp_predictive.state_space import (
     build_is_index, busy_count, idle_count, pi_by_level,
 )
 
+from mmpp_experiments.params import build_mmpp
+
 try:
     import experiment_7_frontier as e7
     import experiment_8_map as e8
-    from _mmpp_burst import build_mmpp
 except ImportError:
     import scripts.experiment_7_frontier as e7
     import scripts.experiment_8_map as e8
-    from scripts._mmpp_burst import build_mmpp
 
 warnings.filterwarnings("ignore", message="Predictive モデルの縮約後の帯幅が大きい")
 

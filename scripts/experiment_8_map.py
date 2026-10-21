@@ -54,11 +54,11 @@ from mmpp_predictive import (
     PredictiveModelParameters, build_generator, solve_stationary, Metrics,
 )
 
+from mmpp_experiments.params import build_mmpp
+
 try:
-    from _mmpp_burst import build_mmpp
     from experiment_7_frontier import pareto_front, interp_cost, dominance, COMMON_KEYS
 except ImportError:
-    from scripts._mmpp_burst import build_mmpp
     from scripts.experiment_7_frontier import (
         pareto_front, interp_cost, dominance, COMMON_KEYS,
     )

@@ -34,10 +34,8 @@ from mmpp_predictive import (
 )
 from mmpp_predictive_sim import PredictiveSimulator, SimMetrics
 
-try:
-    from _mmpp_burst import build_mmpp, check_warmup_duration
-except ImportError:
-    from scripts._mmpp_burst import build_mmpp, check_warmup_duration
+from mmpp_experiments.checks import check_warmup_duration
+from mmpp_experiments.params import build_mmpp
 
 
 BASELINE = dict(c=20, K=200, b=5, mu=1.0, alpha=0.1, beta=0.005)

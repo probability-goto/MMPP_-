@@ -11,13 +11,10 @@ import time
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from _mmpp_burst import build_mmpp
 from mmpp import ModelParameters, build_generator
 from mmpp.solver import solve_stationary
 from mmpp.gth_solver import bandwidths
+from mmpp_experiments.params import build_mmpp
 
 # (ラベル, c, K, b, delta, sigma, rho)
 CONFIGS = [
