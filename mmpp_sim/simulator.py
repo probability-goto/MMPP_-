@@ -258,26 +258,31 @@ def run_replications(
     seed0: int = 42,
     warmup_events: int = 100_000,
     measurement_events: int = 1_000_000,
+    simulator_cls=None,
 ) -> List[SimStats]:
     """独立レプリケーション法によるシミュレーション実行.
 
-    n_reps 個の独立な Simulator インスタンスを生成し, それぞれ異なるシードで
+    n_reps 個の独立なシミュレータのインスタンスを生成し, それぞれ異なるシードで
     warmup_events + measurement_events を実行する. 得られた SimStats のリストを返す.
     信頼区間はこのリストを使って SimMetrics 側で計算する.
 
     Args:
-        params: ModelParameters.
+        params: ModelParameters (simulator_cls に合わせたパラメータ).
         n_reps: レプリケーション数 (推奨 20 以上).
         seed0: 開始シード. i 番目のレプリケーションは seed=seed0+i を使う.
         warmup_events: 各レプリケーションのウォームアップイベント数.
         measurement_events: 各レプリケーションの本計測イベント数.
+        simulator_cls: シミュレータのクラス (既定は Simulator. Predictive 版は
+            mmpp_predictive_sim.run_replications が PredictiveSimulator を渡す).
 
     Returns:
         List[SimStats]: 各レプリケーションの統計. 長さ n_reps.
     """
+    if simulator_cls is None:
+        simulator_cls = Simulator
     replications: List[SimStats] = []
     for k in range(n_reps):
-        sim = Simulator(params, seed=seed0 + k)
+        sim = simulator_cls(params, seed=seed0 + k)
         stats = sim.run(warmup_events=warmup_events, measurement_events=measurement_events)
         replications.append(stats)
     return replications

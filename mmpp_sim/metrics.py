@@ -73,36 +73,40 @@ class SimMetrics:
             )
 
     # ---------- 点推定 (内部ヘルパー: 任意の SimStats に対して計算) ----------
+    # 状態タプルは i が先頭, j が最後から 2 番目として読む. ベースの (i, j, F) と
+    # Predictive 版 (mmpp_predictive_sim.metrics.SimMetrics) の (i, s, j, F) の両方で成り立つ.
 
     def _blocking_probability(self, stats: SimStats) -> float:
         p = self.params
         total = sum(
-            dur for (i, j, F), dur in stats.state_duration.items() if j == p.K
+            dur for state, dur in stats.state_duration.items() if state[-2] == p.K
         )
         return total / stats.total_duration
 
     def _mean_queue_length(self, stats: SimStats) -> float:
-        total = sum(j * dur for (i, j, F), dur in stats.state_duration.items())
+        total = sum(state[-2] * dur for state, dur in stats.state_duration.items())
         return total / stats.total_duration
 
     def _server_type_mean(self, stats: SimStats, count_fn) -> float:
+        """状態タプルからその種類のサーバー数を返す count_fn の時間平均."""
         total = sum(
-            count_fn(i, j) * dur for (i, j, F), dur in stats.state_duration.items()
+            count_fn(state) * dur for state, dur in stats.state_duration.items()
         )
         return total / stats.total_duration
 
     def _mean_busy(self, stats: SimStats) -> float:
         p = self.params
-        return self._server_type_mean(stats, lambda i, j: busy_servers(i, j, p.b))
+        return self._server_type_mean(stats, lambda st: busy_servers(st[0], st[-2], p.b))
 
     def _mean_idle(self, stats: SimStats) -> float:
         p = self.params
-        return self._server_type_mean(stats, lambda i, j: idle_servers(i, j, p.b))
+        return self._server_type_mean(stats, lambda st: idle_servers(st[0], st[-2], p.b))
 
     def _mean_setup(self, stats: SimStats) -> float:
+        """E[S]. ベースモデルでは s は (i, j) から決まる S(i,j) (Predictive 版は上書きする)."""
         p = self.params
         return self._server_type_mean(
-            stats, lambda i, j: setup_servers(i, j, p.b, p.c)
+            stats, lambda st: setup_servers(st[0], st[-2], p.b, p.c)
         )
 
     def _mean_off(self, stats: SimStats) -> float:
@@ -145,11 +149,13 @@ class SimMetrics:
             + c_off * self._mean_off(stats)
         )
 
+    def _cost_coefficients(self) -> Tuple[float, float, float]:
+        """先行研究の電力の係数 (C_b, C_s, C_i) (Predictive 版は params の値を使う)."""
+        C_b = 0.04419 * self.params.b + 0.15503
+        return C_b, C_b, 0.6 * C_b
+
     def _energy_cost_paper(self, stats: SimStats) -> float:
-        p = self.params
-        C_b = 0.04419 * p.b + 0.15503
-        C_s = C_b
-        C_i = 0.6 * C_b
+        C_b, C_s, C_i = self._cost_coefficients()
         return (
             C_b * self._mean_busy(stats)
             + C_s * self._mean_setup(stats)
