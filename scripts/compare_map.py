@@ -50,10 +50,11 @@ import itertools
 import os
 import time
 import warnings
-from datetime import datetime
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+
+from mmpp_experiments.csvio import append_row, log_line, read_rows
 
 try:
     import experiment_8_map as e8
@@ -120,15 +121,6 @@ def csv_path(rho_B: float, out_dir: str = OUT_DIR) -> str:
     return os.path.join(out_dir, f"compare_map_{row_name(rho_B)}.csv")
 
 
-def append_row(path: str, row: dict) -> None:
-    new = not os.path.exists(path)
-    with open(path, "a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        if new:
-            w.writeheader()
-        w.writerow(row)
-
-
 def pkey(r1, series, beta, nt, g) -> Tuple:
     return (float(r1), series, float(beta), int(nt), float(g))
 
@@ -148,7 +140,7 @@ def load_reuse_index(rho_B: float) -> Dict[Tuple, dict]:
         return {}
     name = os.path.basename(path)
     out = {}
-    for r in e8.read_rows(path):
+    for r in read_rows(path):
         if not (float(r["rho_B"]) == rho_B and float(r["alpha"]) == ALPHA
                 and float(r["delta"]) == DELTA
                 and all(float(r[k]) == float(v) for k, v in BASELINE.items())
@@ -318,10 +310,7 @@ def next_points(rho_B: float, r1: float, rows: List[dict],
 # ============================================================
 
 def log_progress(out_dir, msg):
-    line = f"{datetime.now().isoformat(timespec='seconds')} {msg}"
-    with open(os.path.join(out_dir, LOG_NAME), "a", encoding="utf-8") as f:
-        f.write(line + "\n")
-    print(line, flush=True)
+    log_line(os.path.join(out_dir, LOG_NAME), msg)
 
 
 def run_cell(rho_B: float, r1: float, out_dir: str = OUT_DIR,
@@ -335,7 +324,7 @@ def run_cell(rho_B: float, r1: float, out_dir: str = OUT_DIR,
     t0 = time.time()
     last_log = t0
     while True:
-        rows = [r for r in e8.read_rows(path) if float(r["r1"]) == r1]
+        rows = [r for r in read_rows(path) if float(r["r1"]) == r1]
         pts = next_points(rho_B, r1, rows, combos)
         if not pts:
             break
@@ -350,7 +339,7 @@ def run_cell(rho_B: float, r1: float, out_dir: str = OUT_DIR,
                 out, rel = consistency(cp, beta)
                 out["source"] = "computed"
                 if rel > CONSISTENCY_TOL:
-                    append_row(path, out)
+                    append_row(path, FIELDNAMES, out)
                     log_progress(out_dir, label + " CONSISTENCY_FAIL")
                     raise ConsistencyError(
                         f"{label}: ベースモデルと Predictive (n_target=0, gamma=1) が一致しない "
@@ -365,7 +354,7 @@ def run_cell(rho_B: float, r1: float, out_dir: str = OUT_DIR,
                                                True)
                 out["source"] = "computed"
                 stats["computed"] += 1
-            append_row(path, out)
+            append_row(path, FIELDNAMES, out)
             if out["check"] != "ok":
                 stats["bad"] += 1
                 print(f"  検査違反: {label}: {out['check']}", flush=True)
@@ -445,10 +434,10 @@ def cell_summary(rows: List[dict]) -> dict:
 def summaries(out_dir: str = OUT_DIR) -> Dict[Tuple[float, float], dict]:
     res = {}
     for rho_B in RHO_B_LEVELS:
-        rows = _convert(e8.read_rows(csv_path(rho_B, out_dir)))
+        rows = _convert(read_rows(csv_path(rho_B, out_dir)))
         for r1 in R1_LEVELS:
             cr = [r for r in rows if r["r1"] == r1]
-            if cr and not next_points(rho_B, r1, [r for r in e8.read_rows(csv_path(rho_B, out_dir))
+            if cr and not next_points(rho_B, r1, [r for r in read_rows(csv_path(rho_B, out_dir))
                                                    if float(r["r1"]) == r1]):
                 res[(rho_B, r1)] = cell_summary(cr)
     return res

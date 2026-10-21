@@ -27,14 +27,14 @@ ERP の相対差 (対 Base の ERP 最小値) と P の比 (対 P_ref) を見る
     python scripts/experiment_9_sensitivity.py --report
 """
 import argparse
-import csv
 import os
 import time
 import warnings
-from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
+
+from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
 
 try:
     import experiment_8_map as e8
@@ -81,28 +81,8 @@ def csv_path(part: str, out_dir: str = OUT_DIR) -> str:
     return os.path.join(out_dir, f"experiment_9_{part}.csv")
 
 
-def read_rows(path: str) -> List[dict]:
-    if not os.path.exists(path):
-        return []
-    with open(path, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def append_row(path: str, fields, row: dict) -> None:
-    new = not os.path.exists(path)
-    with open(path, "a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
-        if new:
-            w.writeheader()
-        w.writerow(row)
-
-
 def log_progress(out_dir, done, total, t0, avg, last):
-    line = (f"{datetime.now().isoformat(timespec='seconds')} done={done}/{total} "
-            f"elapsed={time.time() - t0:.1f}s eta={max(total - done, 0) * avg:.1f}s last={last}")
-    with open(os.path.join(out_dir, LOG_NAME), "a", encoding="utf-8") as f:
-        f.write(line + "\n")
-    print(line, flush=True)
+    log_line(os.path.join(out_dir, LOG_NAME), progress_message(done, total, t0, avg, last))
 
 
 # ============================================================
@@ -220,7 +200,7 @@ def run(part: str, out_dir: str = OUT_DIR) -> None:
     last_log = t0
     for k, p in enumerate(todo):
         row = compute(part, p)
-        append_row(path, fields, row)
+        append_row(path, fields, row, extrasaction="ignore")
         done += 1
         last = (f"[{part}] {p['row']},r1={p['r1']:.3g},{p['series']},{p['sweep']}={p['value']}")
         if row["check"] != "ok":

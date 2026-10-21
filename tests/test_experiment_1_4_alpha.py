@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pytest
 
+from mmpp_experiments.checks import point_checks
+from mmpp_experiments.evaluate import solve_base
 from scripts import experiment_1_traffic as e1
 from scripts import experiment_4_K_sensitivity as e4
 
@@ -117,7 +119,7 @@ def test_alpha_0005_point_passes_checks(level_name, delta, sigma):
     """既定値 alpha=0.005, rho=0.5 の 1 点が 4 つの検査を満たす (実験 1 の K=200, 実験 4 の K=100)."""
     p1 = e1.build_params(0.5, delta, sigma)
     assert p1.alpha == 0.005 and p1.K == 200 and p1.beta == 0.005
-    checks = e1.point_checks(p1, e1.run_theory(p1))
+    checks = point_checks(p1, solve_base(p1))
     assert checks["check"] == "ok", checks
     assert checks["cons_err"] <= 1e-9
     assert checks["flow_rel_err"] <= 1e-9
@@ -125,5 +127,5 @@ def test_alpha_0005_point_passes_checks(level_name, delta, sigma):
 
     p4 = e4.build_params(100, 0.5, delta, sigma)
     assert p4.alpha == 0.005 and p4.K == 100
-    extra = e4.extended_columns(p4, e4.run_theory(p4))
+    extra = e4.extended_columns(p4, solve_base(p4))
     assert extra["check"] == "ok", extra

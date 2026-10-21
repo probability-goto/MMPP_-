@@ -30,12 +30,12 @@ import csv
 import os
 import time
 import warnings
-from datetime import datetime
 
-from mmpp_predictive import (
-    PredictiveModelParameters, build_generator, solve_stationary, Metrics,
-)
+from mmpp_predictive import PredictiveModelParameters
 
+from mmpp_experiments import evaluate
+from mmpp_experiments.checks import row_check
+from mmpp_experiments.csvio import append_row, log_line, progress_message
 from mmpp_experiments.params import build_mmpp
 
 
@@ -138,24 +138,8 @@ def load_v1():
         }
 
 
-def append_row(row):
-    new = not os.path.exists(CSV_PATH)
-    with open(CSV_PATH, "a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        if new:
-            w.writeheader()
-        w.writerow(row)
-
-
 def log_progress(done, total, t0, t_point_avg, last):
-    elapsed = time.time() - t0
-    remaining = (total - done) * t_point_avg
-    line = (f"{datetime.now().isoformat(timespec='seconds')} "
-            f"done={done}/{total} elapsed={elapsed:.1f}s "
-            f"eta={remaining:.1f}s last={last}")
-    with open(LOG_PATH, "a", encoding="utf-8") as f:
-        f.write(line + "\n")
-    print(line, flush=True)
+    log_line(LOG_PATH, progress_message(done, total, t0, t_point_avg, last))
 
 
 def run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, n_target, mode,
@@ -170,8 +154,8 @@ def run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, n_target, mode,
         **BASELINE,
     )
     t = time.time()
-    pi = solve_stationary(build_generator(params), solver="gth")
-    m = Metrics(params, pi)
+    m = evaluate.solve_predictive(params)
+    pi = m.pi
     elapsed = time.time() - t
 
     row = {
@@ -198,17 +182,9 @@ def run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, n_target, mode,
         "elapsed_s": elapsed,
     }
 
-    checks = []
-    total = m.E_B + m.E_I + m.E_S + m.E_off
-    if abs(total - c) > 1e-9:
-        checks.append(f"conservation:{total - c:.3e}")
-    flow = b * mu * m.E_B
-    if abs(m.lambda_eff - flow) > 1e-9 * abs(m.lambda_eff):
-        checks.append(f"flow:{(m.lambda_eff - flow) / m.lambda_eff:.3e}")
-    if pi.min() < 0:
-        checks.append(f"min_pi:{pi.min():.3e}")
-    if not m.P_block_arrival_stable > 0:
-        checks.append("P_block_nonpositive")
+    base_check = row_check(c, b, mu, m.E_B, m.E_I, m.E_S, m.E_off, m.lambda_eff,
+                           m.P_block_arrival_stable, float(pi.min()))
+    checks = [] if base_check == "ok" else [base_check]
     if abs(m.rho_B - rho * (1 + delta)) > 1e-12:
         checks.append("rho_B")
     if v1_row is not None:
@@ -258,7 +234,7 @@ def run(blocks):
         (blk_name, burst_name, delta, sigma, rho), alpha, beta, gamma, n_target, mode = pt
         row = run_point(burst_name, delta, sigma, rho, alpha, beta, gamma, n_target,
                         mode, v1_row=v1.get(key_of(pt)))
-        append_row(row)
+        append_row(CSV_PATH, FIELDNAMES, row)
         done += 1
         if row["check"] != "ok":
             print(f"  検査違反: {row['check']}", flush=True)

@@ -44,27 +44,19 @@ except ImportError:  # pragma: no cover
             print(f"  [{desc}] {idx}/{total}")
             yield item
 
-from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
-from mmpp_experiments.params import build_mmpp, compute_interarrival_cv
+from mmpp import ModelParameters
+from mmpp_experiments.checks import conservation_and_flow_balance, point_checks
+from mmpp_experiments.evaluate import solve_base
+from mmpp_experiments.params import BURST_LEVELS, SYSTEM, build_mmpp, compute_interarrival_cv
 from mmpp_experiments.plotting import log_scale_label
 
 
-# 実験計画のベースラインパラメータ (先行研究 Fig.10 と同じ規模)
+# 実験計画のベースラインパラメータ (共通のシステム規模 SYSTEM. バースト水準は BURST_LEVELS)
 BASELINE = dict(
-    c=20,       # サーバー数 (先行研究 Fig.10 と同じ)
-    K=200,      # バッファ容量 (cb*4 = 400 だが計算コスト考慮で 200)
-    b=5,        # バッチサイズ (先行研究 6.3.1 節と同じ)
-    mu=1.0,     # サービス率
+    **SYSTEM,     # c=20, K=200, b=5, mu=1
     alpha=0.005,  # セットアップ率 (1/alpha = 200 s)
     beta=0.005,  # Delayoff 率 (1/beta = 200 s)
 )
-
-# バースト水準の 3 段階定義: (名前, delta, sigma)
-BURST_LEVELS: List[Tuple[str, float, float]] = [
-    ("weak", 0.3, 1.0),
-    ("medium", 0.6, 0.1),
-    ("strong", 0.9, 0.01),
-]
 
 # 水準ごとの表示色
 LEVEL_STYLE: Dict[str, Dict[str, str]] = {
@@ -75,9 +67,6 @@ LEVEL_STYLE: Dict[str, Dict[str, str]] = {
 
 # セットアップ率の既定値 (--alpha の既定値. これと異なるときだけファイル名に _a を付ける)
 DEFAULT_ALPHA = BASELINE["alpha"]
-
-# 各点の検査のしきい値 (保存則は絶対誤差, 流量バランスは相対誤差)
-CHECK_TOL = 1e-9
 
 # rho スイープ範囲の既定値
 RHO_RANGE: Tuple[float, float] = (0.1, 0.95)
@@ -104,42 +93,6 @@ def alpha_suffix(alpha: float) -> str:
     return "" if alpha == DEFAULT_ALPHA else f"_a{alpha:g}"
 
 
-def point_checks(params: ModelParameters, theory: Metrics) -> Dict[str, object]:
-    """1 点の検査 (保存則, 流量バランス, min pi >= 0, P_block > 0) の結果を返す.
-
-    Returns:
-        min_pi, cons_err (絶対誤差), flow_rel_err (相対誤差) と,
-        違反した検査名を ";" でつないだ check ("ok" なら違反なし).
-    """
-    lambda_eff = theory.effective_arrival_rate()
-    cons_err = abs(
-        theory.mean_busy() + theory.mean_idle() + theory.mean_setup()
-        + theory.mean_off() - params.c
-    )
-    flow_rel_err = abs(lambda_eff - params.b * params.mu * theory.mean_busy()) / abs(lambda_eff)
-    min_pi = float(theory.pi.min())
-    violations = []
-    if not cons_err <= CHECK_TOL:
-        violations.append("conservation")
-    if not flow_rel_err <= CHECK_TOL:
-        violations.append("flow_balance")
-    if not min_pi >= 0.0:
-        violations.append("min_pi")
-    if not theory.arrival_blocking_probability_stable() > 0.0:
-        violations.append("P_block")
-    return dict(
-        min_pi=min_pi, cons_err=cons_err, flow_rel_err=flow_rel_err,
-        check=";".join(violations) if violations else "ok",
-    )
-
-
-def run_theory(params: ModelParameters) -> Metrics:
-    """理論解析: Q 構築 -> 定常分布 -> Metrics."""
-    Q = build_generator(params)
-    pi = solve_stationary(Q)
-    return Metrics(params, pi)
-
-
 def parse_args() -> argparse.Namespace:
     """コマンドライン引数を解析する."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -158,26 +111,6 @@ def parse_args() -> argparse.Namespace:
     if args.quick:
         args.n_points = 3
     return args
-
-
-def _conservation_and_flow_balance(
-    c: int,
-    b: int,
-    mu: float,
-    mean_busy: float,
-    mean_idle: float,
-    mean_setup: float,
-    mean_off: float,
-    lambda_eff: float,
-) -> Tuple[float, float]:
-    """保存則 E[B]+E[I]+E[S]+E[Off]=c と 流量バランス lambda_eff=b*mu*E[B] の誤差を返す.
-
-    Returns:
-        (conservation_error, flow_balance_error)
-    """
-    conservation_error = abs(mean_busy + mean_idle + mean_setup + mean_off - c)
-    flow_balance_error = abs(lambda_eff - b * mu * mean_busy)
-    return conservation_error, flow_balance_error
 
 
 def main() -> None:
@@ -208,7 +141,7 @@ def main() -> None:
         for rho in tqdm(rho_values, desc=f"burst={level_name}"):
             rho = float(rho)
             params = build_params(rho, delta, sigma, args.alpha)
-            theory = run_theory(params)
+            theory = solve_base(params)
 
             print(f"\n=== [{level_name}] rho = {rho:.4g} (lambda_bar = {params.lambda_bar:.4g}) ===")
             print(f"  {'metric':<18}{'theory':>14}")
@@ -217,7 +150,7 @@ def main() -> None:
                 theory_vals[level_name][key].append(theory_val)
                 print(f"  {key:<18}{theory_val:>14.5g}")
 
-            cons_err, flow_err = _conservation_and_flow_balance(
+            cons_err, flow_err = conservation_and_flow_balance(
                 params.c, params.b, params.mu,
                 theory.mean_busy(), theory.mean_idle(),
                 theory.mean_setup(), theory.mean_off(),

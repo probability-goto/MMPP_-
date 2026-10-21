@@ -46,32 +46,27 @@ Base も同じ下限まで広げ, 補足の CSV に追記する.
     python scripts/experiment_7_frontier.py --count         # 点数だけ表示
 """
 import argparse
-import csv
 import os
 import time
 import warnings
-from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from mmpp.model import ModelParameters
-from mmpp.generator import build_generator as build_base_generator
-from mmpp.solver import solve_stationary as solve_base
-from mmpp.metrics import Metrics as BaseMetrics
+from mmpp import ModelParameters
+from mmpp_predictive import PredictiveModelParameters
 
-from mmpp_predictive import (
-    PredictiveModelParameters, build_generator, solve_stationary, Metrics,
-)
-
-from mmpp_experiments.params import build_mmpp
+from mmpp_experiments import evaluate
+from mmpp_experiments.checks import row_check
+from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
+from mmpp_experiments.params import SYSTEM, build_mmpp
 
 
 # ============================================================
 # パラメータ
 # ============================================================
 
-BASELINE = dict(c=20, K=200, b=5, mu=1.0)
+BASELINE = dict(SYSTEM)
 
 # 名前 -> (rho, delta, sigma, alpha, 位置づけ)
 CONDITIONS: Dict[str, Tuple[float, float, float, float, str]] = {
@@ -143,10 +138,8 @@ def condition_points(cond: str) -> List[Tuple]:
 
 KEY_FIELDS = ["series", "beta", "n_target", "gamma", "protect_presetup",
               "protect_delayoff", "never_cancel_setup"]
-METRIC_FIELDS = ["P_block", "P_block_arrival_stable", "E_N", "E_B", "E_I", "E_S",
-                 "E_off", "lambda_eff", "E_W", "rho_server", "Cost", "ERP"]
-DIAG_FIELDS = ["p1_fire_rate", "p1_launch_rate", "setup_completion_rate",
-               "setup_cancel_rate", "delayoff_rate", "rho_B"]
+METRIC_FIELDS = evaluate.METRIC_FIELDS
+DIAG_FIELDS = evaluate.DIAG_FIELDS + ["rho_B"]
 FIELDNAMES = (["condition", "rho", "delta", "sigma", "alpha", "c", "K", "b", "mu",
                "model"] + KEY_FIELDS + METRIC_FIELDS + DIAG_FIELDS +
               ["diag_source", "consistency_max_relerr", "min_pi", "elapsed_s", "check"])
@@ -167,40 +160,9 @@ def row_key(r) -> Tuple:
             r["never_cancel_setup"] == "True")
 
 
-def read_rows(path: str) -> List[dict]:
-    if not os.path.exists(path):
-        return []
-    with open(path, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def append_row(path: str, row: dict) -> None:
-    new = not os.path.exists(path)
-    with open(path, "a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        if new:
-            w.writeheader()
-        w.writerow(row)
-
-
 # ============================================================
 # 1 点の計算
 # ============================================================
-
-def _checks(E_B, E_I, E_S, E_off, lambda_eff, P_arr, min_pi) -> str:
-    c, b, mu = BASELINE["c"], BASELINE["b"], BASELINE["mu"]
-    out = []
-    total = E_B + E_I + E_S + E_off
-    if abs(total - c) > 1e-9:
-        out.append(f"conservation:{total - c:.3e}")
-    flow = b * mu * E_B
-    if abs(lambda_eff - flow) > 1e-9 * abs(lambda_eff):
-        out.append(f"flow:{(lambda_eff - flow) / lambda_eff:.3e}")
-    if min_pi < 0:
-        out.append(f"min_pi:{min_pi:.3e}")
-    if not P_arr > 0:
-        out.append("P_block_nonpositive")
-    return ";".join(out) if out else "ok"
 
 
 def _base_row(cond: str) -> dict:
@@ -217,16 +179,16 @@ def solve_predictive(cond, beta, nt, g, pp, pd, nc):
         protect_presetup=pp, protect_delayoff=pd, never_cancel_setup=nc,
         **BASELINE,
     )
-    pi = solve_stationary(build_generator(params), solver="gth")
-    return params, pi, Metrics(params, pi)
+    m = evaluate.solve_predictive(params)
+    return params, m.pi, m
 
 
 def solve_base_model(cond, beta):
     rho, delta, sigma, alpha, _ = CONDITIONS[cond]
     C0, C1 = build_mmpp(rho, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
     params = ModelParameters(C0=C0, C1=C1, alpha=alpha, beta=beta, **BASELINE)
-    pi = solve_base(build_base_generator(params), solver="gth")
-    return params, pi, BaseMetrics(params, pi)
+    m = evaluate.solve_base(params)
+    return params, m.pi, m
 
 
 def predictive_row(cond, pt, elapsed, pi, m) -> dict:
@@ -236,21 +198,14 @@ def predictive_row(cond, pt, elapsed, pi, m) -> dict:
         "model": "predictive", "series": name, "beta": beta, "n_target": nt,
         "gamma": g, "protect_presetup": pp, "protect_delayoff": pd,
         "never_cancel_setup": nc,
-        "P_block": m.blocking_probability(),
-        "P_block_arrival_stable": m.arrival_blocking_probability_stable(),
-        "E_N": m.E_N, "E_B": m.E_B, "E_I": m.E_I, "E_S": m.E_S, "E_off": m.E_off,
-        "lambda_eff": m.lambda_eff, "E_W": m.mean_waiting_time(),
-        "rho_server": m.utilization(), "Cost": m.energy_cost_paper(),
-        "ERP": m.erp_paper(),
-        "p1_fire_rate": m.p1_fire_rate, "p1_launch_rate": m.p1_launch_rate,
-        "setup_completion_rate": m.setup_completion_rate,
-        "setup_cancel_rate": m.setup_cancel_rate,
-        "delayoff_rate": m.delayoff_rate, "rho_B": m.rho_B,
+        **evaluate.predictive_metrics(m), **evaluate.predictive_diagnostics(m),
+        "rho_B": m.rho_B,
         "diag_source": "self", "consistency_max_relerr": "",
         "min_pi": float(pi.min()), "elapsed_s": elapsed,
     })
-    row["check"] = _checks(m.E_B, m.E_I, m.E_S, m.E_off, m.lambda_eff,
-                           m.P_block_arrival_stable, float(pi.min()))
+    row["check"] = row_check(BASELINE["c"], BASELINE["b"], BASELINE["mu"],
+                             m.E_B, m.E_I, m.E_S, m.E_off, m.lambda_eff,
+                             m.P_block_arrival_stable, float(pi.min()))
     rho, delta = row["rho"], row["delta"]
     if abs(m.rho_B - rho * (1 + delta)) > 1e-12:
         row["check"] = (row["check"] + ";" if row["check"] != "ok" else "") + "rho_B"
@@ -260,15 +215,12 @@ def predictive_row(cond, pt, elapsed, pi, m) -> dict:
 def base_row(cond, beta, elapsed, pi, mb, check_row: Optional[dict],
              series: str = "Base") -> dict:
     row = _base_row(cond)
-    d = mb.all_metrics()
+    d = evaluate.base_metrics(mb)
     row.update({
         "model": "base", "series": series, "beta": beta, "n_target": 0,
         "gamma": 1.0, "protect_presetup": False, "protect_delayoff": False,
         "never_cancel_setup": False,
-        "P_block": d["P_block"], "P_block_arrival_stable": d["P_block_arrival_stable"],
-        "E_N": d["E[j]"], "E_B": d["E[B]"], "E_I": d["E[I]"], "E_S": d["E[S]"],
-        "E_off": d["E[Off]"], "lambda_eff": d["lambda_eff"], "E_W": d["E[W]"],
-        "rho_server": d["rho"], "Cost": d["cost_paper"], "ERP": d["ERP_paper"],
+        **d,
         "diag_source": "Check" if check_row is not None else "none",
         "consistency_max_relerr": (check_row["consistency_max_relerr"]
                                    if check_row is not None else ""),
@@ -282,8 +234,9 @@ def base_row(cond, beta, elapsed, pi, mb, check_row: Optional[dict],
         row["rho_B"] = rho * (1 + delta)
         row["p1_fire_rate"] = 0.0
         row["p1_launch_rate"] = 0.0
-    row["check"] = _checks(d["E[B]"], d["E[I]"], d["E[S]"], d["E[Off]"],
-                           d["lambda_eff"], d["P_block_arrival_stable"], float(pi.min()))
+    row["check"] = row_check(BASELINE["c"], BASELINE["b"], BASELINE["mu"],
+                             d["E_B"], d["E_I"], d["E_S"], d["E_off"],
+                             d["lambda_eff"], d["P_block_arrival_stable"], float(pi.min()))
     return row
 
 
@@ -327,13 +280,7 @@ def total_points(conds: List[str]) -> int:
 
 
 def log_progress(out_dir, done, total, t0, avg, last):
-    elapsed = time.time() - t0
-    line = (f"{datetime.now().isoformat(timespec='seconds')} "
-            f"done={done}/{total} elapsed={elapsed:.1f}s "
-            f"eta={(total - done) * avg:.1f}s last={last}")
-    with open(os.path.join(out_dir, LOG_NAME), "a", encoding="utf-8") as f:
-        f.write(line + "\n")
-    print(line, flush=True)
+    log_line(os.path.join(out_dir, LOG_NAME), progress_message(done, total, t0, avg, last))
 
 
 def run(conds: List[str], out_dir: str = OUT_DIR) -> None:
@@ -367,7 +314,7 @@ def run(conds: List[str], out_dir: str = OUT_DIR) -> None:
                                   row["gamma"], row["protect_presetup"],
                                   row["protect_delayoff"],
                                   row["never_cancel_setup"])) not in done_keys[cond]:
-                        append_row(path, row)
+                        append_row(path, FIELDNAMES, row)
                         done += 1
                         n_new += 1
                 # 対のもう片方が pts に残っていれば飛ばす
@@ -384,7 +331,7 @@ def run(conds: List[str], out_dir: str = OUT_DIR) -> None:
                 t = time.time()
                 _, pi, m = solve_predictive(cond, *pt[1:])
                 row = predictive_row(cond, pt, time.time() - t, pi, m)
-                append_row(path, row)
+                append_row(path, FIELDNAMES, row)
                 done += 1
                 n_new += 1
                 i += 1
@@ -457,7 +404,7 @@ def run_refine(conds: List[str], out_dir: str = OUT_DIR) -> None:
             else:
                 _, pi, m = solve_predictive(cond, *pt[1:])
                 row = predictive_row(cond, pt, time.time() - t, pi, m)
-            append_row(refine_csv_path(cond, out_dir), row)
+            append_row(refine_csv_path(cond, out_dir), FIELDNAMES, row)
             done += 1
             n_new += 1
             last = f"[refine] {cond},{pt[0]},beta={pt[1]:.4g}"
@@ -585,7 +532,7 @@ def run_extension(conds: List[str], out_dir: str = OUT_DIR) -> None:
                 _, pi, m = solve_predictive(cond, *pt[1:])
                 row = predictive_row(cond, pt, time.time() - t, pi, m)
             path = csv_path(cond, out_dir) if dest == "main" else refine_csv_path(cond, out_dir)
-            append_row(path, row)
+            append_row(path, FIELDNAMES, row)
             done += 1
             n_new += 1
             last = (f"[extend] {cond},{pt[0]},beta={pt[1]:.4g},n_target={pt[2]},"

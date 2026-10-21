@@ -25,18 +25,16 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from mmpp_predictive import PredictiveModelParameters, build_generator, solve_stationary, Metrics
+from mmpp_predictive import PredictiveModelParameters
 from mmpp_predictive_sim import SimMetrics, run_replications
-from mmpp_experiments.checks import check_warmup_duration
-from mmpp_experiments.params import build_mmpp as _build_mmpp_generic, compute_interarrival_cv
+from mmpp_experiments.checks import check_warmup_duration, conservation_and_flow_balance
+from mmpp_experiments.evaluate import solve_predictive
+from mmpp_experiments.params import SYSTEM, build_mmpp as _build_mmpp_generic, compute_interarrival_cv
 
 
 # 実験計画のベースラインパラメータ (実験 0 と同じ規模)
 BASELINE = dict(
-    c=20,       # サーバー数
-    K=200,      # バッファ容量 (cb*5)
-    b=5,        # バッチサイズ
-    mu=1.0,     # サービス率
+    **SYSTEM,   # c=20, K=200, b=5, mu=1
     alpha=0.1,  # セットアップ率
     beta=0.005,   # Delayoff 率
 )
@@ -75,13 +73,6 @@ def build_params(rho: float, n_target: int, gamma: float) -> PredictiveModelPara
     """rho に対応する PredictiveModelParameters を構築する (中バースト水準, BASELINE 固定)."""
     C0, C1 = build_mmpp(rho)
     return PredictiveModelParameters(C0=C0, C1=C1, n_target=n_target, gamma=gamma, **BASELINE)
-
-
-def run_theory(params: PredictiveModelParameters) -> Metrics:
-    """理論解析: Q 構築 -> 定常分布 -> Metrics."""
-    Q = build_generator(params)
-    pi = solve_stationary(Q)
-    return Metrics(params, pi)
 
 
 def run_simulation(
@@ -142,8 +133,9 @@ def _conservation_and_flow_balance(
     Returns:
         (conservation_error, flow_balance_error)
     """
-    conservation_error = abs(mean_busy + mean_idle + mean_setup + mean_off - c)
-    flow_balance_error = abs(lambda_eff - b * mu * mean_busy)
+    conservation_error, flow_balance_error = conservation_and_flow_balance(
+        c, b, mu, mean_busy, mean_idle, mean_setup, mean_off, lambda_eff,
+    )
     print(
         f"    [{label}] E[B]+E[I]+E[S]+E[Off]-c = {conservation_error:.3e}, "
         f"lambda_eff - b*mu*E[B] = {flow_balance_error:.3e}"
@@ -169,7 +161,7 @@ def main() -> None:
 
     for rho in rho_values:
         params = build_params(float(rho), args.n_target, args.gamma)
-        theory = run_theory(params)
+        theory = solve_predictive(params)
         replications, sim_metrics = run_simulation(
             params, args.seed, args.warmup_events,
             args.measure_events, args.n_replications,

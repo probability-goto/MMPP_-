@@ -43,25 +43,22 @@ except ImportError:  # pragma: no cover
             print(f"  [{desc}] {idx}/{total}")
             yield item
 
-from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
-from mmpp_experiments.params import build_mmpp, compute_interarrival_cv
+from mmpp import Metrics, ModelParameters
+from mmpp_experiments.checks import conservation_and_flow_balance, point_checks
+from mmpp_experiments.evaluate import solve_base
+from mmpp_experiments.params import BURST_LEVELS, SYSTEM, build_mmpp, compute_interarrival_cv
 from mmpp_experiments.plotting import log_scale_label
 
 
 # 実験計画のベースラインパラメータ (実験 1 と同じ規模. K は走査変数なので含めない)
 BASELINE = dict(
-    c=20,       # サーバー数 (実験 1 と同じ)
-    b=5,        # バッチサイズ (実験 1 と同じ)
-    mu=1.0,     # サービス率
+    c=SYSTEM["c"], b=SYSTEM["b"], mu=SYSTEM["mu"],  # 実験 1 と同じ
     alpha=0.005,  # セットアップ率 (1/alpha = 200 s)
     beta=0.005,  # Delayoff 率 (1/beta = 200 s)
 )
 
 # セットアップ率の既定値 (--alpha の既定値. これと異なるときだけファイル名に _a を付ける)
 DEFAULT_ALPHA = BASELINE["alpha"]
-
-# 各点の検査のしきい値 (保存則は絶対誤差, 流量バランスは相対誤差)
-CHECK_TOL = 1e-9
 
 # 走査対象の K 水準 (有限バッファ設計の妥当性検証)
 K_LEVELS: List[int] = [100, 200, 500, 1000]
@@ -73,13 +70,6 @@ K_STYLE: Dict[int, Dict[str, str]] = {
     500: dict(color="tab:green"),
     1000: dict(color="tab:red"),
 }
-
-# バースト水準の 3 段階定義 (実験 1 と同じ): (名前, delta, sigma)
-BURST_LEVELS: List[Tuple[str, float, float]] = [
-    ("weak", 0.3, 1.0),
-    ("medium", 0.6, 0.1),
-    ("strong", 0.9, 0.01),
-]
 
 # rho スイープ範囲・点数の既定値 (実験 1 と同じ)
 RHO_RANGE: Tuple[float, float] = (0.1, 0.95)
@@ -107,35 +97,6 @@ def alpha_suffix(alpha: float) -> str:
     return "" if alpha == DEFAULT_ALPHA else f"_a{alpha:g}"
 
 
-def point_checks(params: ModelParameters, theory: Metrics) -> Dict[str, object]:
-    """1 点の検査 (保存則, 流量バランス, min pi >= 0, P_block > 0) の結果を返す.
-
-    Returns:
-        min_pi, cons_err (絶対誤差), flow_rel_err (相対誤差) と,
-        違反した検査名を ";" でつないだ check ("ok" なら違反なし).
-    """
-    lambda_eff = theory.effective_arrival_rate()
-    cons_err = abs(
-        theory.mean_busy() + theory.mean_idle() + theory.mean_setup()
-        + theory.mean_off() - params.c
-    )
-    flow_rel_err = abs(lambda_eff - params.b * params.mu * theory.mean_busy()) / abs(lambda_eff)
-    min_pi = float(theory.pi.min())
-    violations = []
-    if not cons_err <= CHECK_TOL:
-        violations.append("conservation")
-    if not flow_rel_err <= CHECK_TOL:
-        violations.append("flow_balance")
-    if not min_pi >= 0.0:
-        violations.append("min_pi")
-    if not theory.arrival_blocking_probability_stable() > 0.0:
-        violations.append("P_block")
-    return dict(
-        min_pi=min_pi, cons_err=cons_err, flow_rel_err=flow_rel_err,
-        check=";".join(violations) if violations else "ok",
-    )
-
-
 def extended_columns(params: ModelParameters, theory: Metrics) -> Dict[str, object]:
     """CSV に 4 指標と並べて書く列 (台数・流量と各点の検査) を返す."""
     return dict(
@@ -148,13 +109,6 @@ def extended_columns(params: ModelParameters, theory: Metrics) -> Dict[str, obje
         N_states=params.N,
         **point_checks(params, theory),
     )
-
-
-def run_theory(params: ModelParameters) -> Metrics:
-    """理論解析: Q 構築 -> 定常分布 -> Metrics."""
-    Q = build_generator(params)
-    pi = solve_stationary(Q)
-    return Metrics(params, pi)
 
 
 def parse_args() -> argparse.Namespace:
@@ -183,26 +137,6 @@ def parse_args() -> argparse.Namespace:
     if args.quick:
         args.n_points = 5
     return args
-
-
-def _conservation_and_flow_balance(
-    c: int,
-    b: int,
-    mu: float,
-    mean_busy: float,
-    mean_idle: float,
-    mean_setup: float,
-    mean_off: float,
-    lambda_eff: float,
-) -> Tuple[float, float]:
-    """保存則 E[B]+E[I]+E[S]+E[Off]=c と 流量バランス lambda_eff=b*mu*E[B] の誤差を返す.
-
-    Returns:
-        (conservation_error, flow_balance_error)
-    """
-    conservation_error = abs(mean_busy + mean_idle + mean_setup + mean_off - c)
-    flow_balance_error = abs(lambda_eff - b * mu * mean_busy)
-    return conservation_error, flow_balance_error
 
 
 def _burst_levels_to_run(burst_arg: str) -> List[Tuple[str, float, float]]:
@@ -243,7 +177,7 @@ def main() -> None:
             for rho in tqdm(rho_values, desc=f"burst={level_name}, K={K}"):
                 rho = float(rho)
                 params = build_params(K, rho, delta, sigma, args.alpha)
-                theory = run_theory(params)
+                theory = solve_base(params)
 
                 print(
                     f"\n=== [{level_name}, K={K}] rho = {rho:.4g} "
@@ -255,7 +189,7 @@ def main() -> None:
                     theory_vals[K][key].append(theory_val)
                     print(f"  {key:<18}{theory_val:>14.5g}")
 
-                cons_err, flow_err = _conservation_and_flow_balance(
+                cons_err, flow_err = conservation_and_flow_balance(
                     params.c, params.b, params.mu,
                     theory.mean_busy(), theory.mean_idle(),
                     theory.mean_setup(), theory.mean_off(),
