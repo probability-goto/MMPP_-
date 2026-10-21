@@ -30,3 +30,6 @@ include = ["mmpp*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+# 旧比較 (β 固定, 保護なし) のテストは通常は実行しない. 実行するときは pytest -m legacy
+addopts = "-m 'not legacy'"
+markers = ["legacy: 旧比較 (β 固定, 保護なし) のスクリプトのテスト"]

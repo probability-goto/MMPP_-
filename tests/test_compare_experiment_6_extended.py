@@ -5,6 +5,11 @@ import sys
 import tempfile
 from pathlib import Path
 
+import pytest
+
+# 旧比較 (β 固定, 保護なし) のスクリプトのテスト. 通常は実行しない (pytest -m legacy で実行する)
+pytestmark = pytest.mark.legacy
+
 
 def _make_dummy_csv(path: Path, gammas: list, alpha: float = 1.0) -> None:
     """テスト用のダミー CSV を作成する.

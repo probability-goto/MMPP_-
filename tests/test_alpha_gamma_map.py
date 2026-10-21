@@ -4,6 +4,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
+# 旧比較 (β 固定, 保護なし) のスクリプトのテスト. 通常は実行しない (pytest -m legacy で実行する)
+pytestmark = pytest.mark.legacy
+
 
 def test_experiment_2P_alpha_gamma_map_quick():
     """--alpha-gamma-map で実験 2-P が正常終了する (quick, medium)."""

@@ -72,6 +72,13 @@ print(metrics.all_metrics())
 
 ```bash
 pytest tests/
+pytest -m legacy    # 旧比較 (β 固定, 保護なし) のスクリプトのテスト (通常は実行しない)
+```
+
+コードを変えたあとは, 計算結果がコミット済みの `results/`, `figures/` と一致するかも確かめる:
+
+```bash
+python scripts/check_reproduction.py
 ```
 
 ## 数値実験の実行

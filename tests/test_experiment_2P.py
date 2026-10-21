@@ -4,6 +4,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
+# 旧比較 (β 固定, 保護なし) のスクリプトのテスト. 通常は実行しない (pytest -m legacy で実行する)
+pytestmark = pytest.mark.legacy
+
 
 def test_experiment_2P_quick_runs_medium():
     """中バースト水準 (デフォルト) の --quick 実行."""
