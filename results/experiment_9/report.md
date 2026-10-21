@@ -4,7 +4,7 @@ results/experiment_9/experiment_9_{A,B}.csv から scripts/experiment_9_sensitiv
 
 検査: パート A 324 点, パート B 140 点で, check 列の違反は 0 件.
 
-**旧実験 5・6 について.** results/experiment_5_*.csv, results/experiment_6_*.csv と figures/experiment_5_*, figures/experiment_6_* (と results/experiment_6_extended/) は, 事前セットアップの保護 (protect_presetup, protect_delayoff) を入れる前の, 保護なしの旧モデルによる結果である. 消さずに残してあるが, 保護ありのモデルの感度は この実験 9 で調べ直している.
+**旧実験 5・6 について.** results/experiment_5_*.csv, results/experiment_6_*.csv と archive/old_comparison_beta_fixed_no_protect/predictive_5_6/ の図 (と results/experiment_6_extended/) は, 事前セットアップの保護 (protect_presetup, protect_delayoff) を入れる前の, 保護なしの旧モデルによる結果である. 消さずに残してあるが, 保護ありのモデルの感度は この実験 9 で調べ直している.
 
 ## パート A: 最良点の周りでの感度
 

@@ -1,6 +1,6 @@
 """GTH と splu の計算時間・帯格納メモリを設定ごとに計測する.
 
-出力: results_gth/benchmark.md (Markdown 表)
+出力: results/gth_validation/benchmark.md (Markdown 表)
 
 使用例:
     python scripts/benchmark_gth_vs_splu.py
@@ -124,8 +124,8 @@ def main():
     print("\n=== Predictive モデル ===")
     pred_rows = bench_predictive()
 
-    os.makedirs("results_gth", exist_ok=True)
-    out = os.path.join("results_gth", "benchmark.md")
+    os.makedirs(os.path.join("results", "gth_validation"), exist_ok=True)
+    out = os.path.join("results", "gth_validation", "benchmark.md")
     with open(out, "w", encoding="utf-8") as f:
         f.write("# GTH vs splu 計算時間・メモリ計測\n\n")
         f.write(f"計測環境: {os.cpu_count()} コア, numba JIT ウォームアップ後の最良値 "
