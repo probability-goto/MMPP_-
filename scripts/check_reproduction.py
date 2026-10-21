@@ -123,7 +123,7 @@ def _rerun_p1(m, d):
     m.CSV_PATH = os.path.join(d, "p1_protect.csv")
     m.V1_CSV_PATH = os.path.join(d, "p1_protect_v1.csv")
     m.LOG_PATH = os.path.join(d, "progress.log")
-    m.run([b[0] for b in m.BLOCKS])
+    m.run(m.BLOCKS)
 
 
 # (名前, モジュール, 元のディレクトリ, 抜き取る CSV, 計算し直す関数)
@@ -176,9 +176,14 @@ def check_rows(tmp: str, n_rows: int, seed: int, names: List[str]) -> List[str]:
                 key = comparable(r)
                 if key in pool:
                     pool.remove(key)
-                else:
-                    failures.append(f"{src}/{fn}: 計算し直した行が元の行と一致しない: "
-                                    + ", ".join(f"{k}={r[k]}" for k in list(r)[:12]))
+                    continue
+                # いちばん多くの列が一致する行と比べて, 違う列を示す
+                cols = [k for k in r if k not in IGNORE_COLUMNS]
+                near = max(new, key=lambda n: sum(n.get(k) == r[k] for k in cols), default={})
+                diff = "; ".join(f"{k}: {r[k]} -> {near.get(k)}" for k in cols if near.get(k) != r[k])
+                failures.append(f"{src}/{fn}: 計算し直した行が元の行と一致しない: "
+                                + ", ".join(f"{k}={r[k]}" for k in list(r)[:12])
+                                + f"\n    違う列: {diff}")
             if pool:
                 failures.append(f"{src}/{fn}: 抜き取っていない行が {len(pool)} 行計算された")
         n_ok = sum(len(v) for v in removed.values())
