@@ -11,7 +11,6 @@ COO 形式で組んでから CSR に変換 (scipy.sparse の推奨方法).
     4. Delayoff タイムアウト: (i, j, F) -> (i-1, j, F)   率 I(i,j) * beta
     5. MMPP 内部遷移:        (i, j, F) -> (i, j, F')    率 C0[F, F'] (F' != F)
 """
-import numpy as np
 from scipy.sparse import csr_matrix
 
 from mmpp.state_space import StateSpace
@@ -59,6 +58,40 @@ def off_servers(i: int, j: int, b: int, c: int) -> int:
     return c - i - setup_servers(i, j, b, c)
 
 
+class TransitionBuilder:
+    """生成行列の成分を COO 形式 (行, 列, 値のリスト) で積み, CSR にする.
+
+    add(src, dst, rate) で遷移 src -> dst を追加すると, 対角 (src, src) に -rate も
+    同時に積む. 同じ (行, 列) への重複は to_csr() で足し合わせる.
+    ベースモデルと Predictive (mmpp_predictive.generator) の両方の生成行列で使う.
+    """
+
+    def __init__(self, N: int):
+        self.N = N
+        self.rows = []
+        self.cols = []
+        self.vals = []
+
+    def add(self, src: int, dst: int, rate: float) -> None:
+        """遷移 src -> dst (率 rate) を追加. 率が 0 以下か src == dst なら何もしない."""
+        if rate <= 0 or src == dst:
+            return
+        # 非対角 (遷移先)
+        self.rows.append(src)
+        self.cols.append(dst)
+        self.vals.append(rate)
+        # 対角 (自身のインデックス, 負の寄与)
+        self.rows.append(src)
+        self.cols.append(src)
+        self.vals.append(-rate)
+
+    def to_csr(self) -> csr_matrix:
+        """COO -> CSR (同一 (row, col) への重複エントリを集約)."""
+        Q = csr_matrix((self.vals, (self.rows, self.cols)), shape=(self.N, self.N))
+        Q.sum_duplicates()
+        return Q
+
+
 # ============================================================
 # Q 行列構築 (メイン関数)
 # ============================================================
@@ -90,22 +123,8 @@ def build_generator(params) -> csr_matrix:
     C1 = params.C1
 
     # COO 形式 (Coordinate format（座標形式）)で構築 (行, 列, 値のリスト)
-    rows = []
-    cols = []
-    vals = []
-
-    def add_transition(src: int, dst: int, rate: float):
-        """遷移 状態src -> dst (率 rate) を追加. 対角も自動更新."""
-        if rate <= 0 or src == dst:
-            return
-        # 非対角 (遷移先)
-        rows.append(src)
-        cols.append(dst)
-        vals.append(rate)
-        # 対角 (自身のインデックス, 負の寄与)
-        rows.append(src)
-        cols.append(src)
-        vals.append(-rate)
+    builder = TransitionBuilder(N)
+    add_transition = builder.add
 
     for (i, j, F) in ss.iter_states():
         """ 「遷移元 (source) の行番号」"""
@@ -163,7 +182,4 @@ def build_generator(params) -> csr_matrix:
                     dst = ss.index(i, j, Fp)
                     add_transition(src, dst, rate)
 
-    # COO -> CSR (同一 (row, col) への重複エントリを自動集約)
-    Q = csr_matrix((vals, (rows, cols)), shape=(N, N))
-    Q.sum_duplicates()
-    return Q
+    return builder.to_csr()

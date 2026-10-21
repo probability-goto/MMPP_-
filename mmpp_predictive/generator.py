@@ -40,10 +40,9 @@ s=0 の状態でしか成り立たず, s=0 では取り消しがもともと起�
 保護の条件 i+s <= 0 は i=0 でしか成り立たず, i=0 では Delayoff は
 もともと起こらないので, やはりベースモデルに一致する.
 """
-import numpy as np
 from scipy.sparse import csr_matrix
 
-from mmpp.generator import setup_servers as compute_required_s
+from mmpp.generator import TransitionBuilder, setup_servers as compute_required_s
 
 from mmpp_predictive.model import PredictiveModelParameters
 from mmpp_predictive.state_space import (
@@ -80,20 +79,8 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
     def idx(i, s, j, F):
         return state_to_idx(i, s, j, F, c, K, D_M, is_index)
 
-    rows = []
-    cols = []
-    vals = []
-
-    def add_transition(src: int, dst: int, rate: float):
-        """遷移 src -> dst (率 rate) を追加. 対角成分も同時に更新."""
-        if rate <= 0 or src == dst:
-            return
-        rows.append(src)
-        cols.append(dst)
-        vals.append(rate)
-        rows.append(src)
-        cols.append(src)
-        vals.append(-rate)
+    builder = TransitionBuilder(N)
+    add_transition = builder.add
 
     for (i, s) in is_pairs:
         for j in range(K + 1):
@@ -157,6 +144,4 @@ def build_generator(params: PredictiveModelParameters) -> csr_matrix:
                         dst = idx(i, s, j, Fp)
                     add_transition(src, dst, rate)
 
-    Q = csr_matrix((vals, (rows, cols)), shape=(N, N))
-    Q.sum_duplicates()
-    return Q
+    return builder.to_csr()
