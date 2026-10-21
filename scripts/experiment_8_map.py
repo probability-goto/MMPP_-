@@ -36,39 +36,28 @@ gamma=1, 保護なし) がベースモデルと全指標で相対誤差 1e-10 �
     python scripts/experiment_8_map.py --report     # 図とレポート
 """
 import argparse
-import csv
 import os
 import time
 import warnings
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 
-from mmpp.model import ModelParameters
-from mmpp.generator import build_generator as build_base_generator
-from mmpp.solver import solve_stationary as solve_base
-from mmpp.metrics import Metrics as BaseMetrics
+from mmpp import ModelParameters
+from mmpp_predictive import PredictiveModelParameters
 
-from mmpp_predictive import (
-    PredictiveModelParameters, build_generator, solve_stationary, Metrics,
-)
-
-try:
-    from _mmpp_burst import build_mmpp
-    from experiment_7_frontier import pareto_front, interp_cost, dominance, COMMON_KEYS
-except ImportError:
-    from scripts._mmpp_burst import build_mmpp
-    from scripts.experiment_7_frontier import (
-        pareto_front, interp_cost, dominance, COMMON_KEYS,
-    )
+from mmpp_experiments import evaluate
+from mmpp_experiments.checks import row_check
+from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
+from mmpp_experiments.frontier import dominance, interp_cost, pareto_front
+from mmpp_experiments.params import SYSTEM, build_mmpp
 
 
 # ============================================================
 # パラメータ
 # ============================================================
 
-BASELINE = dict(c=20, K=200, b=5, mu=1.0)
+BASELINE = dict(SYSTEM)
 DELTA = 0.6
 R1_LEVELS = [float(x) for x in np.logspace(-1, 2, 5)]
 N_BETA = 9
@@ -121,10 +110,8 @@ def coarse_betas(sigma: float) -> List[float]:
 # CSV
 # ============================================================
 
-METRIC_FIELDS = ["P_block", "P_block_arrival_stable", "E_N", "E_B", "E_I", "E_S",
-                 "E_off", "lambda_eff", "E_W", "rho_server", "Cost", "ERP"]
-DIAG_FIELDS = ["p1_fire_rate", "p1_launch_rate", "setup_completion_rate",
-               "setup_cancel_rate", "delayoff_rate"]
+METRIC_FIELDS = evaluate.METRIC_FIELDS
+DIAG_FIELDS = evaluate.DIAG_FIELDS
 FIELDNAMES = (["row", "rho_B", "rho", "alpha", "r1", "sigma", "delta", "c", "K", "b", "mu",
                "model", "series", "stage", "beta", "n_target", "gamma",
                "protect_presetup", "protect_delayoff"] + METRIC_FIELDS + DIAG_FIELDS +
@@ -133,22 +120,6 @@ FIELDNAMES = (["row", "rho_B", "rho", "alpha", "r1", "sigma", "delta", "c", "K",
 
 def csv_path(row: str, out_dir: str = OUT_DIR) -> str:
     return os.path.join(out_dir, f"experiment_8_{row}.csv")
-
-
-def read_rows(path: str) -> List[dict]:
-    if not os.path.exists(path):
-        return []
-    with open(path, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def append_row(path: str, row: dict) -> None:
-    new = not os.path.exists(path)
-    with open(path, "a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        if new:
-            w.writeheader()
-        w.writerow(row)
 
 
 def pkey(r1, series, beta, nt, g) -> Tuple:
@@ -162,19 +133,6 @@ def rkey(r) -> Tuple:
 # ============================================================
 # 1 点の計算
 # ============================================================
-
-def _checks(E_B, E_I, E_S, E_off, lambda_eff, P_arr, min_pi) -> str:
-    c, b, mu = BASELINE["c"], BASELINE["b"], BASELINE["mu"]
-    out = []
-    if abs(E_B + E_I + E_S + E_off - c) > 1e-9:
-        out.append(f"conservation:{E_B + E_I + E_S + E_off - c:.3e}")
-    if abs(lambda_eff - b * mu * E_B) > 1e-9 * abs(lambda_eff):
-        out.append(f"flow:{(lambda_eff - b * mu * E_B) / lambda_eff:.3e}")
-    if min_pi < 0:
-        out.append(f"min_pi:{min_pi:.3e}")
-    if not P_arr > 0:
-        out.append("P_block_nonpositive")
-    return ";".join(out) if out else "ok"
 
 
 def _mmpp(cp):
@@ -196,23 +154,17 @@ def compute_predictive(row, cp, series, stage, beta, nt, g, protect):
         C0=C0, C1=C1, alpha=cp["alpha"], beta=beta, n_target=nt, gamma=g,
         protect_presetup=protect, protect_delayoff=protect, **BASELINE)
     t = time.time()
-    pi = solve_stationary(build_generator(params), solver="gth")
-    m = Metrics(params, pi)
+    m = evaluate.solve_predictive(params)
+    pi = m.pi
     out = _row_head(row, cp, "predictive", series, stage, beta, nt, g, protect)
     out.update({
-        "P_block": m.blocking_probability(),
-        "P_block_arrival_stable": m.arrival_blocking_probability_stable(),
-        "E_N": m.E_N, "E_B": m.E_B, "E_I": m.E_I, "E_S": m.E_S, "E_off": m.E_off,
-        "lambda_eff": m.lambda_eff, "E_W": m.mean_waiting_time(),
-        "rho_server": m.utilization(), "Cost": m.energy_cost_paper(), "ERP": m.erp_paper(),
-        "p1_fire_rate": m.p1_fire_rate, "p1_launch_rate": m.p1_launch_rate,
-        "setup_completion_rate": m.setup_completion_rate,
-        "setup_cancel_rate": m.setup_cancel_rate, "delayoff_rate": m.delayoff_rate,
+        **evaluate.predictive_metrics(m), **evaluate.predictive_diagnostics(m),
         "consistency_max_relerr": "", "min_pi": float(pi.min()),
         "elapsed_s": time.time() - t,
     })
-    out["check"] = _checks(m.E_B, m.E_I, m.E_S, m.E_off, m.lambda_eff,
-                           m.P_block_arrival_stable, float(pi.min()))
+    out["check"] = row_check(BASELINE["c"], BASELINE["b"], BASELINE["mu"],
+                             m.E_B, m.E_I, m.E_S, m.E_off, m.lambda_eff,
+                             m.P_block_arrival_stable, float(pi.min()))
     return out, m
 
 
@@ -220,23 +172,21 @@ def compute_base(row, cp, stage, beta):
     C0, C1 = _mmpp(cp)
     params = ModelParameters(C0=C0, C1=C1, alpha=cp["alpha"], beta=beta, **BASELINE)
     t = time.time()
-    pi = solve_base(build_base_generator(params), solver="gth")
-    m = BaseMetrics(params, pi)
-    d = m.all_metrics()
+    m = evaluate.solve_base(params)
+    pi = m.pi
+    d = evaluate.base_metrics(m)
     out = _row_head(row, cp, "base", "Base", stage, beta, 0, 1.0, False)
     out.update({
-        "P_block": d["P_block"], "P_block_arrival_stable": d["P_block_arrival_stable"],
-        "E_N": d["E[j]"], "E_B": d["E[B]"], "E_I": d["E[I]"], "E_S": d["E[S]"],
-        "E_off": d["E[Off]"], "lambda_eff": d["lambda_eff"], "E_W": d["E[W]"],
-        "rho_server": d["rho"], "Cost": d["cost_paper"], "ERP": d["ERP_paper"],
+        **d,
         # 診断指標はベースモデルの Metrics にはない (P1 は発動しないので 0)
         "p1_fire_rate": 0.0, "p1_launch_rate": 0.0, "setup_completion_rate": "",
         "setup_cancel_rate": "", "delayoff_rate": "",
         "consistency_max_relerr": "", "min_pi": float(pi.min()),
         "elapsed_s": time.time() - t,
     })
-    out["check"] = _checks(d["E[B]"], d["E[I]"], d["E[S]"], d["E[Off]"], d["lambda_eff"],
-                           d["P_block_arrival_stable"], float(pi.min()))
+    out["check"] = row_check(BASELINE["c"], BASELINE["b"], BASELINE["mu"],
+                             d["E_B"], d["E_I"], d["E_S"], d["E_off"], d["lambda_eff"],
+                             d["P_block_arrival_stable"], float(pi.min()))
     return out, m
 
 
@@ -350,12 +300,7 @@ def estimated_points_per_cell() -> int:
 
 
 def log_progress(out_dir, done, total, t0, avg, last):
-    line = (f"{datetime.now().isoformat(timespec='seconds')} "
-            f"done={done}/{total} elapsed={time.time() - t0:.1f}s "
-            f"eta={max(total - done, 0) * avg:.1f}s last={last}")
-    with open(os.path.join(out_dir, LOG_NAME), "a", encoding="utf-8") as f:
-        f.write(line + "\n")
-    print(line, flush=True)
+    log_line(os.path.join(out_dir, LOG_NAME), progress_message(done, total, t0, avg, last))
 
 
 def all_cells(rows_order: List[str]) -> List[Tuple[str, float]]:
@@ -393,12 +338,12 @@ def run(rows_order: List[str], out_dir: str = OUT_DIR) -> None:
                         dp, db = m_p.all_metrics(), m_b.all_metrics()
                         rel = max(0.0 if max(abs(db[k]), abs(dp[k])) == 0 else
                                   abs(db[k] - dp[k]) / max(abs(db[k]), abs(dp[k]))
-                                  for k in COMMON_KEYS)
+                                  for k in evaluate.COMMON_KEYS)
                         out["consistency_max_relerr"] = rel
                         if rel > CONSISTENCY_TOL:
                             out["check"] = (out["check"] + ";" if out["check"] != "ok"
                                             else "") + f"consistency:{rel:.2e}"
-                            append_row(path, out)
+                            append_row(path, FIELDNAMES, out)
                             log_progress(out_dir, done + 1, total, t0, 0.0,
                                          last + " CONSISTENCY_FAIL")
                             raise ConsistencyError(
@@ -408,7 +353,7 @@ def run(rows_order: List[str], out_dir: str = OUT_DIR) -> None:
                         protect = SERIES[series][1]
                         out, _ = compute_predictive(row, cp, series, stage, beta, nt, g,
                                                     protect)
-                    append_row(path, out)
+                    append_row(path, FIELDNAMES, out)
                     done += 1
                     n_new += 1
                     if out["check"] != "ok":

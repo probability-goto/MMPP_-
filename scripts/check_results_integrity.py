@@ -1,4 +1,4 @@
-"""results_gth/ の CSV の健全性を検査する.
+"""results/ (既定) などの CSV の健全性を検査する.
 
 検査項目:
     1. P_block_arrival_stable 列が存在し, 空セルがないこと
@@ -13,7 +13,7 @@
 
 使用例:
     python scripts/check_results_integrity.py
-    python scripts/check_results_integrity.py results_gth
+    python scripts/check_results_integrity.py results
 """
 import csv
 import glob
@@ -59,7 +59,7 @@ def check_file(path):
 
 
 def main():
-    target = sys.argv[1] if len(sys.argv) > 1 else "results_gth"
+    target = sys.argv[1] if len(sys.argv) > 1 else "results"
     files = sorted(glob.glob(os.path.join(target, "*.csv")))
     if not files:
         print(f"{target}/ に CSV がありません。", file=sys.stderr)

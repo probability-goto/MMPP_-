@@ -39,21 +39,16 @@ except ImportError:  # pragma: no cover
             print(f"  [{desc}] {idx}/{total}")
             yield item
 
-from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
-try:
-    from _figure_labels import log_scale_label
-    from _mmpp_burst import build_mmpp, compute_interarrival_cv
-except ImportError:
-    from scripts._figure_labels import log_scale_label
-    from scripts._mmpp_burst import build_mmpp, compute_interarrival_cv
+from mmpp import Metrics, ModelParameters
+from mmpp_experiments.checks import conservation_and_flow_balance
+from mmpp_experiments.evaluate import solve_base
+from mmpp_experiments.params import SYSTEM, build_mmpp, compute_interarrival_cv
+from mmpp_experiments.plotting import log_scale_label
 
 
 # 実験計画のベースラインパラメータ (実験 1・2 と同じ規模)
 BASELINE = dict(
-    c=20,       # サーバー数 (実験 1・2 と同じ)
-    K=200,      # バッファ容量
-    b=5,        # バッチサイズ (先行研究 Fig.8 と同じ)
-    mu=1.0,     # サービス率
+    **SYSTEM,   # c=20, K=200, b=5, mu=1 (実験 1・2 と同じ)
     beta=0.005, # Delayoff 率 (1/beta = 200 s, 先行研究 Fig.10 と同じ)
     # alpha は水準として走査するのでここには含めない
 )
@@ -111,13 +106,6 @@ def build_params(sweep_var: str, sweep_value: float, alpha: float) -> ModelParam
     return ModelParameters(C0=C0, C1=C1, alpha=alpha, **BASELINE)
 
 
-def run_theory(params: ModelParameters) -> Metrics:
-    """理論解析: Q 構築 -> 定常分布 -> Metrics."""
-    Q = build_generator(params)
-    pi = solve_stationary(Q)
-    return Metrics(params, pi)
-
-
 def parse_args() -> argparse.Namespace:
     """コマンドライン引数を解析する."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -136,26 +124,6 @@ def parse_args() -> argparse.Namespace:
     if args.quick:
         args.n_points = 5
     return args
-
-
-def _conservation_and_flow_balance(
-    c: int,
-    b: int,
-    mu: float,
-    mean_busy: float,
-    mean_idle: float,
-    mean_setup: float,
-    mean_off: float,
-    lambda_eff: float,
-) -> Tuple[float, float]:
-    """保存則 E[B]+E[I]+E[S]+E[Off]=c と 流量バランス lambda_eff=b*mu*E[B] の誤差を返す.
-
-    Returns:
-        (conservation_error, flow_balance_error)
-    """
-    conservation_error = abs(mean_busy + mean_idle + mean_setup + mean_off - c)
-    flow_balance_error = abs(lambda_eff - b * mu * mean_busy)
-    return conservation_error, flow_balance_error
 
 
 def _cv_at_sweep_value(sweep_var: str, sweep_value: float) -> float:
@@ -197,9 +165,7 @@ def _check_poisson_limit_if_applicable(
     params_poisson = ModelParameters(
         C0=C0_poisson, C1=C1_poisson, alpha=params.alpha, **BASELINE,
     )
-    Q_poisson = build_generator(params_poisson)
-    pi_poisson = solve_stationary(Q_poisson)
-    metrics_poisson = Metrics(params_poisson, pi_poisson)
+    metrics_poisson = solve_base(params_poisson)
 
     # 主要指標の一致確認
     tol = 1e-6
@@ -250,7 +216,7 @@ def main() -> None:
         for sweep_value in tqdm(sweep_values, desc=f"{level_name}"):
             sweep_value = float(sweep_value)
             params = build_params(args.sweep, sweep_value, alpha)
-            theory = run_theory(params)
+            theory = solve_base(params)
             cv = _cv_at_sweep_value(args.sweep, sweep_value)
 
             print(f"\n=== [{level_name}] {args.sweep} = {sweep_value:.4g} (CV = {cv:.4f}) ===")
@@ -262,7 +228,7 @@ def main() -> None:
 
             _check_poisson_limit_if_applicable(args.sweep, sweep_value, theory, params)
 
-            cons_err, flow_err = _conservation_and_flow_balance(
+            cons_err, flow_err = conservation_and_flow_balance(
                 params.c, params.b, params.mu,
                 theory.mean_busy(), theory.mean_idle(),
                 theory.mean_setup(), theory.mean_off(),

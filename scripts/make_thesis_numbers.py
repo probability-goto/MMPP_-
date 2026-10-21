@@ -16,10 +16,12 @@ import csv
 import os
 import re
 import shutil
-from typing import Dict, List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
+
+from mmpp_experiments.classify import CATEGORIES5, P_HI, category5
 
 try:
     import experiment_7_frontier as e7
@@ -359,12 +361,12 @@ def exp9(m: Macros) -> dict:
     out = {}
     for name, short in B_NAMES.items():
         cr = [r for r in rows if r["value"] == name]
-        cats = {c: [r for r in cr if e9.category5(float(r["rel_ERP"]), 1 + float(r["rel_P"])) == c]
-                for c in e9.CATEGORIES5}
+        cats = {c: [r for r in cr if category5(float(r["rel_ERP"]), 1 + float(r["rel_P"])) == c]
+                for c in CATEGORIES5}
         out[name] = cats
         for c, cn in CAT_NAMES.items():
             m.add(f"ExpNine{short}{cn}Count", str(len(cats[c])), f"{src}\n設定 {name} で区分「{c}」のマスの数")
-        m.add(f"ExpNine{short}PUpCount", str(sum(1 for r in cr if 1 + float(r["rel_P"]) > e9.P_HI)),
+        m.add(f"ExpNine{short}PUpCount", str(sum(1 for r in cr if 1 + float(r["rel_P"]) > P_HI)),
               f"{src}\n設定 {name} で P の比 (対同じ β* の Base) が 1.05 を超えるマスの数 (35 マス中)")
         if cats["改善"]:
             b = min(cats["改善"], key=lambda r: float(r["rel_ERP"]))
@@ -386,7 +388,7 @@ def exp9(m: Macros) -> dict:
     pa = os.path.join("results", "experiment_9", "experiment_9_A.csv")
     ra = list(csv.DictReader(open(pa, encoding="utf-8")))
     b2 = [r for r in ra if r["sweep"] == "beta_mult" and float(r["value"]) == 2.0]
-    over = [float(r["p_ratio"]) for r in b2 if float(r["p_ratio"]) > e9.P_HI]
+    over = [float(r["p_ratio"]) for r in b2 if float(r["p_ratio"]) > P_HI]
     m.add("ExpNineBetaTwoOverCount", str(len(over)),
           f"出典: {pa}\n基準点の β を 2 倍にしたとき P の比 (対 P_ref) が 1.05 を超える組の数")
     m.add("ExpNineBetaTwoTotal", str(len(b2)), f"出典: {pa}\n基準点の組の数")

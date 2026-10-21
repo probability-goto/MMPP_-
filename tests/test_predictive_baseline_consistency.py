@@ -17,10 +17,7 @@ from mmpp_predictive.generator import build_generator as build_pred_generator
 from mmpp_predictive.solver import solve_stationary as solve_pred
 from mmpp_predictive.metrics import Metrics as PredMetrics
 
-try:
-    from scripts._mmpp_burst import build_mmpp
-except ImportError:
-    from _mmpp_burst import build_mmpp
+from mmpp_experiments.params import build_mmpp
 
 
 def make_matched_params(c=5, K=20, b=2, delta=0.6, sigma=0.1, rho=0.5):

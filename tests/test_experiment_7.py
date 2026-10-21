@@ -10,6 +10,7 @@ import os
 import numpy as np
 import pytest
 
+from mmpp_experiments import frontier
 import scripts.experiment_7_frontier as e7
 
 
@@ -33,25 +34,25 @@ def test_beta_levels(cond):
 
 def test_pareto_front():
     pts = [(1.0, 5.0, 0), (2.0, 3.0, 1), (2.5, 4.0, 2), (3.0, 1.0, 3), (1.0, 6.0, 4)]
-    front = e7.pareto_front(pts)
+    front = frontier.pareto_front(pts)
     assert [p[2] for p in front] == [0, 1, 3]
 
 
 def test_interp_cost():
     front = [(1.0, 5.0, 0), (2.0, 3.0, 1), (3.0, 1.0, 2)]
-    assert e7.interp_cost(front, 0.5) is None
-    assert e7.interp_cost(front, 1.5) == pytest.approx(4.0)
-    assert e7.interp_cost(front, 3.0) == pytest.approx(1.0)
-    assert e7.interp_cost(front, 10.0) == pytest.approx(1.0)
+    assert frontier.interp_cost(front, 0.5) is None
+    assert frontier.interp_cost(front, 1.5) == pytest.approx(4.0)
+    assert frontier.interp_cost(front, 3.0) == pytest.approx(1.0)
+    assert frontier.interp_cost(front, 10.0) == pytest.approx(1.0)
 
 
 def test_dominance():
     ref = [(1.0, 5.0, 0), (2.0, 3.0, 1)]
-    assert e7.dominance([(0.9, 2.0, 0)], ref)[0] == "全域"
-    assert e7.dominance([(1.5, 2.0, 0)], ref) == ("一部", 1, 2)
-    assert e7.dominance([(3.0, 6.0, 0)], ref)[0] == "しない"
+    assert frontier.dominance([(0.9, 2.0, 0)], ref)[0] == "全域"
+    assert frontier.dominance([(1.5, 2.0, 0)], ref) == ("一部", 1, 2)
+    assert frontier.dominance([(3.0, 6.0, 0)], ref)[0] == "しない"
     # 同じ点は支配しない
-    assert e7.dominance(ref, ref)[0] == "しない"
+    assert frontier.dominance(ref, ref)[0] == "しない"
 
 
 @pytest.fixture

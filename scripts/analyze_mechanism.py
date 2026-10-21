@@ -20,26 +20,26 @@
 import csv
 import os
 import warnings
-from typing import Dict, List
+from typing import List
 
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 
-from mmpp_predictive import (
-    PredictiveModelParameters, build_generator, solve_stationary, Metrics,
-)
+from mmpp_predictive import PredictiveModelParameters
 from mmpp_predictive.state_space import (
     build_is_index, busy_count, idle_count, pi_by_level,
 )
 
+from mmpp_experiments import evaluate
+from mmpp_experiments.csvio import read_rows
+from mmpp_experiments.params import build_mmpp
+
 try:
     import experiment_7_frontier as e7
     import experiment_8_map as e8
-    from _mmpp_burst import build_mmpp
 except ImportError:
     import scripts.experiment_7_frontier as e7
     import scripts.experiment_8_map as e8
-    from scripts._mmpp_burst import build_mmpp
 
 warnings.filterwarnings("ignore", message="Predictive モデルの縮約後の帯幅が大きい")
 
@@ -62,8 +62,8 @@ def exp7_points() -> List[dict]:
     """実験 7 の 5 条件の Base (β を細かくしたもの) と P1 only (protect) の ERP 最小点."""
     out = []
     for cond in e7.CONDITIONS:
-        main = e7.read_rows(e7.csv_path(cond))
-        dense = [r for r in e7.read_rows(e7.refine_csv_path(cond))
+        main = read_rows(e7.csv_path(cond))
+        dense = [r for r in read_rows(e7.refine_csv_path(cond))
                  if r["series"] == "Base (dense)"]
         base = min(dense, key=lambda r: _f(r, "ERP"))
         p1 = min([r for r in main if r["series"] == P1], key=lambda r: _f(r, "ERP"))
@@ -110,8 +110,8 @@ def solve_point(p: dict) -> dict:
     params = PredictiveModelParameters(
         C0=C0, C1=C1, alpha=alpha, beta=beta, n_target=nt, gamma=1.0,
         protect_presetup=protect, protect_delayoff=protect, **BASELINE)
-    pi = solve_stationary(build_generator(params), solver="gth")
-    m = Metrics(params, pi)
+    m = evaluate.solve_predictive(params)
+    pi = m.pi
     c, K, b = params.c, params.K, params.b
     _, pairs = build_is_index(c)
     P = pi_by_level(pi, c, K, params.D_M)  # [j, iota(i,s), F]

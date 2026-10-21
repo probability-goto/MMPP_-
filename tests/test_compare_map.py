@@ -1,6 +1,7 @@
 """scripts/compare_map.py (比較の地図, alpha=0.005, Base と Predictive) のテスト."""
 import pytest
 
+from mmpp_experiments.csvio import read_rows
 from scripts import compare_map as cm
 from scripts import experiment_8_map as e8
 
@@ -14,7 +15,7 @@ def quick_cell_rows(tmp_path_factory):
     out_dir = str(tmp_path_factory.mktemp("compare_map"))
     rho_B, r1 = QUICK_CELL
     stats = cm.run_cell(rho_B, r1, out_dir, combos=QUICK_COMBOS, reuse=False)
-    rows = e8.read_rows(cm.csv_path(rho_B, out_dir))
+    rows = read_rows(cm.csv_path(rho_B, out_dir))
     assert stats["computed"] == len(rows)
     assert not cm.next_points(rho_B, r1, rows, QUICK_COMBOS)
     return rows

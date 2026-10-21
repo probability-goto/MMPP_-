@@ -1,12 +1,18 @@
-"""実験 0 / 実験 1 共通のバースト MMPP 構築ユーティリティ.
-
-対称 2 位相 MMPP (delta, sigma) の構築, 到着間隔 CV の計算,
-ウォームアップ実時間の診断を提供する.
-"""
-import warnings
-from typing import List, Tuple
+"""数値実験で共通のパラメータと, 対称 2 位相 MMPP 到着の構築."""
+from typing import Dict, List, Tuple
 
 import numpy as np
+
+# 共通のシステム規模 (先行研究 Fig.10 と同じ規模. K は cb*4 = 400 だが計算コストを考えて 200)
+SYSTEM = dict(c=20, K=200, b=5, mu=1.0)
+
+# バースト水準の 3 段階: (名前, delta, sigma)
+BURST_LEVELS: List[Tuple[str, float, float]] = [
+    ("weak", 0.3, 1.0),
+    ("medium", 0.6, 0.1),
+    ("strong", 0.9, 0.01),
+]
+BURST_BY_NAME: Dict[str, Tuple[str, float, float]] = {lv[0]: lv for lv in BURST_LEVELS}
 
 
 def build_mmpp(
@@ -63,16 +69,3 @@ def compute_interarrival_cv(C0: np.ndarray, C1: np.ndarray) -> float:
     variance = second_moment - mean_iat ** 2
     cv = np.sqrt(variance) / mean_iat
     return float(cv)
-
-
-def check_warmup_duration(params, replications: List) -> None:
-    """ウォームアップ実時間が遅い時定数 1/beta に対して十分かを診断する."""
-    warmup_duration = replications[0].warmup_duration
-    warmup_ratio = warmup_duration * params.beta
-    if warmup_ratio < 5.0:
-        warnings.warn(
-            f"ウォームアップが遅い時定数 1/beta = {1 / params.beta:.2f} に対して "
-            f"{warmup_ratio:.2f} 倍しかありません. warmup_events を増やすことを検討してください.",
-            RuntimeWarning,
-            stacklevel=2,
-        )

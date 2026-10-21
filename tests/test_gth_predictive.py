@@ -14,10 +14,7 @@ from mmpp_predictive.metrics import Metrics as PredMetrics
 
 from mmpp.gth_solver import bandwidths, check_reachability
 
-try:
-    from scripts._mmpp_burst import build_mmpp
-except ImportError:
-    from _mmpp_burst import build_mmpp
+from mmpp_experiments.params import build_mmpp
 
 
 def make_pred_params(c=5, K=20, b=2, n_target=3, gamma=5.0, rho=0.5):

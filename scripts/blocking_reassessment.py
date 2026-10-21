@@ -22,6 +22,8 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
+from mmpp_experiments.csvio import read_rows
+
 try:
     import experiment_7_frontier as e7
     import experiment_8_map as e8
@@ -63,13 +65,13 @@ def load_exp7() -> Dict[str, Dict[str, List[dict]]]:
     for cond in e7.CONDITIONS:
         grid = {e7.point_key(p) for p in e7.condition_points(cond)}
         groups: Dict[str, List[dict]] = {}
-        for r in e7.read_rows(e7.csv_path(cond)):
+        for r in read_rows(e7.csv_path(cond)):
             if r["series"] == "Check":
                 continue
             x = _num(r)
             x["where"] = "13 点の格子" if e7.row_key(r) in grid else "範囲を広げた点"
             groups.setdefault(r["series"], []).append(x)
-        for r in e7.read_rows(e7.refine_csv_path(cond)):
+        for r in read_rows(e7.refine_csv_path(cond)):
             x = _num(r)
             s = {"Base (dense)": "Base", "NoCancel (refine)": "NoCancel"}[r["series"]]
             x["where"] = ("β を細かくした点 (121 点)" if s == "Base"
@@ -86,7 +88,7 @@ STAGE_JA = {"coarse": "粗い格子", "fine": "細かい探索", "extend": "範�
 def load_exp8() -> Dict[Tuple[str, float], Dict[str, List[dict]]]:
     data = {}
     for row in dict.fromkeys(e8.MAP_A + e8.MAP_B):
-        for r in e8.read_rows(e8.csv_path(row)):
+        for r in read_rows(e8.csv_path(row)):
             if r["series"] == "Check":
                 continue
             x = _num(r)

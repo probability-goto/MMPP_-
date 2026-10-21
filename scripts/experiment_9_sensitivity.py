@@ -27,14 +27,17 @@ ERP の相対差 (対 Base の ERP 最小値) と P の比 (対 P_ref) を見る
     python scripts/experiment_9_sensitivity.py --report
 """
 import argparse
-import csv
 import os
 import time
 import warnings
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
+
+from mmpp_experiments.classify import (
+    CATEGORIES5, ERP_TIE, P_HI, P_LO, RTOL, category, category5, erp_state, intervals, p_state,
+)
+from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
 
 try:
     import experiment_8_map as e8
@@ -49,7 +52,6 @@ OUT_DIR = os.path.join("results", "experiment_9")
 FIG_DIR = "figures"
 LOG_NAME = "progress.log"
 P = "P_block_arrival_stable"
-RTOL = 1e-9
 
 A_CELLS = [("B_alpha1", 3.1622776601683795), ("A_rhoB0.8", 17.78279410038923),
            ("B_alpha0.005", 17.78279410038923), ("A_rhoB0.6", 3.1622776601683795),
@@ -81,28 +83,8 @@ def csv_path(part: str, out_dir: str = OUT_DIR) -> str:
     return os.path.join(out_dir, f"experiment_9_{part}.csv")
 
 
-def read_rows(path: str) -> List[dict]:
-    if not os.path.exists(path):
-        return []
-    with open(path, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def append_row(path: str, fields, row: dict) -> None:
-    new = not os.path.exists(path)
-    with open(path, "a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
-        if new:
-            w.writeheader()
-        w.writerow(row)
-
-
 def log_progress(out_dir, done, total, t0, avg, last):
-    line = (f"{datetime.now().isoformat(timespec='seconds')} done={done}/{total} "
-            f"elapsed={time.time() - t0:.1f}s eta={max(total - done, 0) * avg:.1f}s last={last}")
-    with open(os.path.join(out_dir, LOG_NAME), "a", encoding="utf-8") as f:
-        f.write(line + "\n")
-    print(line, flush=True)
+    log_line(os.path.join(out_dir, LOG_NAME), progress_message(done, total, t0, avg, last))
 
 
 # ============================================================
@@ -197,16 +179,6 @@ def compute(part: str, p: dict) -> dict:
     return out
 
 
-def category(rel_erp: float, rel_p: float) -> str:
-    erp_better = rel_erp < 0
-    p_ok = rel_p <= RTOL
-    if erp_better and p_ok:
-        return "改善"
-    if not erp_better and not p_ok:
-        return "悪化"
-    return "引き換え"
-
-
 def run(part: str, out_dir: str = OUT_DIR) -> None:
     os.makedirs(out_dir, exist_ok=True)
     pts = points_A() if part == "A" else points_B()
@@ -220,7 +192,7 @@ def run(part: str, out_dir: str = OUT_DIR) -> None:
     last_log = t0
     for k, p in enumerate(todo):
         row = compute(part, p)
-        append_row(path, fields, row)
+        append_row(path, fields, row, extrasaction="ignore")
         done += 1
         last = (f"[{part}] {p['row']},r1={p['r1']:.3g},{p['series']},{p['sweep']}={p['value']}")
         if row["check"] != "ok":
@@ -237,25 +209,6 @@ def run(part: str, out_dir: str = OUT_DIR) -> None:
 
 def _f(r, k):
     return float(r[k])
-
-
-def intervals(vals: List[float], flags: List[bool], fmt) -> str:
-    """格子 vals (昇順) 上で flags が真の値を連続区間にまとめる."""
-    runs, cur = [], []
-    for v, f in zip(vals, flags):
-        if f:
-            cur.append(v)
-        elif cur:
-            runs.append(cur)
-            cur = []
-    if cur:
-        runs.append(cur)
-    if not runs:
-        return "なし"
-    if len(runs) == 1 and len(runs[0]) == len(vals):
-        return "全域"
-    return " ∪ ".join(fmt(r[0]) if len(r) == 1 else f"[{fmt(r[0])}, {fmt(r[-1])}]"
-                      for r in runs)
 
 
 def _cell_label(row, r1):
@@ -470,47 +423,7 @@ def plot_B(rows, rows_order, which, metric, label, logp, fig_dir) -> List[str]:
 # しきい値付きの判定 (集計のし直し)
 # ============================================================
 
-# ERP の相対差は |差| <= 0.1% を「同等」, P の比は 0.95〜1.05 を「同等」とする.
-ERP_TIE = 0.001
-P_LO, P_HI = 0.95, 1.05
-CATEGORIES5 = ["改善", "同等", "棄却のみ改善", "引き換え", "悪化"]
-
-
-def erp_state(rel_erp: float) -> str:
-    if rel_erp < -ERP_TIE:
-        return "better"
-    if rel_erp > ERP_TIE:
-        return "worse"
-    return "equal"
-
-
-def p_state(p_ratio: float) -> str:
-    if p_ratio < P_LO:
-        return "better"
-    if p_ratio > P_HI:
-        return "worse"
-    return "equal"
-
-
-def category5(rel_erp: float, p_ratio: float) -> str:
-    """しきい値付きの 5 区分.
-
-    改善: ERP が 0.1% 以上下がり, P が 5% 以上上がらない.
-    同等: ERP も P も同等.
-    棄却のみ改善: ERP は同等で, P が 5% 以上下がる.
-    引き換え: 片方が改善し, もう片方が悪化する.
-    悪化: どちらかが悪化し, どちらも改善しない.
-    """
-    e, p = erp_state(rel_erp), p_state(p_ratio)
-    if e == "better" and p != "worse":
-        return "改善"
-    if e == "equal" and p == "equal":
-        return "同等"
-    if e == "equal" and p == "better":
-        return "棄却のみ改善"
-    if (e == "better" and p == "worse") or (e == "worse" and p == "better"):
-        return "引き換え"
-    return "悪化"
+# ERP の相対差は |差| <= 0.1% を「同等」, P の比は 0.95〜1.05 を「同等」とする (mmpp_experiments.classify).
 
 
 def report_A_thr(rows: List[dict]) -> List[str]:

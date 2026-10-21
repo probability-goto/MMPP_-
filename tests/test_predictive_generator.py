@@ -6,10 +6,7 @@ from mmpp_predictive.model import PredictiveModelParameters
 from mmpp_predictive.generator import build_generator
 from mmpp_predictive.state_space import num_states
 
-try:
-    from scripts._mmpp_burst import build_mmpp
-except ImportError:
-    from _mmpp_burst import build_mmpp
+from mmpp_experiments.params import build_mmpp
 
 
 def make_test_params(n_target=0, gamma=1.0):

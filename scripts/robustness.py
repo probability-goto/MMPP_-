@@ -42,21 +42,23 @@ import csv
 import os
 import time
 import warnings
-from datetime import datetime
 from typing import Dict, List, Tuple
 
 import numpy as np
 
+# しきい値付きの判定は実験 9 と同じ
+from mmpp_experiments.classify import (
+    CATEGORIES5, ERP_TIE, P_HI, P_LO, category5, erp_state, intervals, p_state,
+)
+from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
+from mmpp_experiments.plotting import log_scale_label
+
 try:
     import compare_map as cm
     import experiment_8_map as e8
-    import experiment_9_sensitivity as e9
-    from _figure_labels import log_scale_label
 except ImportError:
     import scripts.compare_map as cm
     import scripts.experiment_8_map as e8
-    import scripts.experiment_9_sensitivity as e9
-    from scripts._figure_labels import log_scale_label
 
 warnings.filterwarnings("ignore", message="Predictive モデルの縮約後の帯幅が大きい")
 
@@ -83,15 +85,6 @@ B_CONFIGS = [("presetup nt=10", "事前セットアップ", 10, 1.0),
              ("delayoff g=3", "Delayoff の加速", 0, 3.0),
              ("delayoff g=10", "Delayoff の加速", 0, 10.0)]
 
-# しきい値 (旧実験 9 のしきい値付きの判定と同じ)
-ERP_TIE = e9.ERP_TIE
-P_LO, P_HI = e9.P_LO, e9.P_HI
-CATEGORIES5 = e9.CATEGORIES5
-category5 = e9.category5
-erp_state = e9.erp_state
-p_state = e9.p_state
-intervals = e9.intervals
-
 REF = ["base_ERP_min", "P_ref", "base_beta_star", "erp_rel", "p_ratio"]
 FIELDS_A = (["part", "cell_role", "sweep", "value"] + e8.FIELDNAMES + REF
             + ["worse_erp", "worse_p", "worse"])
@@ -108,19 +101,8 @@ def csv_path(part: str, out_dir: str = OUT_DIR) -> str:
     return os.path.join(out_dir, f"robustness_{part}.csv")
 
 
-def read_rows(path: str) -> List[dict]:
-    return e9.read_rows(path)
-
-
-def append_row(path: str, fields, row: dict) -> None:
-    e9.append_row(path, fields, row)
-
-
 def log_progress(out_dir, msg):
-    line = f"{datetime.now().isoformat(timespec='seconds')} {msg}"
-    with open(os.path.join(out_dir, LOG_NAME), "a", encoding="utf-8") as f:
-        f.write(line + "\n")
-    print(line, flush=True)
+    log_line(os.path.join(out_dir, LOG_NAME), msg)
 
 
 # ============================================================
@@ -298,7 +280,7 @@ def run(part: str, out_dir: str = OUT_DIR) -> None:
     n_bad = 0
     for k, p in enumerate(todo):
         row = compute(part, p, sm)
-        append_row(path, fields, row)
+        append_row(path, fields, row, extrasaction="ignore")
         done += 1
         tail = {"A": lambda: f"{p['sweep']}={p['value']:g}", "B": lambda: p["config"],
                 "BG": lambda: f"{p['kind']} ({p['beta']:.4g}, {p['n_target']}, {p['gamma']:g})"
@@ -309,8 +291,7 @@ def run(part: str, out_dir: str = OUT_DIR) -> None:
             print(f"  検査違反: {last}: {row['check']}", flush=True)
         if done % 10 == 0 or time.time() - last_log >= 60 or k + 1 == len(todo):
             avg = (time.time() - t0) / (k + 1)
-            log_progress(out_dir, f"done={done}/{total} elapsed={time.time() - t0:.1f}s "
-                                  f"eta={(total - done) * avg:.1f}s last={last}")
+            log_progress(out_dir, progress_message(done, total, t0, avg, last))
             last_log = time.time()
     log_progress(out_dir, f"[{part}] 完了: 今回計算 {len(todo)} 点, 検査違反 {n_bad} 件, "
                           f"経過 {time.time() - t0:.1f}s")

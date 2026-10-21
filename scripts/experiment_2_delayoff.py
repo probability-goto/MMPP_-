@@ -35,21 +35,16 @@ except ImportError:  # pragma: no cover
             print(f"  [{desc}] {idx}/{total}")
             yield item
 
-from mmpp import ModelParameters, build_generator, solve_stationary, Metrics
-try:
-    from _figure_labels import log_scale_label
-    from _mmpp_burst import build_mmpp, compute_interarrival_cv
-except ImportError:
-    from scripts._figure_labels import log_scale_label
-    from scripts._mmpp_burst import build_mmpp, compute_interarrival_cv
+from mmpp import ModelParameters
+from mmpp_experiments.checks import conservation_and_flow_balance
+from mmpp_experiments.evaluate import solve_base
+from mmpp_experiments.params import BURST_BY_NAME, SYSTEM, build_mmpp
+from mmpp_experiments.plotting import log_scale_label
 
 
 # 実験計画のベースラインパラメータ (先行研究 Fig.8 と同じ規模)
 BASELINE = dict(
-    c=20,       # サーバー数 (実験 1 と同じ)
-    K=200,      # バッファ容量 (実験 1 と同じ)
-    b=5,        # バッチサイズ (先行研究 Fig.8 と同じ)
-    mu=1.0,     # サービス率
+    **SYSTEM,   # c=20, K=200, b=5, mu=1 (実験 1 と同じ)
     # alpha は水準として走査するのでここには含めない
     # beta は走査変数なのでここには含めない
 )
@@ -71,8 +66,8 @@ LEVEL_STYLE: Dict[str, Dict[str, str]] = {
 }
 
 # バースト水準: メインは中バースト固定, 補助は強バースト固定
-BURST_MAIN = ("medium", 0.6, 0.1)
-BURST_AUX = ("strong", 0.9, 0.01)
+BURST_MAIN = BURST_BY_NAME["medium"]
+BURST_AUX = BURST_BY_NAME["strong"]
 
 # beta スイープ範囲の既定値 (対数スケール)
 BETA_RANGE: Tuple[float, float] = (1e-2, 1e2)
@@ -90,13 +85,6 @@ def build_params(beta: float, alpha: float, delta: float, sigma: float) -> Model
     """beta, alpha, delta, sigma に対応する ModelParameters を構築する (BASELINE + RHO_FIXED)."""
     C0, C1 = build_mmpp(RHO_FIXED, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
     return ModelParameters(C0=C0, C1=C1, alpha=alpha, beta=beta, **BASELINE)
-
-
-def run_theory(params: ModelParameters) -> Metrics:
-    """理論解析: Q 構築 -> 定常分布 -> Metrics."""
-    Q = build_generator(params)
-    pi = solve_stationary(Q)
-    return Metrics(params, pi)
 
 
 def parse_args() -> argparse.Namespace:
@@ -117,26 +105,6 @@ def parse_args() -> argparse.Namespace:
     if args.quick:
         args.n_points = 5
     return args
-
-
-def _conservation_and_flow_balance(
-    c: int,
-    b: int,
-    mu: float,
-    mean_busy: float,
-    mean_idle: float,
-    mean_setup: float,
-    mean_off: float,
-    lambda_eff: float,
-) -> Tuple[float, float]:
-    """保存則 E[B]+E[I]+E[S]+E[Off]=c と 流量バランス lambda_eff=b*mu*E[B] の誤差を返す.
-
-    Returns:
-        (conservation_error, flow_balance_error)
-    """
-    conservation_error = abs(mean_busy + mean_idle + mean_setup + mean_off - c)
-    flow_balance_error = abs(lambda_eff - b * mu * mean_busy)
-    return conservation_error, flow_balance_error
 
 
 def _find_optimal_beta(
@@ -172,7 +140,7 @@ def main() -> None:
         for beta in tqdm(beta_values, desc=f"{level_name}"):
             beta = float(beta)
             params = build_params(beta, alpha, delta, sigma)
-            theory = run_theory(params)
+            theory = solve_base(params)
 
             print(f"\n=== [{level_name}] beta = {beta:.4g} ===")
             print(f"  {'metric':<18}{'theory':>14}")
@@ -181,7 +149,7 @@ def main() -> None:
                 theory_vals[level_name][key].append(theory_val)
                 print(f"  {key:<18}{theory_val:>14.5g}")
 
-            cons_err, flow_err = _conservation_and_flow_balance(
+            cons_err, flow_err = conservation_and_flow_balance(
                 params.c, params.b, params.mu,
                 theory.mean_busy(), theory.mean_idle(),
                 theory.mean_setup(), theory.mean_off(),
