@@ -1,6 +1,6 @@
 # GTH ソルバー導入 検証レポート
 
-> 2026-10-19 にファイルを移動した: `results_gth/` の CSV → `archive/gth_migration_results_subtraction_pblock/`, `figures_gth/` → `archive/gth_migration_figures_subtraction_pblock/` と `archive/splu_vs_gth_comparison_figures/`, このレポート・ベンチマーク・計測時間 → `results/gth_validation/`. 本文のパスは移動後のものに置き換えた (本文中の「旧 `results/`」は当時の splu の結果で, もう残っていない). 詳細は `archive/README.md`.
+> 2026-10-19 にファイルを移動した: `results_gth/` の CSV → `archive/gth_migration_results_subtraction_pblock/`, `figures_gth/` → `archive/gth_migration_figures_subtraction_pblock/` と `archive/splu_vs_gth_comparison_figures/`, このレポート・ベンチマーク・計測時間 → `results/gth_validation/`. 2026-10-21 に GTH 移行用のスクリプトを `scripts/` から `archive/gth_migration_scripts/` に移した (本文のスクリプトのパスは当時のまま. `validate_gth_mpmath*.py`, `benchmark_gth_vs_splu.py`, `check_results_integrity.py` は `scripts/` に残している). 本文のパスは移動後のものに置き換えた (本文中の「旧 `results/`」は当時の splu の結果で, もう残っていない). 詳細は `archive/README.md`.
 
 定常分布ソルバーを疎 LU 分解 (scipy `spsolve`, 以下 splu) から
 GTH 法 (Grassmann-Taksar-Heyman, O'Cinneide 1993/1996) へ置き換えた際の検証記録。

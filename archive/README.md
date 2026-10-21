@@ -34,8 +34,13 @@ GTH 移行の検証レポート・ベンチマーク・計測時間は論文の�
 
 ## 再生成について
 
-GTH 移行用のスクリプト (`scripts/run_*gth_regen*.sh`, `scripts/regen_resume.sh`,
-`scripts/finalize_gth_results.sh`, `scripts/show_progress.sh`,
-`scripts/compare_gth_vs_splu_results.py`, `scripts/make_gth_vs_splu_figures.py`) は
-旧パス `results_gth/`, `figures_gth/` を前提にしたままで, 当時の `results/` (splu) も
+GTH 移行用のスクリプトは `gth_migration_scripts/` に移した (旧パス `scripts/`):
+`run_*gth_regen*.sh`, `regen_resume.sh`, `finalize_gth_results.sh`, `show_progress.sh`,
+`compare_gth_vs_splu_results.py`, `make_gth_vs_splu_figures.py`, `validate_gth_v6_base.py`
+(V6: 実験 0〜4 の全点で GTH と splu を比較), `test_predictive_basic.py` (Predictive の動作確認の使い捨て).
+旧パス `results_gth/`, `figures_gth/`, `scripts/` を前提にしたままで, 当時の `results/` (splu) も
 もう残っていないため, そのままでは再現できない.
+
+今の solver でも実行できる検証は `scripts/` に残している: `validate_gth_mpmath.py`,
+`validate_gth_mpmath_predictive.py` (mpmath 50 桁との照合), `benchmark_gth_vs_splu.py`
+(論文の数値の出典 `results/gth_validation/benchmark.md` を作る).
