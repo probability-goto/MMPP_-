@@ -19,8 +19,9 @@
 
 ## 図と出典
 
-- 実験 0 / 0-P (理論と DES の照合): scripts/experiment_0_validation.py, experiment_0P_validation.py. 0-P は保護を入れる前のモデル. 保護ありのモデルの DES 照合は results/protect_des/ (図はなく, マクロ ExpZeroProtect* で引用する)
+- 実験 0 / 0-P (理論と DES の照合): scripts/experiment_0_validation.py, experiment_0P_validation.py. experiment_0P_validation_protect は --protect で作る保護ありのモデル, experiment_0P_validation は保護を入れる前のモデル. 保護ありのモデルの 5 点の DES 照合 (NoCancel を含む) は results/protect_des/ (マクロ ExpZeroProtect* で引用する)
   - figures/experiment_0_validation.pdf
+  - figures/experiment_0P_validation_protect.pdf
   - figures/experiment_0P_validation.pdf
 - 実験 1〜4 (ベースモデル): scripts/experiment_{1_traffic,2_delayoff,3_burstiness,4_K_sensitivity}.py. ベースモデルだけの実験 (保護の有無に関係しない)
   - figures/experiment_1_traffic.pdf

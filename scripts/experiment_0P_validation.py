@@ -10,9 +10,14 @@ MMPP/M/c/SET-BATCH/Delayoff/Predictive モデル (mmpp_predictive) の理論解�
 Predictive 拡張の 2 機構 (事前セットアップ, Delayoff 加速) が実際に働く
 設定で検証する.
 
+--protect を付けると保護 (protect_presetup=protect_delayoff=True) ありのモデルを検証し,
+図を experiment_0P_validation_protect.{png,pdf} に保存する. 付けない場合は保護を入れる前の
+モデルで, 図は experiment_0P_validation.{png,pdf}.
+
 使用例:
     python scripts/experiment_0P_validation.py --n-target 10 --gamma 5.0 \
         --n-replications 20 --warmup-events 100000 --measure-events 1000000
+    python scripts/experiment_0P_validation.py --protect
     python scripts/experiment_0P_validation.py --quick  # 開発中の軽量実行
 """
 import argparse
@@ -69,10 +74,15 @@ def build_mmpp(
     return _build_mmpp_generic(rho, delta, sigma, c, b, mu)
 
 
-def build_params(rho: float, n_target: int, gamma: float) -> PredictiveModelParameters:
+def build_params(
+    rho: float, n_target: int, gamma: float, protect: bool = False,
+) -> PredictiveModelParameters:
     """rho に対応する PredictiveModelParameters を構築する (中バースト水準, BASELINE 固定)."""
     C0, C1 = build_mmpp(rho)
-    return PredictiveModelParameters(C0=C0, C1=C1, n_target=n_target, gamma=gamma, **BASELINE)
+    return PredictiveModelParameters(
+        C0=C0, C1=C1, n_target=n_target, gamma=gamma,
+        protect_presetup=protect, protect_delayoff=protect, **BASELINE,
+    )
 
 
 def run_simulation(
@@ -104,6 +114,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-points", type=int, default=10, help="rho スイープ点数")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out-dir", default="figures")
+    parser.add_argument(
+        "--protect", action="store_true",
+        help="保護 (protect_presetup=protect_delayoff=True) ありのモデルを検証する",
+    )
     parser.add_argument(
         "--quick", action="store_true",
         help="短時間で検証する場合のオプション (n-replications=3, warmup=10000, measure=100000, n-points=3)",
@@ -160,7 +174,7 @@ def main() -> None:
     proactive_stats: List[Tuple[float, int, float]] = []  # (rho, count, mean_delta)
 
     for rho in rho_values:
-        params = build_params(float(rho), args.n_target, args.gamma)
+        params = build_params(float(rho), args.n_target, args.gamma, args.protect)
         theory = solve_predictive(params)
         replications, sim_metrics = run_simulation(
             params, args.seed, args.warmup_events,
@@ -169,7 +183,7 @@ def main() -> None:
         check_warmup_duration(params, replications)
 
         print(f"\n=== rho = {rho:.4g} (lambda_bar = {params.lambda_bar:.4g}), "
-              f"n_target={args.n_target}, gamma={args.gamma} ===")
+              f"n_target={args.n_target}, gamma={args.gamma}, protect={args.protect} ===")
         print(f"  {'metric':<12}{'theory':>12}{'sim':>12}{'CI_lo':>12}{'CI_hi':>12}{'in_CI':>8}")
 
         point_in_ci = 0
@@ -272,13 +286,14 @@ def _plot(
     print(
         f"\nキャプション用情報: Experiment 0-P (Predictive, medium burst, "
         f"delta={DELTA}, sigma={SIGMA}, n_target={args.n_target}, "
-        f"gamma={args.gamma}, {cv_label})"
+        f"gamma={args.gamma}, protect={args.protect}, {cv_label})"
     )
     fig.tight_layout()
 
     os.makedirs(args.out_dir, exist_ok=True)
-    out_path = os.path.join(args.out_dir, "experiment_0P_validation.png")
-    pdf_path = os.path.join(args.out_dir, "experiment_0P_validation.pdf")
+    stem = "experiment_0P_validation_protect" if args.protect else "experiment_0P_validation"
+    out_path = os.path.join(args.out_dir, f"{stem}.png")
+    pdf_path = os.path.join(args.out_dir, f"{stem}.pdf")
     fig.savefig(out_path, dpi=150)
     fig.savefig(pdf_path, dpi=100)
     print(f"\n図を保存しました: {out_path}, {pdf_path}")

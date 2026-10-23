@@ -149,7 +149,7 @@ python scripts/check_reproduction.py
 
 | スクリプト | 内容 | 出力 |
 |---|---|---|
-| `experiment_0_validation.py` / `experiment_0P_validation.py` | 解析と DES の照合 (ベース / Predictive. 0-P は保護を入れる前のモデル) | `figures/experiment_0*_validation.*` |
+| `experiment_0_validation.py` / `experiment_0P_validation.py` | 解析と DES の照合 (ベース / Predictive. 0-P は `--protect` で保護ありのモデル, 付けないと保護を入れる前のモデル) | `figures/experiment_0*_validation*.*` |
 | `validate_protect_des.py` | 保護ありの Predictive と NoCancel の解析と DES の照合 | `results/protect_des/` |
 | `experiment_1_traffic.py` | ベースモデル: ρ の走査 (α=β=0.005) | `results/experiment_1.csv`, `figures/experiment_1_traffic.*` |
 | `experiment_2_delayoff.py` | ベースモデル: β の走査 (ρ=0.7, α ∈ {0.1, 1, 10}. `--strong-burst` で strong) | `results/experiment_2_{medium,strong}.csv` |
