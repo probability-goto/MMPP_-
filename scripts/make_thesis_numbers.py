@@ -28,11 +28,13 @@ try:
     import experiment_8_map as e8
     import experiment_9_sensitivity as e9
     import blocking_reassessment as br
+    import robustness as rb
 except ImportError:
     import scripts.experiment_7_frontier as e7
     import scripts.experiment_8_map as e8
     import scripts.experiment_9_sensitivity as e9
     import scripts.blocking_reassessment as br
+    import scripts.robustness as rb
 
 OUT = "thesis_assets"
 P = "P_block_arrival_stable"
@@ -600,10 +602,9 @@ FIGURES = [
     ("実験 1〜4 (ベースモデル)",
      "scripts/experiment_{1_traffic,2_delayoff,3_burstiness,4_K_sensitivity}.py. "
      "ベースモデルだけの実験 (保護の有無に関係しない)",
-     ["experiment_1_traffic", "experiment_2_delayoff", "experiment_2_delayoff_strong",
-      "experiment_3_burstiness_delta", "experiment_3_burstiness_sigma",
-      "experiment_4_K_sensitivity_weak", "experiment_4_K_sensitivity_medium",
-      "experiment_4_K_sensitivity_strong"]),
+     ["experiment_1_traffic", "experiment_2_delayoff_erp", "experiment_2_delayoff_pblock",
+      "experiment_2_phasewise", "experiment_3_burstiness_delta", "experiment_3_burstiness_r1",
+      "experiment_4_K_sensitivity_short", "experiment_4_K_sensitivity_long"]),
     ("実験 7", "scripts/experiment_7_frontier.py --report",
      [f"experiment_7_{c}_EW_cost" for c in e7.CONDITIONS] +
      [f"experiment_7_{c}_cost_pblock" for c in e7.CONDITIONS]),
@@ -616,6 +617,10 @@ FIGURES = [
     ("実験 9", "scripts/experiment_9_sensitivity.py --report",
      [f"experiment_9_A_{row}_r1_{r1:.3g}" for row, r1 in e9.A_CELLS] +
      [f"experiment_9_B_{w}_{m}" for w in ("A", "B") for m in ("ERP", "EW", "Cost", "P")]),
+    ("比較の地図", "scripts/compare_map.py --report", ["compare_map_improvement"]),
+    ("頑健性", "scripts/robustness.py --report",
+     [f"robustness_A_{rb.cell_tag(k)}" for k, _ in rb.select_A_cells(rb.load_summary())]
+     + ["robustness_B"]),
 ]
 
 

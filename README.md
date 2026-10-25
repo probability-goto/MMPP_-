@@ -70,7 +70,8 @@ DES (`mmpp_sim`, `mmpp_predictive_sim`) は解析 (`mmpp`, `mmpp_predictive`) �
 
 | モジュール | 中身 |
 |---|---|
-| `params` | 共通のシステム規模 `SYSTEM` (c=20, K=200, b=5, μ=1), バースト水準 `BURST_LEVELS`, 対称 2 位相 MMPP の構築 `build_mmpp` |
+| `params` | 共通のシステム規模 `SYSTEM` (c=20, K=200, b=5, μ=1), 旧比較のバースト水準 `BURST_LEVELS`, 対称 2 位相 MMPP の構築 `build_mmpp` |
+| `design` | 実験 1〜4 の共通の設計 (α=0.005, δ=0.6, r1 の水準, 損益分岐の β = 0.6α, ρ_B の代表値) と 1 点の計算 `solve_row` |
 | `evaluate` | 1 点を GTH で解く (`solve_base`, `solve_predictive`), 指標を CSV の列名にそろえる |
 | `checks` | 1 点の検査 (保存則, 流量バランス, min π ≥ 0, P_block > 0), DES のウォームアップの診断 |
 | `csvio` | CSV の読み書き (1 点ごとに追記して中断から再開する), 進捗ログ |
@@ -141,7 +142,10 @@ python scripts/check_reproduction.py
 δ, σ を変えても平均到着率 λ̄ は変わらない。実験 7 以降では, バースト中の負荷
 ρ_B = ρ(1+δ) と, 位相の長さとセットアップ時間の比 r1 = α/σ でマスを決める。
 
-バースト水準 (`BURST_LEVELS`): weak (δ=0.3, σ=1), medium (δ=0.6, σ=0.1), strong (δ=0.9, σ=0.01)。
+実験 1〜4 (`mmpp_experiments/design.py`, 設計の根拠は `paper/review_spec.md`) は α=0.005, δ=0.6 を中心に,
+r1 ∈ {0.1 (短), 1, 17.8 (長)} と ρ_B ∈ {0.8, 1.12} で条件を決める。Delayoff 率は損益分岐の固定値
+β_BE = (C_i/C_s)·α = 0.6α (Idle の電力がセットアップのエネルギーと等しくなる平均待ち時間の逆数)。
+旧比較のバースト水準 (`BURST_LEVELS`): weak (δ=0.3, σ=1), medium (δ=0.6, σ=0.1), strong (δ=0.9, σ=0.01)。
 
 ### スクリプト
 
@@ -151,10 +155,10 @@ python scripts/check_reproduction.py
 |---|---|---|
 | `experiment_0_validation.py` / `experiment_0P_validation.py` | 解析と DES の照合 (ベース / Predictive. 0-P は `--protect` で保護ありのモデル, 付けないと保護を入れる前のモデル) | `figures/experiment_0*_validation*.*` |
 | `validate_protect_des.py` | 保護ありの Predictive と NoCancel の解析と DES の照合 | `results/protect_des/` |
-| `experiment_1_traffic.py` | ベースモデル: ρ の走査 (α=β=0.005) | `results/experiment_1.csv`, `figures/experiment_1_traffic.*` |
-| `experiment_2_delayoff.py` | ベースモデル: β の走査 (ρ=0.7, α ∈ {0.1, 1, 10}. `--strong-burst` で strong) | `results/experiment_2_{medium,strong}.csv` |
-| `experiment_3_burstiness.py` | ベースモデル: δ または σ の走査 (`--sweep delta/sigma`) | `results/experiment_3_{delta,sigma}.csv` |
-| `experiment_4_K_sensitivity.py` | ベースモデル: K ∈ {100, 200, 500, 1000} の感度 | `results/experiment_4_{weak,medium,strong}.csv` |
+| `experiment_1_traffic.py` | ベースモデル: ρ の走査 (ポアソンと r1 ∈ {0.1, 1, 17.8}) | `results/experiment_1.csv`, `figures/experiment_1_traffic.*` |
+| `experiment_2_delayoff.py` | ベースモデル: β の走査 (ρ_B ∈ {0.8, 1.12} × 短・長フェーズ × α ∈ {0.005, 0.1, 1}) と, フェーズ別のポアソン近似 | `results/experiment_2{,_phasewise}.csv`, `figures/experiment_2_*` |
+| `experiment_3_burstiness.py` | ベースモデル: δ または r1 の走査 (`--sweep delta/r1`) | `results/experiment_3_{delta,r1}.csv` |
+| `experiment_4_K_sensitivity.py` | ベースモデル: K ∈ {100, 200, 500, 1000} の感度 (短・長フェーズ) | `results/experiment_4_{short,long}.csv` |
 | `experiment_p1_protect.py` | 保護の有無による P1 の比較 | `results/p1_protect/` |
 | `experiment_7_frontier.py` | 実験 7: 5 条件で各方策が β を最適化した公平な比較 (`--report` で図とレポート) | `results/experiment_7/`, `figures/experiment_7_*` |
 | `experiment_8_map.py` | 実験 8: 位相の情報に価値がある領域の地図 (α=0.1 中心, Base と 3 系列) | `results/experiment_8/`, `figures/experiment_8_*` |

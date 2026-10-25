@@ -80,5 +80,5 @@ def test_betagamma_points():
     ctrl = [p for p in pts if p["kind"] != "βγ"]
     assert len(ctrl) <= 1
     for p in ctrl:
-        assert p["n_target"] == c - 2
+        assert p["n_target"] == c - 2 and p["gamma"] != p["ref_gamma"]
         assert _rel(p["beta"] * p["gamma"], p["ref_beta"] * p["ref_gamma"]) <= TOL

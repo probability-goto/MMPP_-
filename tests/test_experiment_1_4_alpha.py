@@ -1,4 +1,6 @@
-"""実験 1・4 のセットアップ率 alpha (既定値 0.005, --alpha で変更) のテスト.
+"""旧設計 (弱・中・強の 3 バースト水準) の実験 1・4 の alpha の比較のテスト.
+
+実験 1〜4 は 2026-10-25 に設計し直した (paper/review_spec.md) ので, 通常は実行しない (legacy).
 
 1. 既定値 (alpha=0.005) で実行した結果が results/ の無印の CSV と全列で一致する.
 2. --alpha 0.1 で実行した結果が旧 CSV (results/*_a0.1.csv) と全列で一致する (回帰テスト).
@@ -13,8 +15,11 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.legacy
+
 from mmpp_experiments.checks import point_checks
 from mmpp_experiments.evaluate import solve_base
+from mmpp_experiments.params import BURST_LEVELS
 from scripts import experiment_1_traffic as e1
 from scripts import experiment_4_K_sensitivity as e4
 
@@ -114,7 +119,7 @@ def test_experiment_4_matches_csv(tmp_path, alpha_args, suffix):
             assert (tmp_path / "fig" / f"experiment_4_K_sensitivity_{level}{suffix}.{ext}").exists()
 
 
-@pytest.mark.parametrize("level_name,delta,sigma", e1.BURST_LEVELS)
+@pytest.mark.parametrize("level_name,delta,sigma", BURST_LEVELS)
 def test_alpha_0005_point_passes_checks(level_name, delta, sigma):
     """既定値 alpha=0.005, rho=0.5 の 1 点が 4 つの検査を満たす (実験 1 の K=200, 実験 4 の K=100)."""
     p1 = e1.build_params(0.5, delta, sigma)

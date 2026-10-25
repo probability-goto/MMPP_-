@@ -25,13 +25,13 @@
   - figures/experiment_0P_validation.pdf
 - 実験 1〜4 (ベースモデル): scripts/experiment_{1_traffic,2_delayoff,3_burstiness,4_K_sensitivity}.py. ベースモデルだけの実験 (保護の有無に関係しない)
   - figures/experiment_1_traffic.pdf
-  - figures/experiment_2_delayoff.pdf
-  - figures/experiment_2_delayoff_strong.pdf
+  - figures/experiment_2_delayoff_erp.pdf
+  - figures/experiment_2_delayoff_pblock.pdf
+  - figures/experiment_2_phasewise.pdf
   - figures/experiment_3_burstiness_delta.pdf
-  - figures/experiment_3_burstiness_sigma.pdf
-  - figures/experiment_4_K_sensitivity_weak.pdf
-  - figures/experiment_4_K_sensitivity_medium.pdf
-  - figures/experiment_4_K_sensitivity_strong.pdf
+  - figures/experiment_3_burstiness_r1.pdf
+  - figures/experiment_4_K_sensitivity_short.pdf
+  - figures/experiment_4_K_sensitivity_long.pdf
 - 実験 7: scripts/experiment_7_frontier.py --report
   - figures/experiment_7_C1_EW_cost.pdf
   - figures/experiment_7_C2_EW_cost.pdf
@@ -70,3 +70,11 @@
   - figures/experiment_9_B_B_EW.pdf
   - figures/experiment_9_B_B_Cost.pdf
   - figures/experiment_9_B_B_P.pdf
+- 比較の地図: scripts/compare_map.py --report
+  - figures/compare_map_improvement.pdf
+- 頑健性: scripts/robustness.py --report
+  - figures/robustness_A_rhoB0.8_r1_17.8.pdf
+  - figures/robustness_A_rhoB0.8_r1_100.pdf
+  - figures/robustness_A_rhoB0.8_r1_0.1.pdf
+  - figures/robustness_A_rhoB1.12_r1_3.16.pdf
+  - figures/robustness_B.pdf

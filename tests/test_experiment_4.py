@@ -1,61 +1,39 @@
-"""実験 4 スクリプトの基本動作テスト."""
+"""実験 4 (バッファ容量 K の感度) のテスト."""
 import csv
 import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 
-def test_experiment_4_quick_runs():
-    """--quick で実行できる."""
+REPO = Path(__file__).resolve().parent.parent
+
+
+def test_experiment_4_quick_runs(tmp_path):
     result = subprocess.run(
-        [sys.executable, "scripts/experiment_4_K_sensitivity.py",
-         "--burst", "medium", "--quick",
-         "--csv-dir", "/tmp/test_4_csv_quick",
-         "--out-dir", "/tmp/test_4_figs_quick"],
-        capture_output=True, text=True, timeout=600,
-    )
-    assert result.returncode == 0, f"stderr:\n{result.stderr}"
-    assert Path("/tmp/test_4_figs_quick/experiment_4_K_sensitivity_medium.png").exists()
-
-
-def test_experiment_4_all_bursts():
-    """全バースト水準で動作する (quick)."""
-    result = subprocess.run(
-        [sys.executable, "scripts/experiment_4_K_sensitivity.py",
-         "--burst", "all", "--quick",
-         "--csv-dir", "/tmp/test_4_csv_all",
-         "--out-dir", "/tmp/test_4_figs_all"],
+        [sys.executable, "scripts/experiment_4_K_sensitivity.py", "--quick",
+         "--csv-dir", str(tmp_path), "--out-dir", str(tmp_path)],
         capture_output=True, text=True, timeout=1200,
     )
-    assert result.returncode == 0
-    for level in ["weak", "medium", "strong"]:
-        assert Path(f"/tmp/test_4_figs_all/experiment_4_K_sensitivity_{level}.png").exists()
+    assert result.returncode == 0, result.stderr
+    for phase in ("short", "long"):
+        assert (tmp_path / f"experiment_4_K_sensitivity_{phase}.png").exists()
+        with open(tmp_path / f"experiment_4_{phase}.csv", encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+        assert len(rows) == 4 * 3
+        assert all(r["check"] == "ok" for r in rows)
 
 
-def test_experiment_4_csv_output():
-    """CSV が K × rho の全組み合わせで生成されることを確認 (quick, medium)."""
-    result = subprocess.run(
-        [
-            sys.executable, "scripts/experiment_4_K_sensitivity.py",
-            "--burst", "medium", "--quick",
-            "--csv-dir", "/tmp/test_4_csv_medium",
-            "--out-dir", "/tmp/test_4_figs_medium",
-        ],
-        capture_output=True, text=True, timeout=600,
-    )
-    assert result.returncode == 0, f"stderr:\n{result.stderr}"
-
-    csv_path = Path("/tmp/test_4_csv_medium/experiment_4_medium.csv")
-    assert csv_path.exists(), f"CSV が生成されていない: {csv_path}"
-
-    # CSV の行数チェック (K_LEVELS 4 種 × rho 5 点 = 20 行 + header)
-    with open(csv_path, encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
-    assert len(rows) == 4 * 5, f"期待: 20 行, 実際: {len(rows)}"
-
-    # 4 指標が全て含まれているか
-    for row in rows:
-        for metric in ["P_block_arrival_stable", "E_W", "Cost", "ERP"]:
-            assert metric in row, f"metric {metric} が CSV に存在しない"
-        # 引き算版の列は出力しない
-        assert "P_block_arrival" not in row
+@pytest.mark.parametrize("phase,condition", [("short", "r1=0.1"), ("long", "r1=17.8")])
+def test_K200_matches_experiment_1(phase, condition):
+    """results/ の実験 4 の K=200 の行が, 実験 1 の同じ条件の行と一致する."""
+    def load(name):
+        with open(REPO / "results" / name, encoding="utf-8") as f:
+            return list(csv.DictReader(f))
+    e1 = {float(r["rho"]): r for r in load("experiment_1.csv") if r["condition"] == condition}
+    e4 = [r for r in load(f"experiment_4_{phase}.csv") if int(r["K"]) == 200]
+    assert len(e4) == len(e1)
+    for r in e4:
+        ref = e1[float(r["rho"])]
+        for k in ("P_block_arrival_stable", "E_W", "Cost", "ERP"):
+            assert float(r[k]) == pytest.approx(float(ref[k]), rel=1e-12)

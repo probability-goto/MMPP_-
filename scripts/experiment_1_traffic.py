@@ -1,299 +1,69 @@
-"""実験 1 (トラフィック強度 rho に対する応答, 3 バースト水準) の実装.
+"""実験 1: トラフィック強度 rho に対する応答 (ベースモデル).
 
-実験計画 5.4 節に沿い, 先行研究 (Le-Anh & Phung-Duc 2025) Fig.10 のパラメータ規模
-(c=20, K=200, b=5, 1/mu=1, 1/beta=200s) の下, 3 つのバースト水準
-(弱・中・強) について rho = lambda_bar / (c*b*mu) を [0.1, 0.95] でスイープし,
-4 指標 (P_block^arrival, E[W], Cost, ERP) を理論解析 (mmpp) のみで計算する.
-
-実験 0 で理論とシミュレーションの一致は確認済みのため, 実験 1 以降は理論解析のみで
-図を作成する方針 (スイープ点数が多くシミュレーションを含めると計算時間が大きくなること,
-論文図として理論曲線の滑らかさを優先することが理由).
-
-セットアップ率は alpha=0.005 (1/alpha=200s) とする. セットアップ時間がサービス時間
-(1/mu=1) に比べて非常に長いという序章の前提に合わせるため (先行研究の規模の 1/alpha=10s
-から変更した).
+rho を [0.1, 0.95] で 0.025 刻みに走査し, 4 指標 (P_block, E[W], Cost, ERP) を GTH で計算する.
+条件はポアソン到着 (delta = 0) と, delta = 0.6 でフェーズの長さ r1 = alpha / sigma が
+0.1, 1, 17.8 の 4 つ. alpha = 0.005, beta は損益分岐の値 0.6 alpha = 0.003
+(mmpp_experiments/design.py, paper/review_spec.md).
 
 使用例:
-    python scripts/experiment_1_traffic.py --n-points 15
-    python scripts/experiment_1_traffic.py --quick  # 開発中の軽量実行 (n-points=3)
-    python scripts/experiment_1_traffic.py --alpha 0.1  # セットアップ率だけを変える
-
---alpha が既定値 (0.005) と異なるときは, 出力ファイル名の末尾に _a{alpha:g} を付ける
-(例: results/experiment_1_a0.1.csv). CSV には各点の検査列 (min_pi, cons_err,
-flow_rel_err, check) を付ける.
+    python scripts/experiment_1_traffic.py
+    python scripts/experiment_1_traffic.py --quick   # rho を 3 点だけ (動作確認用)
 """
 import argparse
-import csv
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
 
-import numpy as np
-import matplotlib
+from mmpp_experiments import design as d
+from mmpp_experiments.plotting import plot_four_metrics
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-try:
-    from tqdm import tqdm
-except ImportError:  # pragma: no cover
-    print("注意: tqdm が見つかりません (pip install tqdm を推奨). 素朴な進捗表示で継続します.")
-
-    def tqdm(iterable, desc=None):
-        total = len(iterable)
-        for idx, item in enumerate(iterable, start=1):
-            print(f"  [{desc}] {idx}/{total}")
-            yield item
-
-from mmpp import ModelParameters
-from mmpp_experiments.checks import conservation_and_flow_balance, point_checks
-from mmpp_experiments.evaluate import solve_base
-from mmpp_experiments.params import BURST_LEVELS, SYSTEM, build_mmpp, compute_interarrival_cv
-from mmpp_experiments.plotting import log_scale_label
-
-
-# 実験計画のベースラインパラメータ (共通のシステム規模 SYSTEM. バースト水準は BURST_LEVELS)
-BASELINE = dict(
-    **SYSTEM,     # c=20, K=200, b=5, mu=1
-    alpha=0.005,  # セットアップ率 (1/alpha = 200 s)
-    beta=0.005,  # Delayoff 率 (1/beta = 200 s)
-)
-
-# 水準ごとの表示色
-LEVEL_STYLE: Dict[str, Dict[str, str]] = {
-    "weak": dict(color="tab:blue"),
-    "medium": dict(color="tab:orange"),
-    "strong": dict(color="tab:red"),
-}
-
-# セットアップ率の既定値 (--alpha の既定値. これと異なるときだけファイル名に _a を付ける)
-DEFAULT_ALPHA = BASELINE["alpha"]
-
-# rho スイープ範囲の既定値
-RHO_RANGE: Tuple[float, float] = (0.1, 0.95)
-
-# (指標キー, Metrics 共通メソッド名, 表示ラベル)
-METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival_stable", "arrival_blocking_probability_stable", r"$P_{\mathrm{block}}$"),
-    ("E[W]", "mean_waiting_time", r"$E[W]$"),
-    ("Cost", "energy_cost_paper", "Cost"),
-    ("ERP", "erp_paper", "ERP"),
+# (条件名, delta, r1). ポアソンでは sigma は結果に効かないので r1 = 1 の sigma を使い, r1 列は空にする
+CONDITIONS: List[Tuple[str, float, float]] = [
+    ("Poisson", 0.0, d.R1_MID),
+    ("r1=0.1", d.DELTA, d.R1_SHORT),
+    ("r1=1", d.DELTA, d.R1_MID),
+    ("r1=17.8", d.DELTA, d.R1_LONG),
 ]
 
+STYLE: Dict[str, Tuple[str, dict]] = {
+    "Poisson": ("Poisson", dict(color="0.4", linestyle="--")),
+    "r1=0.1": (r"$r_1=0.1$ (short phase)", dict(color="tab:red")),
+    "r1=1": (r"$r_1=1$", dict(color="tab:orange")),
+    "r1=17.8": (r"$r_1=17.8$ (long phase)", dict(color="tab:blue")),
+}
 
-def build_params(
-    rho: float, delta: float, sigma: float, alpha: float = DEFAULT_ALPHA,
-) -> ModelParameters:
-    """rho, delta, sigma に対応する ModelParameters を構築する (alpha 以外は BASELINE 固定)."""
-    C0, C1 = build_mmpp(rho, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
-    return ModelParameters(C0=C0, C1=C1, **{**BASELINE, "alpha": alpha})
-
-
-def alpha_suffix(alpha: float) -> str:
-    """出力ファイル名の接尾辞. alpha が既定値なら空文字, 異なれば _a{alpha:g}."""
-    return "" if alpha == DEFAULT_ALPHA else f"_a{alpha:g}"
+CSV_NAME = "experiment_1.csv"
+FIG_STEM = "experiment_1_traffic"
 
 
-def parse_args() -> argparse.Namespace:
-    """コマンドライン引数を解析する."""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--n-points", type=int, default=15, help="rho スイープ点数")
-    parser.add_argument("--out-dir", default="figures")
-    parser.add_argument("--csv-dir", default="results", help="CSV 出力ディレクトリ")
-    parser.add_argument(
-        "--quick", action="store_true",
-        help="開発中の軽量実行用 (n-points=3)",
-    )
-    parser.add_argument(
-        "--alpha", type=float, default=DEFAULT_ALPHA,
-        help=f"セットアップ率 (既定: {DEFAULT_ALPHA:g}). 既定値以外ではファイル名に _a{{alpha:g}} を付ける",
-    )
-    args = parser.parse_args()
-    if args.quick:
-        args.n_points = 3
-    return args
+def compute(rhos: Sequence[float]) -> List[dict]:
+    rows = []
+    for name, delta, r1 in CONDITIONS:
+        for rho in rhos:
+            rows.append(d.solve_row(name, rho, delta, d.sigma_of(r1), r1="" if delta == 0 else r1))
+        print(f"条件 {name} 完了")
+    return rows
+
+
+def plot(rows: Sequence[dict], out_dir: str) -> List[str]:
+    series = [(STYLE[name][0], [r for r in rows if r["condition"] == name], STYLE[name][1])
+              for name, _, _ in CONDITIONS]
+    return plot_four_metrics(series, "rho", r"$\rho$", out_dir, FIG_STEM,
+                             vline=1 / (1 + d.DELTA))
 
 
 def main() -> None:
-    args = parse_args()
-    lo, hi = RHO_RANGE
-    rho_values = np.linspace(lo, hi, args.n_points)
-
-    # 結果格納: results[level_name][metric_key] = [値, ...] (rho 順)
-    theory_vals: Dict[str, Dict[str, List[float]]] = {
-        name: {k: [] for k, _, _ in METRIC_SPECS} for name, _, _ in BURST_LEVELS
-    }
-
-    max_conservation_error = 0.0
-    max_flow_balance_error = 0.0
-    n_violations = 0
-    csv_rows: List[Dict[str, object]] = []
-    print(f"alpha = {args.alpha:g} (1/alpha = {1.0 / args.alpha:g})")
-
-    for level_name, delta, sigma in BURST_LEVELS:
-        cv_mid = compute_interarrival_cv(
-            *build_mmpp(0.5, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
-        )
-        print(
-            f"\n########## burst level = {level_name} "
-            f"(delta={delta}, sigma={sigma}, CV@rho=0.5={cv_mid:.4f}) ##########"
-        )
-
-        for rho in tqdm(rho_values, desc=f"burst={level_name}"):
-            rho = float(rho)
-            params = build_params(rho, delta, sigma, args.alpha)
-            theory = solve_base(params)
-
-            print(f"\n=== [{level_name}] rho = {rho:.4g} (lambda_bar = {params.lambda_bar:.4g}) ===")
-            print(f"  {'metric':<18}{'theory':>14}")
-            for key, method_name, _ in METRIC_SPECS:
-                theory_val = getattr(theory, method_name)()
-                theory_vals[level_name][key].append(theory_val)
-                print(f"  {key:<18}{theory_val:>14.5g}")
-
-            cons_err, flow_err = conservation_and_flow_balance(
-                params.c, params.b, params.mu,
-                theory.mean_busy(), theory.mean_idle(),
-                theory.mean_setup(), theory.mean_off(),
-                theory.effective_arrival_rate(),
-            )
-            print(
-                f"  [保存則・流量バランス] "
-                f"E[B]+E[I]+E[S]+E[Off]-c = {cons_err:.3e}, "
-                f"lambda_eff - b*mu*E[B] = {flow_err:.3e}"
-            )
-            max_conservation_error = max(max_conservation_error, cons_err)
-            max_flow_balance_error = max(max_flow_balance_error, flow_err)
-
-            row: Dict[str, object] = {
-                "burst_name": level_name,
-                "delta": delta,
-                "sigma": sigma,
-                "rho": rho,
-                "P_block_arrival_stable": theory_vals[level_name]["P_block_arrival_stable"][-1],
-                "E_W": theory_vals[level_name]["E[W]"][-1],
-                "Cost": theory_vals[level_name]["Cost"][-1],
-                "ERP": theory_vals[level_name]["ERP"][-1],
-                "E_N": theory.mean_queue_length(),
-                "lambda_eff": theory.effective_arrival_rate(),
-                "E_B": theory.mean_busy(),
-                "E_S": theory.mean_setup(),
-                "E_I": theory.mean_idle(),
-                "E_off": theory.mean_off(),
-                "N_states": params.N,
-            }
-            checks = point_checks(params, theory)
-            if checks["check"] != "ok":
-                n_violations += 1
-                print(f"  [検査違反] {checks['check']}")
-            row.update(checks)
-            csv_rows.append(row)
-
-    print("\n=== サマリ ===")
-    print(f"保存則の最大誤差: {max_conservation_error:.3e}")
-    print(f"流量バランスの最大誤差: {max_flow_balance_error:.3e}")
-    print(f"検査違反の点数: {n_violations} / {len(csv_rows)}")
-
-    _print_caption_summary(rho_values, theory_vals)
-    _save_csv(args, csv_rows)
-    _plot(args, rho_values, theory_vals)
-
-
-def _save_csv(args: argparse.Namespace, rows: List[Dict[str, object]]) -> None:
-    """rho スイープ結果を CSV に保存する (実験 1-P との比較用に列を統一)."""
-    os.makedirs(args.csv_dir, exist_ok=True)
-    csv_path = os.path.join(args.csv_dir, f"experiment_1{alpha_suffix(args.alpha)}.csv")
-    fieldnames = [
-        "burst_name", "delta", "sigma", "rho",
-        "P_block_arrival_stable", "E_W", "Cost", "ERP",
-        "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off",
-        "N_states", "min_pi", "cons_err", "flow_rel_err", "check",
-    ]
-    with open(csv_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-    print(f"CSV 保存: {csv_path}")
-
-
-def _print_caption_summary(
-    rho_values: np.ndarray,
-    theory_vals: Dict[str, Dict[str, List[float]]],
-) -> None:
-    """図のキャプション用サマリ (CV, 最軽/最重 rho での指標表) をコンソールに出力する."""
-    print("\n=== キャプション用サマリ ===")
-    print("[各バースト水準の CV (rho=0.5 での代表値)]")
-    for level_name, delta, sigma in BURST_LEVELS:
-        cv = compute_interarrival_cv(*build_mmpp(0.5, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"]))
-        print(f"  {level_name:<8} delta={delta}, sigma={sigma}, CV={cv:.4f}")
-
-    lo_idx, hi_idx = 0, len(rho_values) - 1
-    print(f"\n[最軽 rho={rho_values[lo_idx]:.4g} と最重 rho={rho_values[hi_idx]:.4g} での指標値]")
-    header = f"  {'level':<8}{'rho':>8}" + "".join(f"{k:>18}" for k, _, _ in METRIC_SPECS)
-    print(header)
-    for level_name, _, _ in BURST_LEVELS:
-        for idx, tag in [(lo_idx, "theory(lo)"), (hi_idx, "theory(hi)")]:
-            row = f"  {level_name:<8}{rho_values[idx]:>8.3g}"
-            for key, _, _ in METRIC_SPECS:
-                row += f"{theory_vals[level_name][key][idx]:>18.5g}"
-            print(row + f"  [{tag}]")
-
-
-def _plot(
-    args: argparse.Namespace,
-    rho_values: np.ndarray,
-    theory_vals: Dict[str, Dict[str, List[float]]],
-) -> None:
-    """4 指標を 2x2 のサブプロットにまとめ, PDF と PNG に保存する."""
-    fig, axes = plt.subplots(2, 2, figsize=(11, 9))
-
-    for ax, (key, _, ylabel) in zip(axes.flat, METRIC_SPECS):
-        for level_name, delta, sigma in BURST_LEVELS:
-            style = LEVEL_STYLE[level_name]
-            cv = compute_interarrival_cv(*build_mmpp(0.5, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"]))
-            label = f"{level_name} (delta={delta}, sigma={sigma}, CV={cv:.2f})"
-
-            ax.plot(
-                rho_values, theory_vals[level_name][key], "-",
-                color=style["color"], marker="o", markersize=4,
-                label=label if ax is axes.flat[0] else None,
-            )
-
-        if key == "P_block_arrival_stable":
-            ax.set_yscale("log")
-            # ブロッキング確率なので上端は 1. 対数軸の自動余白で 1 を超えないようにする
-            ax.set_ylim(top=1)
-            ylabel = log_scale_label(ylabel)
-
-        ax.set_xlabel(r"$\rho$", fontsize=16)
-        ax.set_ylabel(ylabel, fontsize=16)
-        ax.tick_params(labelsize=10)
-        ax.grid(alpha=0.3)
-
-    # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
-    handles, labels = axes.flat[0].get_legend_handles_labels()
-    fig.legend(
-        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
-        ncol=2, fontsize=14,
-    )
-
-    # 図中に題名は付けない (論文キャプション側に記載する).
-    # 題名に載せていた設定情報はコンソールに出力して残す.
-    _caption = (
-        "Experiment 1: Response to Traffic Intensity "
-        r"$\rho$ across Burstiness Levels"
-        "\n"
-        rf"($c=20$, $K=200$, $b=5$, $1/\mu=1$, $1/\alpha={1.0 / args.alpha:g}$s, $1/\beta=200$s)"
-    )
-    print(f"\nキャプション用情報: {_caption}")
-    fig.tight_layout(rect=(0, 0, 1, 0.90))
-
-    os.makedirs(args.out_dir, exist_ok=True)
-    suffix = alpha_suffix(args.alpha)
-    pdf_path = os.path.join(args.out_dir, f"experiment_1_traffic{suffix}.pdf")
-    png_path = os.path.join(args.out_dir, f"experiment_1_traffic{suffix}.png")
-    fig.savefig(pdf_path, dpi=100)
-    fig.savefig(png_path, dpi=150)
-    print(f"\n図を保存しました: {pdf_path}, {png_path}")
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--out-dir", default="figures")
+    parser.add_argument("--csv-dir", default="results")
+    parser.add_argument("--quick", action="store_true", help="rho を 3 点だけ計算する")
+    args = parser.parse_args()
+    rhos = [0.1, 0.5, 0.95] if args.quick else d.RHO_GRID
+    rows = compute(rhos)
+    d.report_checks(rows)
+    d.write_rows(os.path.join(args.csv_dir, CSV_NAME), rows)
+    plot(rows, args.out_dir)
+    print("キャプション用情報: c=20, K=200, b=5, 1/mu=1, alpha=0.005, beta=0.003 (損益分岐), "
+          "delta=0.6 (Poisson は delta=0), 点線は rho_B=1 (rho=0.625)")
 
 
 if __name__ == "__main__":

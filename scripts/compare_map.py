@@ -9,6 +9,8 @@ Base の ERP 最小値と比べる.
 固定: c=20, K=200, b=5, mu=1, delta=0.6, alpha=0.005 (1/alpha=200).
 到着は build_mmpp. rho = rho_B / (1 + delta), sigma = alpha / r1.
 マス: rho_B in {0.6, 0.8, 1.12} x r1 in R1_LEVELS (experiment_8_map.py と同じ, 対数 5 点 [0.1, 100]).
+rho_B in {0.6, 0.8} の行では, 改善が立ち上がる位置と最大になる位置を決めるために
+log10 r1 in {0.75, 1, 1.5, 1.75} (R1_FINE) を加える (rho_B=1.12 はどの r1 でも同等なので加えない).
 定常分布は GTH.
 
 Base の探索 (experiment_8_map.py と同じ):
@@ -26,6 +28,9 @@ Predictive の探索 (保護あり: protect_presetup=protect_delayoff=True):
     4. gamma の範囲の拡張 (stage=gamma_ext): 最良点の gamma が 1000 なら, その n_target で,
        最良の beta とその両隣 (その組で計算済みの beta の中の隣) の 3 点で
        gamma in {3000, 10000} を追加する.
+    5. 規則ごとの分解のための探索: P1 のみ (gamma=1) の組と P2 のみ (n_target=0) の組のそれぞれの
+       中で, 粗い探索の主な基準での最良の組に 2.〜4. と同じことをする (2. の組と同じなら追加の点はない).
+       規則ごとの最良点 (Base の点を含む) も 1 つの組の beta を細かくしたものになる.
 整合性の検査 (stage=check): 各マスで粗い格子の中央の beta で, Predictive (n_target=0, gamma=1)
 とベースモデルの全指標が相対誤差 1e-10 以下で一致することを確かめる. 一致しなければ止まる.
 
@@ -72,6 +77,9 @@ DELTA = e8.DELTA
 ALPHA = 0.005
 RHO_B_LEVELS = [0.6, 0.8, 1.12]
 R1_LEVELS = e8.R1_LEVELS
+RHO_B_FINE_R1 = [0.6, 0.8]
+R1_FINE = [float(10 ** e) for e in (0.75, 1.0, 1.5, 1.75)]
+R1_ALL = sorted(R1_LEVELS + R1_FINE)
 N_BETA = e8.N_BETA
 N_FINE_BASE = 21
 N_FINE_PRED = 7
@@ -84,6 +92,12 @@ GAMMA_EXT = [3000.0, 10000.0]
 # (0, 1) は Base と同じなので除く (29 組)
 COMBOS: List[Tuple[int, float]] = [(nt, g) for nt, g in itertools.product(NT_LEVELS, GAMMA_LEVELS)
                                    if (nt, g) != (0, 1.0)]
+
+# 規則ごとの分解に使う組の部分集合 (どちらも Base の点を候補に含めて比べる)
+RULE_SUBSETS = {
+    "p1": lambda nt, g: g == 1.0,   # P1 のみ (事前セットアップと保護)
+    "p2": lambda nt, g: nt == 0,    # P2 のみ (通常期の Delayoff の加速)
+}
 
 # 判定: 改善率がこれを超えれば「改善」, 以下なら「同等」
 IMPROVE_THRESHOLD = 0.001
@@ -98,6 +112,10 @@ warnings.filterwarnings("ignore", message="Predictive モデルの縮約後の�
 
 def row_name(rho_B: float) -> str:
     return f"rhoB{rho_B:g}"
+
+
+def r1_levels(rho_B: float) -> List[float]:
+    return R1_ALL if rho_B in RHO_B_FINE_R1 else R1_LEVELS
 
 
 def cell_params(rho_B: float, r1: float) -> dict:
@@ -285,15 +303,32 @@ def next_points(rho_B: float, r1: float, rows: List[dict],
         return m
     p_ref = base_p_ref(rows)
 
-    # 3. Predictive: 粗い探索の主な基準での最良の組を固定して細かくする
-    pred = [r for r in rows if r["series"] == "Predictive"]
-    cb = best_for_search([r for r in pred if r["stage"] == "coarse"], p_ref)
+    # 3. 4. Predictive: 粗い探索の主な基準での最良の組を固定して細かくする
+    m = _refine_best_combo(rows, lambda nt, g: True, betas, p_ref, missing)
+    if m:
+        return m
+
+    # 5. 規則ごとの分解: P1 のみ, P2 のみの組の中の最良の組も同じく細かくする
+    for keep in RULE_SUBSETS.values():
+        m = _refine_best_combo(rows, keep, betas, p_ref, missing)
+        if m:
+            return m
+    return []
+
+
+def _refine_best_combo(rows, keep, betas, p_ref, missing) -> List[Tuple]:
+    """keep(n_target, gamma) を満たす組の中で, 粗い探索の最良の組の beta を細かくし,
+    最良点の gamma が上端なら gamma の範囲を広げる (次に計算する点を返す)."""
+    coarse = [r for r in rows if r["series"] == "Predictive" and r["stage"] == "coarse"
+              and keep(int(r["n_target"]), float(r["gamma"]))]
+    if not coarse:
+        return []
+    cb = best_for_search(coarse, p_ref)
     nt, g = int(cb["n_target"]), float(cb["gamma"])
     m = _refine(rows, "Predictive", nt, g, betas, N_FINE_PRED, p_ref, missing)
     if m:
         return m
 
-    # 4. gamma の範囲の拡張: 最良点 (その組の中) の gamma が上端なら
     best = best_for_search(_fixed(rows, "Predictive", nt, g), p_ref)
     if float(best["gamma"]) == GAMMA_LEVELS[-1] and g == GAMMA_LEVELS[-1]:
         bs = sorted({_f(r, "beta") for r in _fixed(rows, "Predictive", nt, g)})
@@ -369,7 +404,7 @@ def run_cell(rho_B: float, r1: float, out_dir: str = OUT_DIR,
 
 def run(rho_bs: Sequence[float], out_dir: str = OUT_DIR) -> None:
     for rho_B in rho_bs:
-        for r1 in R1_LEVELS:
+        for r1 in r1_levels(rho_B):
             run_cell(rho_B, r1, out_dir)
         print(f"行 {row_name(rho_B)} 完了", flush=True)
 
@@ -415,12 +450,19 @@ def cell_summary(rows: List[dict]) -> dict:
         bs = sorted({r["beta"] for r in base})
         if pb["beta"] in (bs[0], bs[-1]):
             notes.append("β が範囲の端 (Base の点)")
+
+    rules = {}
+    for name, keep in RULE_SUBSETS.items():
+        rb = best_main(base + [r for r in pred if keep(r["n_target"], r["gamma"])], p_ref)
+        rules[name] = {"best": rb, "is_base": rb["series"] == "Base",
+                       "improvement": (bb["ERP"] - rb["ERP"]) / bb["ERP"]}
     return {
         "rho_B": bb["rho_B"], "r1": bb["r1"], "sigma": bb["sigma"],
         "base": bb, "p_ref": p_ref, "pred": pb, "pred_is_base": pb["series"] == "Base",
         "improvement": imp, "verdict": "改善" if imp > IMPROVE_THRESHOLD else "同等",
         "unc": ub, "unc_p_ratio": ub["P_block_arrival_stable"] / p_ref,
         "unc_improvement": (bb["ERP"] - ub["ERP"]) / bb["ERP"],
+        "rules": rules,
         "notes": notes,
         "consistency": max(float(r["consistency_max_relerr"]) for r in check)
         if check else float("nan"),
@@ -434,7 +476,7 @@ def summaries(out_dir: str = OUT_DIR) -> Dict[Tuple[float, float], dict]:
     res = {}
     for rho_B in RHO_B_LEVELS:
         rows = _convert(read_rows(csv_path(rho_B, out_dir)))
-        for r1 in R1_LEVELS:
+        for r1 in r1_levels(rho_B):
             cr = [r for r in rows if r["r1"] == r1]
             if cr and not next_points(rho_B, r1, [r for r in read_rows(csv_path(rho_B, out_dir))
                                                    if float(r["r1"]) == r1]):
@@ -449,6 +491,8 @@ SUMMARY_FIELDS = [
     "pred_P_over_Pref", "pred_ERP", "pred_is_base", "improvement", "verdict",
     "unc_beta", "unc_n_target", "unc_gamma", "unc_ERP", "unc_P_over_Pref", "unc_improvement",
     "edge_notes", "n_points", "n_reused", "n_check_bad", "consistency_max_relerr",
+    "p1_improvement", "p1_is_base", "p1_beta", "p1_n_target", "p1_P_over_Pref",
+    "p2_improvement", "p2_is_base", "p2_beta", "p2_gamma", "p2_P_over_Pref",
 ]
 
 
@@ -469,14 +513,24 @@ def summary_row(c: dict) -> dict:
         "edge_notes": "; ".join(c["notes"]), "n_points": c["n_points"],
         "n_reused": c["n_reused"], "n_check_bad": c["n_check_bad"],
         "consistency_max_relerr": c["consistency"],
+        "p1_improvement": c["rules"]["p1"]["improvement"],
+        "p1_is_base": c["rules"]["p1"]["is_base"],
+        "p1_beta": c["rules"]["p1"]["best"]["beta"],
+        "p1_n_target": c["rules"]["p1"]["best"]["n_target"],
+        "p1_P_over_Pref": c["rules"]["p1"]["best"]["P_block_arrival_stable"] / c["p_ref"],
+        "p2_improvement": c["rules"]["p2"]["improvement"],
+        "p2_is_base": c["rules"]["p2"]["is_base"],
+        "p2_beta": c["rules"]["p2"]["best"]["beta"],
+        "p2_gamma": c["rules"]["p2"]["best"]["gamma"],
+        "p2_P_over_Pref": c["rules"]["p2"]["best"]["P_block_arrival_stable"] / c["p_ref"],
     }
 
 
 def _md_matrix(title, sm, fn) -> List[str]:
-    lines = [title, "", "| | " + " | ".join(f"r1={r1:.3g}" for r1 in R1_LEVELS) + " |",
-             "|---|" + "---|" * len(R1_LEVELS)]
+    lines = [title, "", "| | " + " | ".join(f"r1={r1:.3g}" for r1 in R1_ALL) + " |",
+             "|---|" + "---|" * len(R1_ALL)]
     for rho_B in RHO_B_LEVELS:
-        cells = [fn(sm[(rho_B, r1)]) if (rho_B, r1) in sm else "—" for r1 in R1_LEVELS]
+        cells = [fn(sm[(rho_B, r1)]) if (rho_B, r1) in sm else "—" for r1 in R1_ALL]
         lines.append(f"| ρ_B={rho_B:g} | " + " | ".join(cells) + " |")
     return lines + [""]
 
@@ -492,14 +546,14 @@ def plot_improvement(sm, fig_dir: str = FIG_DIR) -> List[str]:
     import matplotlib.pyplot as plt
     from matplotlib.colors import ListedColormap, Normalize
 
-    M = np.full((len(RHO_B_LEVELS), len(R1_LEVELS)), np.nan)
+    M = np.full((len(RHO_B_LEVELS), len(R1_ALL)), np.nan)
     for i, rho_B in enumerate(RHO_B_LEVELS):
-        for j, r1 in enumerate(R1_LEVELS):
+        for j, r1 in enumerate(R1_ALL):
             if (rho_B, r1) in sm:
                 M[i, j] = 100 * sm[(rho_B, r1)]["improvement"]
     improved = np.zeros_like(M, dtype=bool)
     for (rho_B, r1), c in sm.items():
-        improved[RHO_B_LEVELS.index(rho_B), R1_LEVELS.index(r1)] = c["verdict"] == "改善"
+        improved[RHO_B_LEVELS.index(rho_B), R1_ALL.index(r1)] = c["verdict"] == "改善"
     vmax = np.nanmax(np.where(improved, M, np.nan)) if improved.any() else 1.0
     vmax = vmax if np.isfinite(vmax) and vmax > 0 else 1.0
     # 薄すぎる色は灰色 (同等) や背景と区別しにくいので Blues の 0.15 から使う.
@@ -507,7 +561,7 @@ def plot_improvement(sm, fig_dir: str = FIG_DIR) -> List[str]:
     cmap = ListedColormap(plt.get_cmap("Blues")(np.linspace(0.15, 1.0, 256)))
     norm = Normalize(vmin=0, vmax=vmax)
 
-    fig, ax = plt.subplots(figsize=(8.5, 4.6))
+    fig, ax = plt.subplots(figsize=(12, 4.6))
     rgba = np.ones(M.shape + (4,))
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
@@ -519,20 +573,24 @@ def plot_improvement(sm, fig_dir: str = FIG_DIR) -> List[str]:
                 rgba[i, j] = (0.85, 0.85, 0.85, 1)
     ax.imshow(rgba, aspect="auto", origin="lower")
     for (rho_B, r1), c in sm.items():
-        i, j = RHO_B_LEVELS.index(rho_B), R1_LEVELS.index(r1)
+        i, j = RHO_B_LEVELS.index(rho_B), R1_ALL.index(r1)
         dark = improved[i, j] and norm(M[i, j]) > 0.6
         color = "white" if dark else "black"
         ax.text(j, i + 0.12, f"{M[i, j]:.2f}", ha="center", va="center", fontsize=13,
                 color=color)
         ax.text(j, i - 0.2, _combo_label(c), ha="center", va="center", fontsize=10,
                 color=color)
+    for i, rho_B in enumerate(RHO_B_LEVELS):
+        for j, r1 in enumerate(R1_ALL):
+            if (rho_B, r1) not in sm:
+                ax.text(j, i, "—", ha="center", va="center", fontsize=13, color="0.5")
     # マスの境界 (2px 相当の白線)
-    ax.set_xticks(np.arange(-0.5, len(R1_LEVELS)), minor=True)
+    ax.set_xticks(np.arange(-0.5, len(R1_ALL)), minor=True)
     ax.set_yticks(np.arange(-0.5, len(RHO_B_LEVELS)), minor=True)
     ax.grid(which="minor", color="white", linewidth=2)
     ax.tick_params(which="minor", length=0)
-    ax.set_xticks(range(len(R1_LEVELS)))
-    ax.set_xticklabels([f"{np.log10(r):.2f}" for r in R1_LEVELS], fontsize=11)
+    ax.set_xticks(range(len(R1_ALL)))
+    ax.set_xticklabels([f"{np.log10(r):.2f}" for r in R1_ALL], fontsize=11)
     ax.set_yticks(range(len(RHO_B_LEVELS)))
     ax.set_yticklabels([rf"$\rho_B$={v:g}" for v in RHO_B_LEVELS], fontsize=12)
     ax.set_xlabel(r"$\log_{10} r_1$", fontsize=14)
@@ -553,7 +611,8 @@ def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
     sm = summaries(out_dir)
     caption = (
         "キャプション用情報: c=20, K=200, b=5, 1/mu=1, delta=0.6, alpha=0.005 (1/alpha=200), "
-        "rho=rho_B/1.6, sigma=alpha/r1, r1 は [0.1, 100] の対数 5 点. "
+        "rho=rho_B/1.6, sigma=alpha/r1, r1 は [0.1, 100] の対数 5 点 "
+        "(rho_B=0.6, 0.8 の行では log10 r1 = 0.75, 1, 1.5, 1.75 を加える. — は計算していないマス). "
         "値は ERP の改善率 (Base の ERP 最小値に対する, P_block <= P_ref を満たす Predictive の "
         "ERP 最小値の減少率) [%]. 下の括弧は最良点の (n_target, gamma). "
         f"灰色は改善率 {100 * IMPROVE_THRESHOLD:g}% 以下 (同等). "
@@ -581,7 +640,7 @@ def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
         f"Predictive の最良点とする. 改善率 = (Base の ERP − Predictive の ERP) / Base の ERP. "
         f"改善率 > {100 * IMPROVE_THRESHOLD:g}% を「改善」, それ以下を「同等」とする.", "",
         "## 点数と検査", "",
-        f"- 完了したマス: {len(sm)} / {len(RHO_B_LEVELS) * len(R1_LEVELS)}",
+        f"- 完了したマス: {len(sm)} / {sum(len(r1_levels(x)) for x in RHO_B_LEVELS)}",
         f"- 点数: {n_pts} (うち再利用 {n_reused})",
         f"- check 列の違反 (保存則, 流量バランス, min π ≥ 0, P_block > 0): {n_bad} 件",
         f"- 整合性の検査 (Predictive (0, 1) とベースモデル, 全指標) の最大相対誤差: {cons:.2e}", "",
@@ -597,6 +656,23 @@ def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
                         lambda c: f"{c['pred']['P_block_arrival_stable'] / c['p_ref']:.3f}")
     lines += _md_matrix("### 補助: 制約なしの ERP 最小点の改善率 [%] と P / P_ref", sm,
                         lambda c: f"{100 * c['unc_improvement']:.2f} (P/P_ref={c['unc_p_ratio']:.3g})")
+
+    lines += [
+        "## 規則ごとの分解", "",
+        "各規則だけを使える組の中で, 主な基準 (P ≤ P_ref の中の ERP 最小) の最良点を選び, "
+        "Base の ERP 最小値に対する改善率を示す. P1 のみ = γ=1 の組 (事前セットアップと保護. "
+        "n_target ∈ {5, 10, 15, 20}), P2 のみ = n_target=0 の組 (通常期の Delayoff の加速. 保護は働かない). "
+        "どちらも Base の点を候補に含み, β は最良の組で細かくしてある (docstring の探索 5.). "
+        "両方 = 地図の改善率. 括弧は最良点の n_target (P1 のみ) または γ (P2 のみ). Base の点なら —.", "",
+    ]
+    lines += _md_matrix("### P1 のみの改善率 [%]", sm, lambda c: "{:.2f} ({})".format(
+        100 * c["rules"]["p1"]["improvement"],
+        "—" if c["rules"]["p1"]["is_base"] else c["rules"]["p1"]["best"]["n_target"]))
+    lines += _md_matrix("### P2 のみの改善率 [%]", sm, lambda c: "{:.2f} ({})".format(
+        100 * c["rules"]["p2"]["improvement"],
+        "—" if c["rules"]["p2"]["is_base"] else f"{c['rules']['p2']['best']['gamma']:g}"))
+    lines += _md_matrix("### 両方 (地図) の改善率 [%]", sm,
+                        lambda c: f"{100 * c['improvement']:.2f}")
 
     lines += ["## 各マスの詳細", "",
               "| ρ_B | r1 | 点 | β* | n_target* | γ* | E[W] | Cost | P | P/P_ref | ERP | 注記 |",

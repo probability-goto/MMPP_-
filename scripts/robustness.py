@@ -120,6 +120,9 @@ def load_summary(path: str = SUMMARY_CSV) -> Dict[Tuple[float, float], dict]:
                 d[k] = float(r[k])
             d["pred_n_target"] = int(r["pred_n_target"])
             d["pred_is_base"] = r["pred_is_base"] == "True"
+            # 頑健性は地図の 5 x 3 マスが対象 (r1 を細かくしたマス (cm.R1_FINE) は使わない)
+            if d["r1"] not in R1_LEVELS:
+                continue
             out[(d["rho_B"], d["r1"])] = d
     return out
 
@@ -207,8 +210,10 @@ def points_BG(sm=None, rows_a=None) -> List[dict]:
            if r["sweep"] == "n_target" and _f(r, "value") == c - 2]
     if ref:
         r = ref[0]
+        g_ref = _f(r, "gamma")
+        g_alt = next(g for g in BG_PARTNER_GAMMAS if g != g_ref)
         pts.append(dict(rho_B=top1[0], r1=top1[1], kind=f"対照 (n_target={c - 2})",
-                        beta=_f(r, "beta") * _f(r, "gamma"), n_target=c - 2, gamma=1.0,
+                        beta=_f(r, "beta") * g_ref / g_alt, n_target=c - 2, gamma=g_alt,
                         ref_source="robustness_A.csv", ref_beta=_f(r, "beta"),
                         ref_n_target=c - 2, ref_gamma=_f(r, "gamma"), ref_ERP=_f(r, "ERP"),
                         ref_P=_f(r, P)))

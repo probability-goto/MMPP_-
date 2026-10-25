@@ -1,358 +1,60 @@
-"""実験 4 (バッファ容量 K に対する感度分析) の実装.
+"""実験 4: バッファ容量 K に対する感度 (ベースモデル).
 
-有限バッファ K=200 という設計選択の妥当性, および先行研究の無限バッファ近似が
-MMPP バースト到着下でどこまで妥当かを検証するため, K を {100, 200, 500, 1000}
-で走査する. 実験 1 と同じ 3 つのバースト水準 (弱・中・強) それぞれについて,
-rho = lambda_bar / (c*b*mu) を [0.1, 0.95] でスイープしながら 4 指標
-(P_block^arrival, E[W], Cost, ERP) を理論解析 (mmpp) のみで計算し, K が
-大きいほど指標がどこに収束していくかを観察する.
-
-c, b, mu, alpha, beta は実験 1 と同じ値に固定する (alpha=0.005, 1/alpha=200s.
-セットアップ時間がサービス時間に比べて非常に長いという序章の前提に合わせ,
-先行研究の規模の 1/alpha=10s から変更した).
+K in {100, 200, 500, 1000} と rho (実験 1 と同じ 35 点) を走査し, 4 指標を GTH で計算する.
+フェーズの長さは r1 = 0.1 (短) と 17.8 (長) の 2 つで, それぞれ別の CSV と図にする.
+delta = 0.6, alpha = 0.005, beta は損益分岐の値 0.6 alpha = 0.003
+(mmpp_experiments/design.py, paper/review_spec.md).
 
 使用例:
-    python scripts/experiment_4_K_sensitivity.py --burst medium
-    python scripts/experiment_4_K_sensitivity.py --burst all
-    python scripts/experiment_4_K_sensitivity.py --burst medium --quick  # 開発中の軽量実行 (n-points=5)
-    python scripts/experiment_4_K_sensitivity.py --alpha 0.1  # セットアップ率だけを変える
-
---alpha が既定値 (0.005) と異なるときは, 出力ファイル名の末尾に _a{alpha:g} を付ける
-(例: results/experiment_4_medium_a0.1.csv). CSV には 4 指標に加えて台数・流量の列
-(E_N, lambda_eff, E_B, E_S, E_I, E_off, N_states) と各点の検査列 (min_pi, cons_err,
-flow_rel_err, check) を付ける.
+    python scripts/experiment_4_K_sensitivity.py              # 短と長の両方
+    python scripts/experiment_4_K_sensitivity.py --phase long
+    python scripts/experiment_4_K_sensitivity.py --quick      # rho を 3 点だけ (動作確認用)
 """
 import argparse
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence
 
-import numpy as np
-import matplotlib
+from mmpp_experiments import design as d
+from mmpp_experiments.plotting import plot_four_metrics
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-try:
-    from tqdm import tqdm
-except ImportError:  # pragma: no cover
-    print("注意: tqdm が見つかりません (pip install tqdm を推奨). 素朴な進捗表示で継続します.")
-
-    def tqdm(iterable, desc=None):
-        total = len(iterable)
-        for idx, item in enumerate(iterable, start=1):
-            print(f"  [{desc}] {idx}/{total}")
-            yield item
-
-from mmpp import Metrics, ModelParameters
-from mmpp_experiments.checks import conservation_and_flow_balance, point_checks
-from mmpp_experiments.evaluate import solve_base
-from mmpp_experiments.params import BURST_LEVELS, SYSTEM, build_mmpp, compute_interarrival_cv
-from mmpp_experiments.plotting import log_scale_label
+K_LEVELS = [100, 200, 500, 1000]
+PHASES: Dict[str, float] = {"short": d.R1_SHORT, "long": d.R1_LONG}
+K_COLOR = {100: "tab:red", 200: "tab:orange", 500: "tab:green", 1000: "tab:blue"}
 
 
-# 実験計画のベースラインパラメータ (実験 1 と同じ規模. K は走査変数なので含めない)
-BASELINE = dict(
-    c=SYSTEM["c"], b=SYSTEM["b"], mu=SYSTEM["mu"],  # 実験 1 と同じ
-    alpha=0.005,  # セットアップ率 (1/alpha = 200 s)
-    beta=0.005,  # Delayoff 率 (1/beta = 200 s)
-)
-
-# セットアップ率の既定値 (--alpha の既定値. これと異なるときだけファイル名に _a を付ける)
-DEFAULT_ALPHA = BASELINE["alpha"]
-
-# 走査対象の K 水準 (有限バッファ設計の妥当性検証)
-K_LEVELS: List[int] = [100, 200, 500, 1000]
-
-# 水準ごとの表示色
-K_STYLE: Dict[int, Dict[str, str]] = {
-    100: dict(color="tab:blue"),
-    200: dict(color="tab:orange"),
-    500: dict(color="tab:green"),
-    1000: dict(color="tab:red"),
-}
-
-# rho スイープ範囲・点数の既定値 (実験 1 と同じ)
-RHO_RANGE: Tuple[float, float] = (0.1, 0.95)
-RHO_N_POINTS = 15
-
-# (指標キー, Metrics 共通メソッド名, 表示ラベル)
-METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block_arrival_stable", "arrival_blocking_probability_stable", r"$P_{\mathrm{block}}$"),
-    ("E[W]", "mean_waiting_time", r"$E[W]$"),
-    ("Cost", "energy_cost_paper", "Cost"),
-    ("ERP", "erp_paper", "ERP"),
-]
+def compute(phase: str, rhos: Sequence[float]) -> List[dict]:
+    r1 = PHASES[phase]
+    rows = []
+    for K in K_LEVELS:
+        for rho in rhos:
+            rows.append(d.solve_row(f"{phase}_K{K}", rho, d.DELTA, d.sigma_of(r1), K=K))
+        print(f"{phase}: K={K} 完了")
+    return rows
 
 
-def build_params(
-    K: int, rho: float, delta: float, sigma: float, alpha: float = DEFAULT_ALPHA,
-) -> ModelParameters:
-    """K, rho, delta, sigma に対応する ModelParameters を構築する (alpha 以外は BASELINE 固定)."""
-    C0, C1 = build_mmpp(rho, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
-    return ModelParameters(C0=C0, C1=C1, K=K, **{**BASELINE, "alpha": alpha})
-
-
-def alpha_suffix(alpha: float) -> str:
-    """出力ファイル名の接尾辞. alpha が既定値なら空文字, 異なれば _a{alpha:g}."""
-    return "" if alpha == DEFAULT_ALPHA else f"_a{alpha:g}"
-
-
-def extended_columns(params: ModelParameters, theory: Metrics) -> Dict[str, object]:
-    """CSV に 4 指標と並べて書く列 (台数・流量と各点の検査) を返す."""
-    return dict(
-        E_N=theory.mean_queue_length(),
-        lambda_eff=theory.effective_arrival_rate(),
-        E_B=theory.mean_busy(),
-        E_S=theory.mean_setup(),
-        E_I=theory.mean_idle(),
-        E_off=theory.mean_off(),
-        N_states=params.N,
-        **point_checks(params, theory),
-    )
-
-
-def parse_args() -> argparse.Namespace:
-    """コマンドライン引数を解析する."""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--burst", choices=["weak", "medium", "strong", "all"], default="all",
-        help="バースト水準を指定 (既定: all で 3 水準すべてを実行)",
-    )
-    parser.add_argument("--n-points", type=int, default=RHO_N_POINTS, help="rho スイープ点数")
-    parser.add_argument("--out-dir", default="figures")
-    parser.add_argument("--csv-dir", default="results", help="CSV 出力ディレクトリ")
-    parser.add_argument(
-        "--quick", action="store_true",
-        help="開発中の軽量実行用 (n-points=5)",
-    )
-    parser.add_argument(
-        "--alpha", type=float, default=DEFAULT_ALPHA,
-        help=f"セットアップ率 (既定: {DEFAULT_ALPHA:g}). 既定値以外ではファイル名に _a{{alpha:g}} を付ける",
-    )
-    parser.add_argument(
-        "--K-levels", type=int, nargs="+", default=K_LEVELS,
-        help=f"走査する K 水準 (既定: {' '.join(map(str, K_LEVELS))}. テスト用に減らせる)",
-    )
-    args = parser.parse_args()
-    if args.quick:
-        args.n_points = 5
-    return args
-
-
-def _burst_levels_to_run(burst_arg: str) -> List[Tuple[str, float, float]]:
-    """--burst 引数から実行対象のバースト水準リストを返す."""
-    if burst_arg == "all":
-        return BURST_LEVELS
-    return [lvl for lvl in BURST_LEVELS if lvl[0] == burst_arg]
+def plot(phase: str, rows: Sequence[dict], out_dir: str) -> List[str]:
+    series = [(f"K={K}", [r for r in rows if int(r["K"]) == K], dict(color=K_COLOR[K]))
+              for K in K_LEVELS]
+    return plot_four_metrics(series, "rho", r"$\rho$", out_dir,
+                             f"experiment_4_K_sensitivity_{phase}", vline=1 / (1 + d.DELTA),
+                             legend_ncol=4)
 
 
 def main() -> None:
-    args = parse_args()
-    lo, hi = RHO_RANGE
-    rho_values = np.linspace(lo, hi, args.n_points)
-
-    max_conservation_error = 0.0
-    max_flow_balance_error = 0.0
-    n_points_total = 0
-    n_violations = 0
-    print(f"alpha = {args.alpha:g} (1/alpha = {1.0 / args.alpha:g})")
-
-    for level_name, delta, sigma in _burst_levels_to_run(args.burst):
-        # 結果格納: theory_vals[K][metric_key] = [値, ...] (rho 順)
-        theory_vals: Dict[int, Dict[str, List[float]]] = {
-            K: {k: [] for k, _, _ in METRIC_SPECS} for K in args.K_levels
-        }
-        # CSV 用: extra_vals[K] = [extended_columns の辞書, ...] (rho 順)
-        extra_vals: Dict[int, List[Dict[str, object]]] = {K: [] for K in args.K_levels}
-
-        cv_mid = compute_interarrival_cv(
-            *build_mmpp(0.5, delta, sigma, BASELINE["c"], BASELINE["b"], BASELINE["mu"])
-        )
-        print(
-            f"\n########## burst level = {level_name} "
-            f"(delta={delta}, sigma={sigma}, CV@rho=0.5={cv_mid:.4f}) ##########"
-        )
-
-        for K in args.K_levels:
-            for rho in tqdm(rho_values, desc=f"burst={level_name}, K={K}"):
-                rho = float(rho)
-                params = build_params(K, rho, delta, sigma, args.alpha)
-                theory = solve_base(params)
-
-                print(
-                    f"\n=== [{level_name}, K={K}] rho = {rho:.4g} "
-                    f"(lambda_bar = {params.lambda_bar:.4g}) ==="
-                )
-                print(f"  {'metric':<18}{'theory':>14}")
-                for key, method_name, _ in METRIC_SPECS:
-                    theory_val = getattr(theory, method_name)()
-                    theory_vals[K][key].append(theory_val)
-                    print(f"  {key:<18}{theory_val:>14.5g}")
-
-                cons_err, flow_err = conservation_and_flow_balance(
-                    params.c, params.b, params.mu,
-                    theory.mean_busy(), theory.mean_idle(),
-                    theory.mean_setup(), theory.mean_off(),
-                    theory.effective_arrival_rate(),
-                )
-                print(
-                    f"  [保存則・流量バランス] "
-                    f"E[B]+E[I]+E[S]+E[Off]-c = {cons_err:.3e}, "
-                    f"lambda_eff - b*mu*E[B] = {flow_err:.3e}"
-                )
-                max_conservation_error = max(max_conservation_error, cons_err)
-                max_flow_balance_error = max(max_flow_balance_error, flow_err)
-
-                extra = extended_columns(params, theory)
-                n_points_total += 1
-                if extra["check"] != "ok":
-                    n_violations += 1
-                    print(f"  [検査違反] {extra['check']}")
-                extra_vals[K].append(extra)
-
-        _print_caption_summary(level_name, rho_values, theory_vals)
-        _plot(args, level_name, delta, sigma, rho_values, theory_vals)
-        _save_csv(args, level_name, delta, sigma, rho_values, theory_vals, extra_vals)
-
-    print("\n=== サマリ ===")
-    print(f"保存則の最大誤差: {max_conservation_error:.3e}")
-    print(f"流量バランスの最大誤差: {max_flow_balance_error:.3e}")
-    print(f"検査違反の点数: {n_violations} / {n_points_total}")
-
-
-def _print_caption_summary(
-    level_name: str,
-    rho_values: np.ndarray,
-    theory_vals: Dict[int, Dict[str, List[float]]],
-) -> None:
-    """図のキャプション用サマリ (K 別の最軽/最重 rho での指標表, 収束の目安) をコンソールに出力する."""
-    print(f"\n=== [{level_name}] キャプション用サマリ ===")
-    lo_idx, hi_idx = 0, len(rho_values) - 1
-    print(f"[最軽 rho={rho_values[lo_idx]:.4g} と最重 rho={rho_values[hi_idx]:.4g} での指標値 (K 別)]")
-    header = f"  {'K':<8}{'rho':>8}" + "".join(f"{k:>18}" for k, _, _ in METRIC_SPECS)
-    print(header)
-    for K in theory_vals:
-        for idx, tag in [(lo_idx, "theory(lo)"), (hi_idx, "theory(hi)")]:
-            row = f"  {K:<8}{rho_values[idx]:>8.3g}"
-            for key, _, _ in METRIC_SPECS:
-                row += f"{theory_vals[K][key][idx]:>18.5g}"
-            print(row + f"  [{tag}]")
-
-    # 最大 2 水準の K 間の差 (無限バッファ近似への収束具合の目安, 最重 rho で評価)
-    if len(theory_vals) < 2:
-        return
-    K_max, K_prev = list(theory_vals)[-1], list(theory_vals)[-2]
-    print(f"\n[K={K_prev} -> K={K_max} での指標変化 (収束の目安, rho={rho_values[hi_idx]:.4g})]")
-    for key, _, _ in METRIC_SPECS:
-        v_prev = theory_vals[K_prev][key][hi_idx]
-        v_max = theory_vals[K_max][key][hi_idx]
-        diff = abs(v_max - v_prev)
-        rel = diff / max(abs(v_max), 1e-12)
-        print(
-            f"  {key:<18} K={K_prev}: {v_prev:.5g} -> K={K_max}: {v_max:.5g} "
-            f"(|diff|={diff:.3g}, rel={rel:.3e})"
-        )
-
-
-def _plot(
-    args: argparse.Namespace,
-    level_name: str,
-    delta: float,
-    sigma: float,
-    rho_values: np.ndarray,
-    theory_vals: Dict[int, Dict[str, List[float]]],
-) -> None:
-    """4 指標を 2x2 のサブプロットにまとめ, K 別に重ね描きして PNG に保存する."""
-    fig, axes = plt.subplots(2, 2, figsize=(11, 9))
-
-    for ax, (key, _, ylabel) in zip(axes.flat, METRIC_SPECS):
-        for K in theory_vals:
-            style = K_STYLE[K]
-            ax.plot(
-                rho_values, theory_vals[K][key], "-",
-                color=style["color"], marker="o", markersize=4,
-                label=f"K={K}" if ax is axes.flat[0] else None,
-            )
-
-        if key == "P_block_arrival_stable":
-            ax.set_yscale("log")
-            # 安定版は 1e-12 未満でも相対精度を保つので下限で切らずに全点を描く.
-            # ブロッキング確率なので上端は 1. 対数軸の自動余白で 1 を超えないようにする
-            ax.set_ylim(top=1)
-            ylabel = log_scale_label(ylabel)
-
-        ax.set_xlabel(r"$\rho$", fontsize=16)
-        ax.set_ylabel(ylabel, fontsize=16)
-        ax.tick_params(labelsize=10)
-        ax.grid(alpha=0.3)
-
-    # 凡例は曲線に重ならないよう, 題名を外して空いた図の上部にまとめる.
-    handles, labels = axes.flat[0].get_legend_handles_labels()
-    fig.legend(
-        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0),
-        ncol=4, fontsize=14,
-    )
-
-    # 図中に題名は付けない (論文キャプション側に記載する).
-    # 題名に載せていた設定情報はコンソールに出力して残す.
-    _caption = (
-        f"Experiment 4: Sensitivity to Buffer Capacity $K$ ({level_name} burst)\n"
-        rf"($c=20$, $b=5$, $1/\mu=1$, $1/\alpha={1.0 / args.alpha:g}$s, $1/\beta=200$s, "
-        rf"delta={delta}, sigma={sigma})"
-    )
-    print(f"\nキャプション用情報: {_caption}")
-    fig.tight_layout(rect=(0, 0, 1, 0.93))
-
-    os.makedirs(args.out_dir, exist_ok=True)
-    suffix = alpha_suffix(args.alpha)
-    png_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}{suffix}.png")
-    pdf_path = os.path.join(args.out_dir, f"experiment_4_K_sensitivity_{level_name}{suffix}.pdf")
-    fig.savefig(png_path, dpi=150)
-    fig.savefig(pdf_path, dpi=100)
-    print(f"\n図を保存しました: {png_path}, {pdf_path}")
-
-
-def _save_csv(
-    args: argparse.Namespace,
-    level_name: str,
-    delta: float,
-    sigma: float,
-    rho_values: np.ndarray,
-    theory_vals: Dict[int, Dict[str, List[float]]],
-    extra_vals: Dict[int, List[Dict[str, object]]],
-) -> None:
-    """4 指標の K 別・rho 別データを CSV に書き出す (比較スクリプト用)."""
-    import csv
-    os.makedirs(args.csv_dir, exist_ok=True)
-    csv_path = os.path.join(
-        args.csv_dir, f"experiment_4_{level_name}{alpha_suffix(args.alpha)}.csv"
-    )
-
-    fieldnames = [
-        "burst_name", "delta", "sigma", "K", "rho",
-        "P_block_arrival_stable", "E_W", "Cost", "ERP",
-        "E_N", "lambda_eff", "E_B", "E_S", "E_I", "E_off", "N_states",
-        "min_pi", "cons_err", "flow_rel_err", "check",
-    ]
-    with open(csv_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        for K in theory_vals:
-            for i, rho in enumerate(rho_values):
-                row = {
-                    "burst_name": level_name,
-                    "delta": delta,
-                    "sigma": sigma,
-                    "K": K,
-                    "rho": float(rho),
-                    "P_block_arrival_stable": theory_vals[K]["P_block_arrival_stable"][i],
-                    "E_W": theory_vals[K]["E[W]"][i],
-                    "Cost": theory_vals[K]["Cost"][i],
-                    "ERP": theory_vals[K]["ERP"][i],
-                }
-                row.update(extra_vals[K][i])
-                writer.writerow(row)
-    print(f"CSV 保存: {csv_path}")
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--phase", choices=["short", "long", "all"], default="all")
+    parser.add_argument("--out-dir", default="figures")
+    parser.add_argument("--csv-dir", default="results")
+    parser.add_argument("--quick", action="store_true", help="rho を 3 点だけ計算する")
+    args = parser.parse_args()
+    rhos = [0.1, 0.5, 0.95] if args.quick else d.RHO_GRID
+    for phase in (PHASES if args.phase == "all" else [args.phase]):
+        rows = compute(phase, rhos)
+        d.report_checks(rows)
+        d.write_rows(os.path.join(args.csv_dir, f"experiment_4_{phase}.csv"), rows)
+        plot(phase, rows, args.out_dir)
+    print("キャプション用情報: c=20, b=5, 1/mu=1, delta=0.6, alpha=0.005, beta=0.003 (損益分岐), "
+          "r1=0.1 (short), 17.8 (long). 点線は rho_B=1")
 
 
 if __name__ == "__main__":

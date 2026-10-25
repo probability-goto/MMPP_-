@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """実験 1・4 の alpha=0.1 (旧) と alpha=0.005 (新) の比較表を作る.
 
+旧設計 (弱・中・強の 3 バースト水準) の比較. 実験 1〜4 は 2026-10-25 に設計し直した
+(paper/review_spec.md) ので, 今の results/experiment_1.csv では動かない. 記録として残す.
+
 数値はすべて CSV から読む (モデルの再計算はしない).
     実験 1 旧: results/experiment_1_a0.1.csv
     実験 1 新: results/experiment_1.csv (既定値 alpha=0.005)

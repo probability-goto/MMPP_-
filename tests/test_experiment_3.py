@@ -1,57 +1,24 @@
-"""実験 3 スクリプトの基本動作テスト."""
+"""実験 3 (delta と r1 の走査) のテスト."""
 import subprocess
 import sys
-from pathlib import Path
+
+import pytest
 
 
-def test_experiment_3_delta_quick_runs():
-    """--sweep delta --quick で最後まで実行できる."""
+@pytest.mark.parametrize("sweep", ["delta", "r1"])
+def test_experiment_3_quick_runs(tmp_path, sweep):
     result = subprocess.run(
-        [
-            sys.executable, "scripts/experiment_3_burstiness.py", "--sweep", "delta", "--quick",
-            "--csv-dir", "/tmp/test_3_csv_delta",
-            "--out-dir", "/tmp/test_3_figs_delta",
-        ],
-        capture_output=True, text=True, timeout=300,
+        [sys.executable, "scripts/experiment_3_burstiness.py", "--sweep", sweep, "--quick",
+         "--csv-dir", str(tmp_path), "--out-dir", str(tmp_path)],
+        capture_output=True, text=True, timeout=600,
     )
-    assert result.returncode == 0, f"stderr:\n{result.stderr}"
-    assert Path("/tmp/test_3_figs_delta/experiment_3_burstiness_delta.png").exists()
-
-
-def test_experiment_3_sigma_quick_runs():
-    """--sweep sigma --quick で最後まで実行できる."""
-    result = subprocess.run(
-        [
-            sys.executable, "scripts/experiment_3_burstiness.py", "--sweep", "sigma", "--quick",
-            "--csv-dir", "/tmp/test_3_csv_sigma",
-            "--out-dir", "/tmp/test_3_figs_sigma",
-        ],
-        capture_output=True, text=True, timeout=300,
-    )
-    assert result.returncode == 0
-    assert Path("/tmp/test_3_figs_sigma/experiment_3_burstiness_sigma.png").exists()
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / f"experiment_3_burstiness_{sweep}.png").exists()
+    assert (tmp_path / f"experiment_3_{sweep}.csv").exists()
 
 
 def test_experiment_3_requires_sweep():
-    """--sweep が必須 (指定しないとエラー)."""
-    result = subprocess.run(
-        [sys.executable, "scripts/experiment_3_burstiness.py"],
-        capture_output=True, text=True, timeout=60,
-    )
+    result = subprocess.run([sys.executable, "scripts/experiment_3_burstiness.py"],
+                            capture_output=True, text=True, timeout=60)
     assert result.returncode != 0
-    # argparse は "required" エラーを stderr に出力
-    assert "--sweep" in result.stderr or "required" in result.stderr.lower()
-
-
-def test_experiment_3_poisson_limit():
-    """delta=0 の Poisson 一致確認が動作する (警告なしで完走することを確認)."""
-    result = subprocess.run(
-        [sys.executable, "scripts/experiment_3_burstiness.py",
-         "--sweep", "delta", "--n-points", "3",
-         "--csv-dir", "/tmp/test_3_csv_poisson",
-         "--out-dir", "/tmp/test_3_figs_poisson"],
-        capture_output=True, text=True, timeout=600,
-    )
-    assert result.returncode == 0
-    # Poisson limit check が実行されていることを stdout で確認
-    assert "Poisson limit check" in result.stdout
+    assert "--sweep" in result.stderr

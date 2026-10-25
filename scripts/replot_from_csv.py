@@ -6,7 +6,7 @@ CSV の P_block_arrival_stable 列など図に使う列を読み込んで渡す�
 プロットする列を切り替えたときの再描画に使う。
 
 対象:
-    実験 1, 2 (medium/strong), 3 (delta/sigma), 4 (weak/medium/strong),
+    実験 1, 2 (パート A と B), 3 (delta/r1), 4 (short/long),
     実験 1-P, 2-P, 3-P, 4-P, 5, 6 (results/ にある CSV すべて)
 
 ベース vs Predictive の比較図 (compare_experiment_*.py) はもともと CSV を
@@ -75,13 +75,6 @@ def _theory_vals(rows, group_of, x_col, metric_specs, groups):
     return vals
 
 
-def _alpha_level_name(levels, alpha: float) -> str:
-    for name, a in levels:
-        if abs(a - alpha) < 1e-12:
-            return name
-    raise KeyError(f"alpha={alpha} に対応する水準がない")
-
-
 def _load_results(cls, path: str) -> list:
     """CSV 行を各実験の ExperimentResult (dataclass) に変換する.
 
@@ -99,38 +92,17 @@ def _load_results(cls, path: str) -> list:
 # ---------------------------------------------------------------------------
 
 def replot_exp1(csv_dir, out_dir):
-    path = os.path.join(csv_dir, "experiment_1.csv")
-    rows = load_rows(path)
-    groups = [name for name, _, _ in e1.BURST_LEVELS]
-    vals = _theory_vals(rows, lambda r: r["burst_name"], "rho", e1.METRIC_SPECS, groups)
-    rho_values = _sorted_unique(r["rho"] for r in rows)
-    # 無印の CSV は既定の alpha (ファイル名に _a が付かない) の結果
-    e1._plot(argparse.Namespace(out_dir=out_dir, alpha=e1.DEFAULT_ALPHA), rho_values, vals)
+    e1.plot(load_rows(os.path.join(csv_dir, e1.CSV_NAME)), out_dir)
 
 
 def replot_exp2(csv_dir, out_dir):
-    for (burst_name, delta, sigma), strong in ((e2.BURST_MAIN, False), (e2.BURST_AUX, True)):
-        rows = load_rows(os.path.join(csv_dir, f"experiment_2_{burst_name}.csv"))
-        groups = [name for name, _ in e2.ALPHA_LEVELS]
-        vals = _theory_vals(
-            rows, lambda r: _alpha_level_name(e2.ALPHA_LEVELS, float(r["alpha"])),
-            "beta", e2.METRIC_SPECS, groups,
-        )
-        beta_values = _sorted_unique(r["beta"] for r in rows)
-        args = argparse.Namespace(out_dir=out_dir, strong_burst=strong)
-        e2._plot(args, beta_values, vals, burst_name, delta, sigma)
+    e2.plot(load_rows(os.path.join(csv_dir, e2.CSV_A)),
+            load_rows(os.path.join(csv_dir, e2.CSV_B)), out_dir)
 
 
 def replot_exp3(csv_dir, out_dir):
-    for sweep in ("delta", "sigma"):
-        rows = load_rows(os.path.join(csv_dir, f"experiment_3_{sweep}.csv"))
-        groups = [name for name, _ in e3.ALPHA_LEVELS]
-        vals = _theory_vals(
-            rows, lambda r: _alpha_level_name(e3.ALPHA_LEVELS, float(r["alpha"])),
-            sweep, e3.METRIC_SPECS, groups,
-        )
-        sweep_values = _sorted_unique(r[sweep] for r in rows)
-        e3._plot(argparse.Namespace(out_dir=out_dir, sweep=sweep), sweep_values, vals)
+    e3.plot_delta(load_rows(os.path.join(csv_dir, "experiment_3_delta.csv")), out_dir)
+    e3.plot_r1(load_rows(os.path.join(csv_dir, "experiment_3_r1.csv")), out_dir)
 
 
 def _replot_k_sensitivity(module, csv_path, args):
@@ -144,11 +116,8 @@ def _replot_k_sensitivity(module, csv_path, args):
 
 
 def replot_exp4(csv_dir, out_dir):
-    for level_name, _, _ in e4.BURST_LEVELS:
-        _replot_k_sensitivity(
-            e4, os.path.join(csv_dir, f"experiment_4_{level_name}.csv"),
-            argparse.Namespace(out_dir=out_dir, alpha=e4.DEFAULT_ALPHA),
-        )
+    for phase in e4.PHASES:
+        e4.plot(phase, load_rows(os.path.join(csv_dir, f"experiment_4_{phase}.csv")), out_dir)
 
 
 def replot_exp4p(csv_dir, out_dir):

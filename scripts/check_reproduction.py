@@ -77,10 +77,9 @@ def comparable(row: dict) -> Tuple:
 CLI_RUNS = [
     ("experiment_1_traffic.py", []),
     ("experiment_2_delayoff.py", []),
-    ("experiment_2_delayoff.py", ["--strong-burst"]),
     ("experiment_3_burstiness.py", ["--sweep", "delta"]),
-    ("experiment_3_burstiness.py", ["--sweep", "sigma"]),
-    ("experiment_4_K_sensitivity.py", ["--burst", "all"]),
+    ("experiment_3_burstiness.py", ["--sweep", "r1"]),
+    ("experiment_4_K_sensitivity.py", []),
 ]
 
 
