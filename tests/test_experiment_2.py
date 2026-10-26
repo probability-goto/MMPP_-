@@ -13,9 +13,9 @@ def test_experiment_2_quick_runs(tmp_path):
         capture_output=True, text=True, timeout=900,
     )
     assert result.returncode == 0, result.stderr
-    for stem in ("experiment_2_delayoff_erp", "experiment_2_delayoff_pblock",
-                 "experiment_2_phasewise"):
+    for stem in ("experiment_2_delayoff_erp", "experiment_2_delayoff_pblock"):
         assert (tmp_path / f"{stem}.png").exists()
+    assert (tmp_path / "experiment_2_phasewise.csv").exists()
     with open(tmp_path / "experiment_2.csv", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     # rho_B 2 x フェーズの長さ 2 x alpha 3 x (beta 5 点 + 損益分岐 1 点)

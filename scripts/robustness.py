@@ -73,6 +73,8 @@ R1_LEVELS = cm.R1_LEVELS
 CONTROL_1 = (0.8, 0.1)
 CONTROL_2_ROW = 1.12
 N_TOP = 2
+# パート A で図を描くマスの役割 (論文で使う図. 他のマスは表と report.md で示す)
+PLOT_A_ROLES = ("改善率の上位 1",)
 
 SWEEPS = ["beta_mult", "n_target", "gamma"]
 BETA_MULT = [0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 10.0]
@@ -379,7 +381,8 @@ def report_A(rows: List[dict], sm, fig_dir: str = FIG_DIR, rows_bg=(), rows_b=()
                        "| P の比 | " + " | ".join(
                            f"{_f(r, 'p_ratio'):.3f}{'*' if b else ''}"
                            for r, b in zip(pts, fp)) + " |", ""]
-        figs += plot_A(key, cr, sm[key], fig_dir)
+        if role in PLOT_A_ROLES:
+            figs += plot_A(key, cr, sm[key], fig_dir)
     lines += [""] + _a_notes(rows, sm, rows_bg, rows_b)
     lines += ["### 各値の ERP の相対差と P の比 (悪い値に *)", ""] + detail
     return lines, figs

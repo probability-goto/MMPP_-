@@ -18,6 +18,7 @@
   - 「位相」と「フェーズ」, 「閑散」「通常」と「バースト」「繁忙」(どちらの組を使うか決める).
   - $E[W]$ と $\mathrm{E}[W]$, Cost と $\mathit{Cost}$ と $\mathrm{Cost}$.
   - 「Idle」と「idle」(619 行 P2 の説明).
+- [ ] [推奨] `\usepackage{algorithm, algpseudocode}` は使っていない (algorithm 環境がない). algorithm.sty のない環境ではここでコンパイルが止まる (2026-10-25 に確認). 消してよい.
 - [ ] [推奨] プリアンブルで `graphicx` を 2 回読み込んでいる. jsreport で `\usepackage[T1]{fontenc}` が要るか確認する.
 - [ ] [推奨] `\begin{thebibliography}{9}` は文献が 10 件以上あるので `{99}` にする.
 - [ ] [推奨] 序章冒頭のコメント (参考文献キーの一覧) が古い. 実際には使っていないキー (Gandhi2010, Gandhi2013, Leland1994, PenderPhung2016, MaccioDown2018) が並んでいる. 消すか直す.
@@ -46,7 +47,7 @@
 ## 第3章 解析手法と性能評価指標
 
 - [ ] [必須] 未定義の参照 `\ref{prop:pred-reduction}` (到達可能な状態への縮約の段落). 命題が本文にない. 命題を書くか, 文を直す.
-- [ ] [必須] 未定義の参照 `\ref{sec:comparison}` (3 章冒頭の「2 つのモデルの比較方法」). 比較方法の節がない. 比較の地図の章で比較方法を書くなら, 冒頭の文をそちらへの参照にする.
+- [x] 未定義の参照 `\ref{sec:comparison}` を, 実験 5 の比較の方法 (`sec:exp5-compare-map`) への参照に直した.
 - [ ] [必須] コスト関数の「(原著未確認)」を消し, 出典 (Inoue2021 と思われる) を確定させる.
 - [ ] [推奨] 「ブロック帯構造」の段落 (3.1 節) と 3.3 節冒頭が同じ内容. どちらかにまとめる.
 - [ ] [推奨] 3.3 節末の TODO コメント: 帯幅と計算時間の実測の表がない. 貢献 2 (計算量が $K$ に線形) の根拠として, results/gth_validation/benchmark.md から表を作る.
@@ -60,16 +61,16 @@
 - [x] 式 (mmpp-2phase) の $C_0$ を対称な $\sigma$ で書き直した.
 - [x] 重複していた段落と SCV/CV の定義を削った (CV は本文で使わなくなった).
 - [x] 実験 0 のパラメータ ($\alpha = 0.1$, $\beta = 0.005$, $\delta = 0.6$, $\sigma = 0.1$) を明記した.
-- [ ] [必須] 実験 0 の図の $P_{\mathrm{block}}$ は時間平均の $P(j=K)$ (scripts/experiment_0_validation.py の `blocking_probability`) で, 3.4 節の定義 (到着で重み付け) と違う. 本文で断るか, 到着で重み付けした値で図を作り直す (保護ありの照合では到着で重み付けした値も照合済み: results/protect_des/).
-- [ ] [必須] 実験 1〜4 を設計し直した (2026-10-25, review_spec.md). LaTeX のプロジェクトの図を thesis_assets/figures/ の新しいもの (experiment_1_traffic, experiment_2_delayoff_erp, experiment_2_delayoff_pblock, experiment_3_burstiness_delta, experiment_3_burstiness_r1, experiment_4_K_sensitivity_short, experiment_4_K_sensitivity_long) に差し替える.
+- [x] 実験 0 の $P_{\mathrm{block}}$ を到着で重み付けした値 (3.4 節の定義) に直して DES をやり直した (2026-10-25, results/experiment_0/). ベースモデルは 52/60 (外れた 3 点はウォームアップを 10 倍, 計測を 4 倍にすると 18/18), 提案モデルは 59/60. 以前の本文の「ベースモデルは全点・全指標が CI 内」は, 今の既定の設定では再現しない (DES のコードは以前と同じ結果を返すことを ρ=0.95 で確認した. results/gth_validation/VALIDATION_REPORT.md の V-Sim の記述も同じ主張).
+- [ ] [必須] LaTeX のプロジェクトの図を thesis_assets/figures/ のもの (論文で使う 13 図) に差し替える.
 - [x] 実験 3 は $\alpha = 0.005$ に固定し, $\delta$ と $r_1$ を走査する設計にした.
 - [x] 実験 3-B は $r_1$ の走査にした.
 - [x] 実験 4 は短・長フェーズの 2 つの図にした.
-- [ ] [必須] 比較の地図 (実験 5) と頑健性 (実験 6) の節がまだない. 比較の方法 (両者をそれぞれ最適化, $P \le P_{\mathrm{ref}}$ の制約, 改善率 0.1% のしきい値), 実験 1〜4 の条件が地図のどこにあたるか, 規則ごとの分解を書く.
+- [x] 比較の地図 (実験 5) と頑健性 (実験 6) の節を書いた (2026-10-25). 以下は書いたときの材料のメモ. 比較の方法 (両者をそれぞれ最適化, $P \le P_{\mathrm{ref}}$ の制約, 改善率 0.1% のしきい値), 実験 1〜4 の条件が地図のどこにあたるか, 規則ごとの分解を書く.
   材料: results/compare_map/report.md (r1 を $\rho_B \in \{0.6, 0.8\}$ で 9 点に細かくした地図と「規則ごとの分解」の表), results/robustness/report.md. 図は thesis_assets/figures/ の compare_map_improvement, robustness_*.
   書くときの注意: $\rho_B = 0.8$ の改善は P1 だけ (n_target=20, γ=1) でも P2 だけ (n_target=0) でもほぼ得られる (r1=17.8 で 2.68% と 2.22%). n_target = c のとき P1 と保護は「バースト中は Delayoff しない, 閑散期は率 γβ で切る」というフェーズ別の Delayoff と同じになるため, 2 つの規則は同じ働きをする. 改善は r1 = 5.62 (0.27%) と 10 (2.35%) の間で立ち上がり, r1 = 17.8 で最大になる.
   図の横軸の列は等間隔だが, log10 r1 は等間隔ではない (-1, -0.25, 0.5 の後は 0.25 刻み). キャプションで断る.
 - [x] 「実験 1〜4 のまとめ」の節を置いた. 実験 5 の節を書くときに, まとめの予想 (a)(b)(c) と結果を対応させる.
 - [ ] [推奨] 実験 1 の低負荷でポアソン到着の $P_{\mathrm{block}}$ が小さく上下する ($\rho = 0.1$〜$0.2$ で $3.3 \times 10^{-5}$〜$6.2 \times 10^{-5}$). 原因を確かめていない (本文では触れていない).
-- [ ] [推奨] 実験 5 の改善の仕組み (r1 ≈ 17.8 で最大, 100 で減る) を, 最良点の事前セットアップの発動率, 取り消しの率, Delayoff の率で確かめる (review_logic_flow.md の点検 5).
+- [x] 実験 5 の改善の仕組みを scripts/compare_map_mechanism.py で集計し, 本文に書いた.
 - [ ] [推奨] 本文の数値は thesis_assets/numbers.tex のマクロから引くようにする (手書きの数値は再計算のたびにずれる).

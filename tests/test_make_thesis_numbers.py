@@ -45,5 +45,6 @@ def test_generate(tmp_path, monkeypatch):
         for used in re.findall(r"\\(Exp[A-Za-z]+)", body):
             assert used in names, used
     figs = os.listdir(tmp_path / "figures")
-    assert any(f.startswith("experiment_8_A_erp") for f in figs)
+    assert any(f.startswith("compare_map_improvement") for f in figs)
+    assert not any(f.startswith("experiment_8_") for f in figs)
     assert (tmp_path / "README.md").exists()

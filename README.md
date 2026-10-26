@@ -44,7 +44,7 @@ MMPP_-/
 ├── tests/                 # pytest
 ├── examples/              # 使用例 (basic_example.py)
 ├── results/               # 実験の CSV とレポート (results/gth_validation/ は GTH 移行の検証記録)
-├── figures/               # 現行の図 (GTH 法 + 安定版の P_block)
+├── figures/               # 論文で使う図 (GTH 法 + 安定版の P_block). 使わない図は archive/figures_not_in_thesis/
 ├── thesis_assets/         # 論文用の数値マクロ・表・図 (scripts/make_thesis_numbers.py が生成)
 ├── docs/                  # モデルと解法の説明 (model_and_methods.tex)
 └── archive/               # 使わないが記録として残すもの (旧比較, GTH 移行時の図・CSV・スクリプト)
@@ -160,13 +160,14 @@ r1 ∈ {0.1 (短), 1, 17.8 (長)} と ρ_B ∈ {0.8, 1.12} で条件を決める
 | `experiment_3_burstiness.py` | ベースモデル: δ または r1 の走査 (`--sweep delta/r1`) | `results/experiment_3_{delta,r1}.csv` |
 | `experiment_4_K_sensitivity.py` | ベースモデル: K ∈ {100, 200, 500, 1000} の感度 (短・長フェーズ) | `results/experiment_4_{short,long}.csv` |
 | `experiment_p1_protect.py` | 保護の有無による P1 の比較 | `results/p1_protect/` |
-| `experiment_7_frontier.py` | 実験 7: 5 条件で各方策が β を最適化した公平な比較 (`--report` で図とレポート) | `results/experiment_7/`, `figures/experiment_7_*` |
-| `experiment_8_map.py` | 実験 8: 位相の情報に価値がある領域の地図 (α=0.1 中心, Base と 3 系列) | `results/experiment_8/`, `figures/experiment_8_*` |
+| `experiment_7_frontier.py` | 実験 7 (比較の地図の前の版): 5 条件で各方策が β を最適化した公平な比較 (`--report` で図とレポート. 図は論文で使わない) | `results/experiment_7/` (図は `archive/figures_not_in_thesis/`) |
+| `experiment_8_map.py` | 実験 8 (比較の地図の前の版): 位相の情報に価値がある領域の地図 (α=0.1 中心, Base と 3 系列) | `results/experiment_8/` (図は `archive/figures_not_in_thesis/`) |
 | `blocking_reassessment.py` | 実験 7・8 を同じ信頼性 (棄却を含めた基準) で判定し直す | `results/experiment_{7,8}/blocking_reassessment.md` |
 | `analyze_mechanism.py` | 実験 7・8 で Predictive が優位になる仕組みの集計 | `results/experiment_8/mechanism*` |
-| `experiment_9_sensitivity.py` | 実験 9: Predictive のパラメータが最適でないときの感度 (実験 8 が基準) | `results/experiment_9/`, `figures/experiment_9_*` |
-| `compare_map.py` | 比較の地図: α=0.005 で Base と Predictive の 2 者を比べる | `results/compare_map/`, `figures/compare_map_improvement.*` |
-| `robustness.py` | 頑健性: 比較の地図を基準にした感度 (α=0.005) | `results/robustness/`, `figures/robustness_*` |
+| `experiment_9_sensitivity.py` | 実験 9 (頑健性の前の版): Predictive のパラメータが最適でないときの感度 (実験 8 が基準) | `results/experiment_9/` (図は `archive/figures_not_in_thesis/`) |
+| `compare_map.py` | 比較の地図: α=0.005 で Base と Predictive の 2 者を比べる (規則ごとの分解を含む) | `results/compare_map/`, `figures/compare_map_improvement.*` |
+| `compare_map_mechanism.py` | 比較の地図の改善の仕組み (最良点どうしの比較, 1 周期あたりの回数, Base の準静的な近似との差) | `results/compare_map/mechanism.*`, `figures/compare_map_mechanism.*` |
+| `robustness.py` | 頑健性: 比較の地図を基準にした感度 (α=0.005. パート A の図は改善率の上位 1 のマスだけ) | `results/robustness/`, `figures/robustness_*` |
 | `make_thesis_numbers.py` | 論文用の数値マクロ・表・図を CSV から生成 (新しい計算はしない) | `thesis_assets/` |
 | `benchmark_gth_vs_splu.py`, `validate_gth_mpmath*.py` | GTH 法の計算時間と精度 (mpmath 50 桁との照合) | `results/gth_validation/` |
 | `replot_from_csv.py` | 実験 1〜4 (と旧比較の実験) の図を CSV から描き直す (計算はしない) | `figures/` |

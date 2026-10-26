@@ -53,13 +53,17 @@ RHO_RANGE: Tuple[float, float] = (0.3, 0.95)
 
 # (指標キー, Metrics/SimMetrics 共通メソッド名, 表示ラベル)
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block", "blocking_probability", r"$P_{\mathrm{block}}$"),
+    ("P_block", "arrival_blocking_probability_stable", r"$P_{\mathrm{block}}$"),
     ("E[N]", "mean_queue_length", r"$E[N]$"),
     ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("lambda_eff", "effective_arrival_rate", r"$\lambda_{\mathrm{eff}}$"),
     ("rho_server", "utilization", r"$\rho_{\mathrm{server}}=E[B]/c$"),
     ("Cost", "energy_cost_paper", "Cost"),
 ]
+
+
+# 理論 (Metrics) と DES (SimMetrics) でメソッド名が違う指標: 理論 -> DES (_ci を付ける前)
+SIM_METHOD: Dict[str, str] = {"arrival_blocking_probability_stable": "arrival_blocking_probability"}
 
 
 def build_mmpp(
@@ -189,7 +193,7 @@ def main() -> None:
         point_in_ci = 0
         for key, method_name, _ in METRIC_SPECS:
             theory_val = getattr(theory, method_name)()
-            pt, ci_lo, ci_hi = getattr(sim_metrics, f"{method_name}_ci")()
+            pt, ci_lo, ci_hi = getattr(sim_metrics, f"{SIM_METHOD.get(method_name, method_name)}_ci")()
 
             theory_vals[key].append(theory_val)
             sim_pts[key].append(pt)

@@ -194,13 +194,13 @@ def check_rows(tmp: str, n_rows: int, seed: int, names: List[str]) -> List[str]:
 # reports: レポートをその場で作り直す
 # ============================================================
 
+# 実験 7〜9 (比較の地図と頑健性の前の版) の図は archive/ に移したので, 図を作り直す
+# report (experiment_7_frontier, experiment_8_map, blocking_reassessment, experiment_9_sensitivity) は
+# 照合しない. それらの CSV は rows で照合する.
 REPORT_RUNS = [
-    ["experiment_7_frontier.py", "--report"],
-    ["experiment_8_map.py", "--report"],
-    ["blocking_reassessment.py"],
     ["analyze_mechanism.py"],
-    ["experiment_9_sensitivity.py", "--report"],
     ["compare_map.py", "--report"],
+    ["compare_map_mechanism.py"],
     ["robustness.py", "--report"],
     ["experiment_p1_protect.py", "--summary"],
     ["validate_protect_des.py", "--summary"],

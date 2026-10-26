@@ -96,8 +96,7 @@ def replot_exp1(csv_dir, out_dir):
 
 
 def replot_exp2(csv_dir, out_dir):
-    e2.plot(load_rows(os.path.join(csv_dir, e2.CSV_A)),
-            load_rows(os.path.join(csv_dir, e2.CSV_B)), out_dir)
+    e2.plot(load_rows(os.path.join(csv_dir, e2.CSV_A)), out_dir)
 
 
 def replot_exp3(csv_dir, out_dir):

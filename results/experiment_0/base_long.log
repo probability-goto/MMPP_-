@@ -1,0 +1,51 @@
+
+=== rho = 0.3 (lambda_bar = 30) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block       2.4215e-06   2.501e-06   4.762e-07  4.5258e-06      OK
+  E[N]              33.503      33.544      33.433      33.654      OK
+  E[W]              1.1168      1.1172      1.1161      1.1182      OK
+  lambda_eff            30      30.026      29.907      30.145      OK
+  rho_server           0.3     0.30042     0.29919     0.30165      OK
+  Cost              3.6645      3.6671      3.6599      3.6742      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 2.771e-13
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.616e-02
+
+=== rho = 0.5889 (lambda_bar = 58.89) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block        0.0080189   0.0081526   0.0077205   0.0085847      OK
+  E[N]              72.729      72.811      72.441      73.182      OK
+  E[W]               1.245      1.2458      1.2407      1.2509      OK
+  lambda_eff        58.417      58.447      58.188      58.705      OK
+  rho_server       0.58417     0.58463     0.58187     0.58739      OK
+  Cost              6.0747       6.078      6.0663      6.0897      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 7.105e-15
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.652e-02
+
+=== 合格基準サマリ ===
+理論値が sim 95% CI 内: 12/12 (rho 点ごとに 6 指標中 5 つ以上が目安)
+保存則の最大誤差: 0.000e+00
+流量バランスの最大誤差: 1.652e-02
+exit=0
+
+=== rho = 0.95 (lambda_bar = 95) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block          0.23025     0.22973     0.22811     0.23136      OK
+  E[N]              119.58      118.97      118.11      119.83      OK
+  E[W]              1.6353      1.6336      1.6294      1.6378      OK
+  lambda_eff        73.126      72.828      72.466      73.191      OK
+  rho_server       0.73126     0.72853     0.72467     0.73239      OK
+  Cost               6.649      6.6396       6.627      6.6523      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.137e-13
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 2.472e-02
+
+=== 合格基準サマリ ===
+理論値が sim 95% CI 内: 6/6 (rho 点ごとに 6 指標中 5 つ以上が目安)
+保存則の最大誤差: 0.000e+00
+流量バランスの最大誤差: 2.472e-02
+exit=0

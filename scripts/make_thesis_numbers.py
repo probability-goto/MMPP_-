@@ -102,15 +102,22 @@ def cell_tex(row: str, r1: float) -> str:
 # ============================================================
 
 def exp0(m: Macros) -> None:
-    rep = os.path.join("results", "gth_validation", "VALIDATION_REPORT.md")
-    text = open(rep, encoding="utf-8").read()
-    mt = re.search(r"\| 実験 0 \| ベース[^|]*\| 全 (\d+) 点・全 (\d+) 指標が CI 内", text)
-    npts, nmet = int(mt.group(1)), int(mt.group(2))
-    src = f"出典: {rep} の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)"
-    m.add("ExpZeroBasePoints", str(npts), f"{src}\n実験 0 (ベースモデル) で DES と照合した ρ の点の数")
-    m.add("ExpZeroMetrics", str(nmet), f"{src}\n照合した指標の数 (P_block, E[N], E[W], λ_eff, ρ_server, Cost)")
-    m.add("ExpZeroBaseInCI", str(npts * nmet),
-          f"{src}\n理論値が DES の 95% 信頼区間に入った (点, 指標) の組の数 (全点・全指標が CI 内)")
+    def in_ci(name: str):
+        path = os.path.join("results", "experiment_0", name)
+        # 複数回の実行をつないだログでは集計行が複数あるので足し合わせる
+        hits = re.findall(r"理論値が sim 95% CI 内: (\d+)/(\d+)", open(path, encoding="utf-8").read())
+        return path, sum(int(a) for a, _ in hits), sum(int(b) for _, b in hits)
+
+    for log, key, what in [
+        ("base.log", "Base", "ベースモデル (標準の設定: 10 点 × 6 指標, 20 レプリケーション)"),
+        ("predictive_protect.log", "Pred", "提案モデル (保護あり, 標準の設定)"),
+        ("base_long.log", "BaseLong",
+         "ベースモデルで CI から外れた ρ の点を, ウォームアップ 10 倍・計測 4 倍・独立なシードでやり直したもの"),
+    ]:
+        path, inci, total = in_ci(log)
+        src = f"出典: {path} の集計行 (「理論値が sim 95% CI 内」) の和"
+        m.add(f"ExpZero{key}InCI", str(inci), f"{src}\n{what}: 理論値が DES の 95% 信頼区間に入った (点, 指標) の組の数")
+        m.add(f"ExpZero{key}Total", str(total), f"{src}\n{what}: 照合した (点, 指標) の組の数")
 
     path = os.path.join("results", "protect_des", "protect_des.csv")
     rows = list(csv.DictReader(open(path, encoding="utf-8")))
@@ -591,36 +598,25 @@ def _write(d, name, text) -> str:
 # 図と README
 # ============================================================
 
-# thesis_assets/figures/ にコピーする図: (図のまとまり, 作るスクリプトと注意, figures/ の図の名前)
+# thesis_assets/figures/ にコピーする図 (論文で使う図だけ): (図のまとまり, 作るスクリプトと注意, figures/ の図の名前).
+# 論文で使わない図 (実験 7〜9, 保護を入れる前の実験 0-P など) は archive/figures_not_in_thesis/ にある.
 FIGURES = [
     ("実験 0 / 0-P (理論と DES の照合)",
-     "scripts/experiment_0_validation.py, experiment_0P_validation.py. "
-     "experiment_0P_validation_protect は --protect で作る保護ありのモデル, "
-     "experiment_0P_validation は保護を入れる前のモデル. "
+     "scripts/experiment_0_validation.py, experiment_0P_validation.py --protect (保護ありのモデル). "
+     "照合の記録は results/experiment_0/. "
      "保護ありのモデルの 5 点の DES 照合 (NoCancel を含む) は results/protect_des/ (マクロ ExpZeroProtect* で引用する)",
-     ["experiment_0_validation", "experiment_0P_validation_protect", "experiment_0P_validation"]),
+     ["experiment_0_validation", "experiment_0P_validation_protect"]),
     ("実験 1〜4 (ベースモデル)",
      "scripts/experiment_{1_traffic,2_delayoff,3_burstiness,4_K_sensitivity}.py. "
      "ベースモデルだけの実験 (保護の有無に関係しない)",
      ["experiment_1_traffic", "experiment_2_delayoff_erp", "experiment_2_delayoff_pblock",
-      "experiment_2_phasewise", "experiment_3_burstiness_delta", "experiment_3_burstiness_r1",
+      "experiment_3_burstiness_delta", "experiment_3_burstiness_r1",
       "experiment_4_K_sensitivity_short", "experiment_4_K_sensitivity_long"]),
-    ("実験 7", "scripts/experiment_7_frontier.py --report",
-     [f"experiment_7_{c}_EW_cost" for c in e7.CONDITIONS] +
-     [f"experiment_7_{c}_cost_pblock" for c in e7.CONDITIONS]),
-    ("実験 8", "scripts/experiment_8_map.py --report",
-     ["experiment_8_A_erp", "experiment_8_A_cost", "experiment_8_B_erp", "experiment_8_B_cost",
-      "experiment_8_B_p1_alpha", "experiment_8_p1_fire"]),
-    ("実験 8 (棄却の再判定)", "scripts/blocking_reassessment.py",
-     ["experiment_8_A_blk_b", "experiment_8_B_blk_b",
-      "experiment_8_A_blk_c1e-3", "experiment_8_B_blk_c1e-3"]),
-    ("実験 9", "scripts/experiment_9_sensitivity.py --report",
-     [f"experiment_9_A_{row}_r1_{r1:.3g}" for row, r1 in e9.A_CELLS] +
-     [f"experiment_9_B_{w}_{m}" for w in ("A", "B") for m in ("ERP", "EW", "Cost", "P")]),
-    ("比較の地図", "scripts/compare_map.py --report", ["compare_map_improvement"]),
+    ("比較の地図", "scripts/compare_map.py --report, scripts/compare_map_mechanism.py",
+     ["compare_map_improvement", "compare_map_mechanism"]),
     ("頑健性", "scripts/robustness.py --report",
-     [f"robustness_A_{rb.cell_tag(k)}" for k, _ in rb.select_A_cells(rb.load_summary())]
-     + ["robustness_B"]),
+     [f"robustness_A_{rb.cell_tag(k)}" for k, role in rb.select_A_cells(rb.load_summary())
+      if role in rb.PLOT_A_ROLES] + ["robustness_B"]),
 ]
 
 

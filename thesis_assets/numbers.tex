@@ -1,16 +1,28 @@
 % 論文で引用する数値. scripts/make_thesis_numbers.py で生成 (手で編集しない).
 
-% 出典: results/gth_validation/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
-% 実験 0 (ベースモデル) で DES と照合した ρ の点の数
-\newcommand{\ExpZeroBasePoints}{10}
+% 出典: results/experiment_0/base.log の集計行 (「理論値が sim 95% CI 内」) の和
+% ベースモデル (標準の設定: 10 点 × 6 指標, 20 レプリケーション): 理論値が DES の 95% 信頼区間に入った (点, 指標) の組の数
+\newcommand{\ExpZeroBaseInCI}{52}
 
-% 出典: results/gth_validation/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
-% 照合した指標の数 (P_block, E[N], E[W], λ_eff, ρ_server, Cost)
-\newcommand{\ExpZeroMetrics}{6}
+% 出典: results/experiment_0/base.log の集計行 (「理論値が sim 95% CI 内」) の和
+% ベースモデル (標準の設定: 10 点 × 6 指標, 20 レプリケーション): 照合した (点, 指標) の組の数
+\newcommand{\ExpZeroBaseTotal}{60}
 
-% 出典: results/gth_validation/VALIDATION_REPORT.md の V-Sim の表 (実験 0 の CSV はなく, 結果はこの表にだけある)
-% 理論値が DES の 95% 信頼区間に入った (点, 指標) の組の数 (全点・全指標が CI 内)
-\newcommand{\ExpZeroBaseInCI}{60}
+% 出典: results/experiment_0/predictive_protect.log の集計行 (「理論値が sim 95% CI 内」) の和
+% 提案モデル (保護あり, 標準の設定): 理論値が DES の 95% 信頼区間に入った (点, 指標) の組の数
+\newcommand{\ExpZeroPredInCI}{59}
+
+% 出典: results/experiment_0/predictive_protect.log の集計行 (「理論値が sim 95% CI 内」) の和
+% 提案モデル (保護あり, 標準の設定): 照合した (点, 指標) の組の数
+\newcommand{\ExpZeroPredTotal}{60}
+
+% 出典: results/experiment_0/base_long.log の集計行 (「理論値が sim 95% CI 内」) の和
+% ベースモデルで CI から外れた ρ の点を, ウォームアップ 10 倍・計測 4 倍・独立なシードでやり直したもの: 理論値が DES の 95% 信頼区間に入った (点, 指標) の組の数
+\newcommand{\ExpZeroBaseLongInCI}{18}
+
+% 出典: results/experiment_0/base_long.log の集計行 (「理論値が sim 95% CI 内」) の和
+% ベースモデルで CI から外れた ρ の点を, ウォームアップ 10 倍・計測 4 倍・独立なシードでやり直したもの: 照合した (点, 指標) の組の数
+\newcommand{\ExpZeroBaseLongTotal}{18}
 
 % 出典: results/protect_des/protect_des.csv (policy=both)
 % 6 指標の理論値が DES の 95% 信頼区間に入った組の数 (n_in_ci_6 の和)

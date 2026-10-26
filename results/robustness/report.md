@@ -226,11 +226,5 @@ ERP の相対差 / P の比 (区分):
 
 - figures/robustness_A_rhoB0.8_r1_17.8.pdf
 - figures/robustness_A_rhoB0.8_r1_17.8.png
-- figures/robustness_A_rhoB0.8_r1_100.pdf
-- figures/robustness_A_rhoB0.8_r1_100.png
-- figures/robustness_A_rhoB0.8_r1_0.1.pdf
-- figures/robustness_A_rhoB0.8_r1_0.1.png
-- figures/robustness_A_rhoB1.12_r1_3.16.pdf
-- figures/robustness_A_rhoB1.12_r1_3.16.png
 - figures/robustness_B.pdf
 - figures/robustness_B.png

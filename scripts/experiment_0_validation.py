@@ -7,6 +7,9 @@
 理論値がシミュレーションの 95% CI に入っているか, 保存則 E[B]+E[I]+E[S]+E[Off]=c,
 流量バランス lambda_eff = b*mu*E[B] が成り立つかをコンソールに出力する.
 
+--rhos で rho を指定すると, その点だけを照合して結果を出す (図は描かない). 標準の設定で信頼区間から外れた点を,
+ウォームアップと計測を長くして独立なシードでやり直すのに使う (results/experiment_0/base_long.log).
+
 使用例:
     python scripts/experiment_0_validation.py --n-points 10 --n-reps 20 \
         --warmup-events 100000 --measurement-events 1000000
@@ -45,13 +48,17 @@ RHO_RANGE: Tuple[float, float] = (0.3, 0.95)
 
 # (指標キー, Metrics/SimMetrics 共通メソッド名, 表示ラベル)
 METRIC_SPECS: List[Tuple[str, str, str]] = [
-    ("P_block", "blocking_probability", r"$P_{\mathrm{block}}$"),
+    ("P_block", "arrival_blocking_probability_stable", r"$P_{\mathrm{block}}$"),
     ("E[N]", "mean_queue_length", r"$E[N]$"),
     ("E[W]", "mean_waiting_time", r"$E[W]$"),
     ("lambda_eff", "effective_arrival_rate", r"$\lambda_{\mathrm{eff}}$"),
     ("rho_server", "utilization", r"$\rho_{\mathrm{server}}=E[B]/c$"),
     ("Cost", "energy_cost_paper", "Cost"),
 ]
+
+
+# 理論 (Metrics) と DES (SimMetrics) でメソッド名が違う指標: 理論 -> DES (_ci を付ける前)
+SIM_METHOD: Dict[str, str] = {"arrival_blocking_probability_stable": "arrival_blocking_probability"}
 
 
 def build_mmpp(
@@ -100,6 +107,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument(
+        "--rhos", type=float, nargs="+", default=None,
+        help="rho をこの値だけにする (照合の結果だけを出し, 図は描かない)",
+    )
+    parser.add_argument(
         "--quick", action="store_true",
         help="開発中の軽量実行用 (n-points=3, n-reps=3, warmup=5000, measurement=20000)",
     )
@@ -143,7 +154,7 @@ def _conservation_and_flow_balance(
 def main() -> None:
     args = parse_args()
     lo, hi = RHO_RANGE
-    rho_values = np.linspace(lo, hi, args.n_points)
+    rho_values = np.linspace(lo, hi, args.n_points) if args.rhos is None else np.array(args.rhos)
 
     theory_vals: Dict[str, List[float]] = {k: [] for k, _, _ in METRIC_SPECS}
     sim_pts: Dict[str, List[float]] = {k: [] for k, _, _ in METRIC_SPECS}
@@ -170,7 +181,7 @@ def main() -> None:
         point_in_ci = 0
         for key, method_name, _ in METRIC_SPECS:
             theory_val = getattr(theory, method_name)()
-            pt, ci_lo, ci_hi = getattr(sim_metrics, f"{method_name}_ci")()
+            pt, ci_lo, ci_hi = getattr(sim_metrics, f"{SIM_METHOD.get(method_name, method_name)}_ci")()
 
             theory_vals[key].append(theory_val)
             sim_pts[key].append(pt)
@@ -209,7 +220,8 @@ def main() -> None:
     print(f"保存則の最大誤差: {max_conservation_error:.3e}")
     print(f"流量バランスの最大誤差: {max_flow_balance_error:.3e}")
 
-    _plot(args, rho_values, theory_vals, sim_pts, sim_err_lo, sim_err_hi)
+    if args.rhos is None:
+        _plot(args, rho_values, theory_vals, sim_pts, sim_err_lo, sim_err_hi)
 
 
 def _plot(

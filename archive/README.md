@@ -10,6 +10,8 @@
 | `splu_vs_gth_comparison_figures/` | splu と GTH の精度比較図 (`scripts/make_gth_vs_splu_figures.py`) | `figures_gth/comparison/` |
 | `old_comparison_beta_fixed_no_protect/` | 旧比較 (β 固定, 保護なしの旧モデル) の図. 論文では使わないが再現できるように残す. CSV は `results/` のまま. 詳細と再生成の手順は中の README | `figures/compare_experiment_*`, `figures/experiment_{1P..4P,5,6}_*`, `figures/*_a0.1.*` |
 | `pre_gth_splu_figures/` | GTH 導入より前 (splu 時代, 2026-07〜08) の図. `theory_vs_sim_*` は生成スクリプトが残っていない. `experiment_6_extended/experiment_6_*_nt10` は `figures/experiment_6_*_nt10` の古い版 | `figures/theory_vs_sim_*`, `figures/experiment_6_extended/experiment_6_*_nt10.*` |
+| `figures_not_in_thesis/` | 論文で使わない図 (2026-10-25 に `figures/` から移した). 実験 7〜9 (比較の地図と頑健性の前の版. CSV とレポートは `results/experiment_{7,8,9}/` のまま. `scripts/experiment_{7_frontier,8_map,9_sensitivity}.py --report`, `scripts/blocking_reassessment.py` で `figures/` に作り直せる), 保護を入れる前のモデルの実験 0-P (`experiment_0P_validation`. P_block は時間平均の P(j=K)), 頑健性のパート A の改善率の上位 1 以外のマス (`robustness_A_*`. 数値は `results/robustness/report.md`), 実験 2 のフェーズ別の図 (`experiment_2_phasewise`. 論文では表で示す) | `figures/` |
+| `old_design_experiments_1_4/` | 2026-10-25 に設計し直す前の実験 1〜4 の図と CSV (弱・中・強の 3 バースト水準, β=0.005, 実験 2・3 は α ∈ {0.1, 1, 10}). コミット `9abff86` の時点のもの. 今のスクリプトでは作り直せない (コミット `9abff86` のスクリプトで作れる). 見直しの理由は `paper/review_logic_flow.md` | `figures/experiment_{1..4}_*`, `results/experiment_{1..4}*.csv` |
 
 GTH 移行の検証レポート・ベンチマーク・計測時間は論文の数値の出典なので, アーカイブではなく
 `results/gth_validation/` に置いている (旧パス `results_gth/`).

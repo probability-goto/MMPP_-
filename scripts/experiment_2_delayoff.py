@@ -120,39 +120,11 @@ def plot_A(rows: Sequence[dict], out_dir: str, metric: str, ylabel: str, ylog: b
     return paths
 
 
-def plot_B(rows: Sequence[dict], out_dir: str) -> List[str]:
-    """フェーズ別の ERP (1x2, 列 rho_B). 実線が閑散期, 破線が繁忙期."""
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    for ax, rho_B in zip(axes, d.RHO_B_LEVELS):
-        for alpha in ALPHA_STYLE:
-            for phase, ls in (("quiet", "-"), ("burst", "--")):
-                rr = _select(rows, rho_B_mmpp=float(rho_B), phase=phase, alpha=alpha)
-                ax.plot([float(r["beta"]) for r in rr], [float(r["ERP"]) for r in rr],
-                        linestyle=ls, label=rf"$\alpha={alpha:g}$, {phase}",
-                        **ALPHA_STYLE[alpha])
-        ax.set_xscale("log")
-        ax.set_title(rf"$\rho_B={rho_B:g}$", fontsize=13)
-        ax.set_xlabel(r"$\beta$", fontsize=14)
-        ax.set_ylabel("ERP", fontsize=14)
-        ax.grid(alpha=0.3)
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0), ncol=3,
-               fontsize=11)
-    fig.tight_layout(rect=(0, 0, 1, 0.86))
-    paths = save_figure(fig, out_dir, "experiment_2_phasewise")
-    plt.close(fig)
-    return paths
-
-
-def plot(rows_a: Sequence[dict], rows_b: Sequence[dict], out_dir: str) -> List[str]:
+def plot(rows_a: Sequence[dict], out_dir: str) -> List[str]:
+    """パート A の図 (ERP と P_block). パート B は論文で表にするので図は描かない."""
     return (plot_A(rows_a, out_dir, "ERP", "ERP", False, "experiment_2_delayoff_erp")
             + plot_A(rows_a, out_dir, "P_block_arrival_stable", r"$P_{\mathrm{block}}$", True,
-                     "experiment_2_delayoff_pblock")
-            + plot_B(rows_b, out_dir))
+                     "experiment_2_delayoff_pblock"))
 
 
 def main() -> None:
@@ -166,7 +138,7 @@ def main() -> None:
     d.report_checks(rows_a + rows_b)
     d.write_rows(os.path.join(args.csv_dir, CSV_A), rows_a, FIELDS_A)
     d.write_rows(os.path.join(args.csv_dir, CSV_B), rows_b, FIELDS_B)
-    plot(rows_a, rows_b, args.out_dir)
+    plot(rows_a, args.out_dir)
     print("キャプション用情報: c=20, K=200, b=5, 1/mu=1, delta=0.6. 星は損益分岐の beta_BE = 0.6 alpha.")
 
 
