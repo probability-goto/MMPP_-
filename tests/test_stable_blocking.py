@@ -120,13 +120,13 @@ class TestPositivityOnExperimentGrids:
         assert rows, f"空の CSV: {path}"
         # DES 照合の CSV は理論値を theory_P_block_arrival_stable 列に持つ.
         # 比較の地図の集計 (compare_map/summary.csv) は P_ref と pred_P 列に,
-        # 改善の仕組みの集計 (compare_map/mechanism.csv) は base_P, pred_P, qs_P 列に持つ
+        # 改善の仕組みの集計 (compare_map/mechanism.csv) は base_P, pred_P 列に持つ
         if "P_block_arrival_stable" in rows[0]:
             cols = ["P_block_arrival_stable"]
         elif "P_ref" in rows[0]:
             cols = ["P_ref", "pred_P"]
         elif "base_P" in rows[0]:
-            cols = ["base_P", "pred_P", "qs_P"]
+            cols = ["base_P", "pred_P"]
         else:
             cols = ["theory_P_block_arrival_stable"]
         assert all(c in rows[0] for c in cols), f"列がない: {path}"

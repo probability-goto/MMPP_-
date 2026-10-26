@@ -69,7 +69,7 @@ SUMMARY_CSV = os.path.join(cm.OUT_DIR, "summary.csv")
 P = "P_block_arrival_stable"
 
 RHO_B_LEVELS = cm.RHO_B_LEVELS
-R1_LEVELS = cm.R1_LEVELS
+R1_LEVELS = cm.R1_ALL  # 比較の地図の全マス (rho_B=1.12 の行は cm.R1_LEVELS だけ)
 CONTROL_1 = (0.8, 0.1)
 CONTROL_2_ROW = 1.12
 N_TOP = 2
@@ -122,9 +122,6 @@ def load_summary(path: str = SUMMARY_CSV) -> Dict[Tuple[float, float], dict]:
                 d[k] = float(r[k])
             d["pred_n_target"] = int(r["pred_n_target"])
             d["pred_is_base"] = r["pred_is_base"] == "True"
-            # 頑健性は地図の 5 x 3 マスが対象 (r1 を細かくしたマス (cm.R1_FINE) は使わない)
-            if d["r1"] not in R1_LEVELS:
-                continue
             out[(d["rho_B"], d["r1"])] = d
     return out
 
@@ -182,7 +179,7 @@ def points_B(sm=None) -> List[dict]:
     sm = load_summary() if sm is None else sm
     pts = []
     for rho_B in RHO_B_LEVELS:
-        for r1 in R1_LEVELS:
+        for r1 in cm.r1_levels(rho_B):
             s = sm[(rho_B, r1)]
             for name, rule, nt, g in B_CONFIGS:
                 pts.append(dict(rho_B=rho_B, r1=r1, config=name, rule=rule,
@@ -694,8 +691,8 @@ def plot_B(rows, fig_dir) -> List[str]:
     import matplotlib.pyplot as plt
     from matplotlib.patches import Patch
 
-    fig, axes = plt.subplots(1, len(B_CONFIGS), figsize=(4.4 * len(B_CONFIGS), 4.2),
-                             sharey=True)
+    fig, axes2 = plt.subplots(2, 2, figsize=(15, 8.6), sharey=True)
+    axes = axes2.flat
     for ax, (name, rule, nt, g) in zip(axes, B_CONFIGS):
         rgba = np.ones((len(RHO_B_LEVELS), len(R1_LEVELS), 4))
         for i, rho_B in enumerate(RHO_B_LEVELS):
@@ -703,6 +700,7 @@ def plot_B(rows, fig_dir) -> List[str]:
                 m = [r for r in rows if r["config"] == name and _f(r, "rho_B") == rho_B
                      and _f(r, "r1") == r1]
                 if not m:
+                    ax.text(j, i, "—", ha="center", va="center", fontsize=11, color="0.5")
                     continue
                 r = m[0]
                 cat = category5(_f(r, "rel_ERP"), _f(r, "p_ratio"))
@@ -725,8 +723,9 @@ def plot_B(rows, fig_dir) -> List[str]:
         ax.set_xlabel(r"$\log_{10} r_1$", fontsize=13)
         kind = "pre-setup" if nt > 0 else "delayoff accel."
         ax.set_title(rf"{kind}: $(n_{{\mathrm{{target}}}}, \gamma)$=({nt}, {g:g})", fontsize=11.5)
-    axes[0].set_yticks(range(len(RHO_B_LEVELS)))
-    axes[0].set_yticklabels([rf"$\rho_B$={v:g}" for v in RHO_B_LEVELS], fontsize=12)
+    for ax in axes2[:, 0]:
+        ax.set_yticks(range(len(RHO_B_LEVELS)))
+        ax.set_yticklabels([rf"$\rho_B$={v:g}" for v in RHO_B_LEVELS], fontsize=12)
     handles = [Patch(facecolor=CAT_STYLE[c][0], edgecolor="#bbbbbb", label=CAT_STYLE[c][1])
                for c in CATEGORIES5]
     fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 1.02),
