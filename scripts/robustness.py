@@ -51,7 +51,7 @@ from mmpp_experiments.classify import (
     CATEGORIES5, ERP_TIE, P_HI, P_LO, category5, erp_state, intervals, p_state,
 )
 from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
-from mmpp_experiments.plotting import log_scale_label
+from mmpp_experiments.plotting import log_scale_label, save_figure
 
 try:
     import compare_map as cm
@@ -552,17 +552,20 @@ def _style(ax):
 
 
 def plot_A(key, cr, s, fig_dir) -> List[str]:
-    """パラメータごとに, ERP の相対差 (上段) と P/P_ref (下段). 「Base より悪い」点は赤."""
+    """パラメータごとに, ERP の相対差 (上段) と P/P_ref (下段). 「Base より悪い」点は赤の四角.
+
+    書式は実験 1〜4 の図 (mmpp_experiments.plotting.plot_four_metrics) にそろえる.
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
     from matplotlib.ticker import FuncFormatter, NullFormatter
 
-    line_c, worse_c, thr_c = "#2a78d6", "#e34948", "#52514e"
     xlabels = {"beta_mult": r"$\beta / \beta^*$", "n_target": r"$n_{\mathrm{target}}$",
                "gamma": r"$\gamma$"}
     ref_x = {"beta_mult": 1.0, "n_target": s["pred_n_target"], "gamma": s["pred_gamma"]}
-    fig, axes = plt.subplots(2, 3, figsize=(13, 6.4), sharex="col")
+    fig, axes = plt.subplots(2, 3, figsize=(14, 8.5), sharex="col")
     for j, sw in enumerate(SWEEPS):
         pts = _sweep_rows(cr, sw)
         x = np.array([_f(r, "value") for r in pts])
@@ -571,17 +574,15 @@ def plot_A(key, cr, s, fig_dir) -> List[str]:
         we = np.array([erp_state(_f(r, "erp_rel")) == "worse" for r in pts], dtype=bool)
         wp = np.array([p_state(_f(r, "p_ratio")) == "worse" for r in pts], dtype=bool)
         for ax, y, w in ((axes[0, j], ye, we), (axes[1, j], yp, wp)):
-            _style(ax)
-            ax.axvline(ref_x[sw], color="#9a9a9a", linestyle=":", linewidth=1.2)
-            ax.plot(x, y, color=line_c, linewidth=2, zorder=2)
-            ax.scatter(x[~w], y[~w], s=40, color=line_c, edgecolor="white", linewidth=1.5,
-                       zorder=3, label="not worse than Base")
-            ax.scatter(x[w], y[w], s=48, color=worse_c, edgecolor="white", linewidth=1.5,
-                       marker="s", zorder=4, label="worse than Base")
-        axes[0, j].axhline(100 * ERP_TIE, color=thr_c, linestyle="--", linewidth=1)
-        axes[0, j].axhline(0, color="#888888", linewidth=0.8)
-        axes[1, j].axhline(P_HI, color=thr_c, linestyle="--", linewidth=1)
-        axes[1, j].axhline(1, color="#888888", linewidth=0.8)
+            ax.axvline(ref_x[sw], color="0.5", linestyle=":", linewidth=1)
+            ax.plot(x, y, color="tab:blue", marker="o", markersize=4)
+            ax.plot(x[w], y[w], color="tab:red", marker="s", markersize=6, linestyle="none")
+            ax.grid(alpha=0.3)
+            ax.tick_params(labelsize=10)
+        axes[0, j].axhline(100 * ERP_TIE, color="0.3", linestyle="--", linewidth=1)
+        axes[0, j].axhline(0, color="0.5", linewidth=0.8)
+        axes[1, j].axhline(P_HI, color="0.3", linestyle="--", linewidth=1)
+        axes[1, j].axhline(1, color="0.5", linewidth=0.8)
         axes[1, j].set_yscale("log")
         # 範囲が 1 桁未満だと副目盛りに 1.04×10^0 のような表記が出るので, 小数で書く
         lo, hi = min(list(yp) + [1.0, P_HI]), max(list(yp) + [1.0, P_HI])
@@ -596,29 +597,25 @@ def plot_A(key, cr, s, fig_dir) -> List[str]:
         axes[1, j].yaxis.set_minor_formatter(minor)
         if sw != "n_target":
             axes[1, j].set_xscale("log")
-        axes[1, j].set_xlabel(xlabels[sw], fontsize=14)
-    axes[0, 0].set_ylabel(r"$\Delta$ERP vs Base min [%]", fontsize=12)
-    axes[1, 0].set_ylabel(log_scale_label(r"$P / P_{\mathrm{ref}}$"), fontsize=12)
-    fig.text(0.62, 0.985, f"dashed: +{100 * ERP_TIE:g}% / {P_HI:g}, dotted: reference point",
-             ha="center", va="top", fontsize=10, color="#52514e")
-    handles, labels = [], []
-    for ax in axes.flat:
-        for h, lab in zip(*ax.get_legend_handles_labels()):
-            if lab not in labels:
-                handles.append(h)
-                labels.append(lab)
-    fig.legend(handles, labels, loc="upper left", bbox_to_anchor=(0.06, 1.0), ncol=2,
-               fontsize=11, frameon=False)
-    fig.suptitle(rf"$\rho_B$={key[0]:g}, $r_1$={key[1]:.3g}", x=0.98, y=0.995, ha="right",
-                 fontsize=13)
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
-    os.makedirs(fig_dir, exist_ok=True)
-    png = os.path.join(fig_dir, f"robustness_A_{cell_tag(key)}.png")
-    pdf = os.path.splitext(png)[0] + ".pdf"
-    fig.savefig(png, dpi=150, bbox_inches="tight")
-    fig.savefig(pdf, dpi=150, bbox_inches="tight")
+        else:
+            axes[1, j].set_xticks(range(0, int(max(x)) + 1, 5))
+        axes[1, j].set_xlabel(xlabels[sw], fontsize=16)
+    axes[0, 0].set_ylabel(r"$\Delta$ERP vs Base min [%]", fontsize=14)
+    axes[1, 0].set_ylabel(log_scale_label(r"$P / P_{\mathrm{ref}}$"), fontsize=14)
+    handles = [
+        Line2D([], [], color="tab:blue", marker="o", markersize=4),
+        Line2D([], [], color="tab:red", marker="s", markersize=6, linestyle="none"),
+        Line2D([], [], color="0.3", linestyle="--", linewidth=1),
+        Line2D([], [], color="0.5", linestyle=":", linewidth=1),
+    ]
+    labels = ["not worse than Base", "worse than Base",
+              f"threshold (+{100 * ERP_TIE:g}% / {P_HI:g})", "reference point"]
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0), ncol=4,
+               fontsize=13)
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    paths = save_figure(fig, fig_dir, f"robustness_A_{cell_tag(key)}")
     plt.close(fig)
-    return [pdf, png]
+    return paths
 
 
 # ============================================================
