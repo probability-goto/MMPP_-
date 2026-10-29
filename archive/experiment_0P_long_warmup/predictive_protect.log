@@ -40,3 +40,31 @@
     [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 9.948e-14
     [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.227e-02
   [事前セットアップ診断 (参考実行)] 発動回数=6, 平均delta_eff=1.67
+
+=== rho = 0.5167 (lambda_bar = 51.67), n_target=10, gamma=5.0, protect=True ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block         0.012451    0.012576    0.012147    0.013004      OK
+  E[N]              68.472      68.627      68.387      68.866      OK
+  E[W]               1.342      1.3443      1.3398      1.3489      OK
+  lambda_eff        51.023      51.049      50.824      51.274      OK
+  rho_server       0.51023     0.51068     0.50827     0.51308      OK
+  Cost              5.4293      5.4332      5.4165        5.45      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 2.132e-14
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.837e-02
+  [事前セットアップ診断 (参考実行)] 発動回数=1, 平均delta_eff=2
+
+=== rho = 0.5889 (lambda_bar = 58.89), n_target=10, gamma=5.0, protect=True ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block         0.032235    0.032353    0.031484    0.033223      OK
+  E[N]              83.238      83.512      83.171      83.853      OK
+  E[W]              1.4606      1.4637      1.4588      1.4687      OK
+  lambda_eff        56.991      57.055      56.783      57.327      OK
+  rho_server       0.56991     0.57065     0.56788     0.57343      OK
+  Cost              5.7927      5.8018      5.7852      5.8184      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 4.974e-14
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.048e-02
+  [事前セットアップ診断 (参考実行)] 発動回数=0, 平均delta_eff=0

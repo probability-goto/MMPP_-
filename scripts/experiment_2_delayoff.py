@@ -78,7 +78,7 @@ def _select(rows, **cond) -> List[dict]:
 
 def plot_A(rows: Sequence[dict], out_dir: str, metric: str, ylabel: str, ylog: bool,
            stem: str) -> List[str]:
-    """2x2 (行 rho_B, 列 フェーズの長さ) に, alpha ごとの線と損益分岐の点を描く."""
+    """2x2 (行 rho_B, 列 フェーズの長さ) に, alpha ごとの線と損益分岐の点, ERP を最小にする点を描く."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -98,6 +98,10 @@ def plot_A(rows: Sequence[dict], out_dir: str, metric: str, ylabel: str, ylog: b
                 ax.plot([float(be[0]["beta"])], [float(be[0][metric])], marker="*",
                         markersize=13, markeredgecolor="black", linestyle="none",
                         **ALPHA_STYLE[alpha])
+                best = min(rr, key=lambda r: float(r["ERP"]))
+                ax.plot([float(best["beta"])], [float(best[metric])], marker="o",
+                        markersize=13, markerfacecolor="none", markeredgecolor="black",
+                        markeredgewidth=1.5, linestyle="none", zorder=4)
             ax.set_xscale("log")
             if ylog:
                 ax.set_yscale("log")
@@ -112,7 +116,10 @@ def plot_A(rows: Sequence[dict], out_dir: str, metric: str, ylabel: str, ylog: b
     handles.append(Line2D([], [], marker="*", markersize=13, color="0.6",
                           markeredgecolor="black", linestyle="none"))
     labels.append(r"$\beta_{\mathrm{BE}}=0.6\alpha$")
-    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0), ncol=4,
+    handles.append(Line2D([], [], marker="o", markersize=13, markerfacecolor="none",
+                          markeredgecolor="black", markeredgewidth=1.5, linestyle="none"))
+    labels.append(r"$\beta^*$ (minimum ERP)")
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0), ncol=5,
                fontsize=13)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     paths = save_figure(fig, out_dir, stem)
@@ -139,7 +146,7 @@ def main() -> None:
     d.write_rows(os.path.join(args.csv_dir, CSV_A), rows_a, FIELDS_A)
     d.write_rows(os.path.join(args.csv_dir, CSV_B), rows_b, FIELDS_B)
     plot(rows_a, args.out_dir)
-    print("キャプション用情報: c=20, K=200, b=5, 1/mu=1, delta=0.6. 星は損益分岐の beta_BE = 0.6 alpha.")
+    print("キャプション用情報: c=20, K=200, b=5, 1/mu=1, delta=0.6. 星は損益分岐の beta_BE = 0.6 alpha, 黒の円は ERP を最小にする beta.")
 
 
 if __name__ == "__main__":
