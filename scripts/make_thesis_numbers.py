@@ -109,10 +109,8 @@ def exp0(m: Macros) -> None:
         return path, sum(int(a) for a, _ in hits), sum(int(b) for _, b in hits)
 
     for log, key, what in [
-        ("base.log", "Base", "ベースモデル (標準の設定: 10 点 × 6 指標, 20 レプリケーション)"),
-        ("predictive_protect.log", "Pred", "提案モデル (保護あり, 標準の設定)"),
-        ("base_long.log", "BaseLong",
-         "ベースモデルで CI から外れた ρ の点を, ウォームアップ 10 倍・計測 4 倍・独立なシードでやり直したもの"),
+        ("base.log", "Base", "ベースモデル (10 点 × 6 指標. ウォームアップ 1,000,000, 計測 4,000,000 イベント, 10 レプリケーション)"),
+        ("predictive_protect.log", "Pred", "提案モデル (保護あり. ウォームアップ 100,000, 計測 1,000,000 イベント, 20 レプリケーション)"),
     ]:
         path, inci, total = in_ci(log)
         src = f"出典: {path} の集計行 (「理論値が sim 95% CI 内」) の和"

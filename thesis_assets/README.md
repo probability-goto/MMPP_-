@@ -2,7 +2,7 @@
 
 `python scripts/make_thesis_numbers.py` で results/ の CSV とレポートの集計から生成する (手で編集しない). 新しい計算はしない.
 
-- `numbers.tex`: 数値マクロ (`\input{thesis_assets/numbers}` で読み込む). 266 個. 各マクロの直前に出典の CSV と計算方法をコメントで書いてある.
+- `numbers.tex`: 数値マクロ (`\input{thesis_assets/numbers}` で読み込む). 264 個. 各マクロの直前に出典の CSV と計算方法をコメントで書いてある.
 - `tables/*.tex`: table 環境の表 (booktabs と graphicx (幅の広い表の \resizebox) を使う. 数値マクロを参照する表は numbers.tex の後に読み込む).
 - `figures/`: figures/ からのコピー (PDF と PNG).
 

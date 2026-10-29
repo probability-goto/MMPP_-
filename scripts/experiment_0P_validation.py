@@ -14,6 +14,10 @@ Predictive 拡張の 2 機構 (事前セットアップ, Delayoff 加速) が実
 図を experiment_0P_validation_protect.{png,pdf} に保存する. 付けない場合は保護を入れる前の
 モデルで, 図は experiment_0P_validation.{png,pdf}.
 
+既定の設定 (ウォームアップ 100,000 イベント, 計測 1,000,000 イベント, 20 レプリケーション) は
+論文の設定 (results/experiment_0/predictive_protect.log). ベースモデルの実験 0 の既定 (1,000,000 / 4,000,000 / 10) とは違う.
+ベースモデルと同じ設定でやり直した結果は archive/experiment_0P_long_warmup/ (論文では使わない).
+
 使用例:
     python scripts/experiment_0P_validation.py --n-target 10 --gamma 5.0 \
         --n-replications 20 --warmup-events 100000 --measure-events 1000000

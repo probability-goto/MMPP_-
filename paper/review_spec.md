@@ -21,6 +21,9 @@ r1 の短と長は比較の地図の格子 (r1 = 0.1, 17.8) にそろえる.
 
 設定は変えない. 論文にパラメータを明記する: ベースモデル, 提案モデルとも α=0.1, β=0.005, δ=0.6, σ=0.1
 (r1=1), 提案モデルは n_target=10, γ=5, 保護あり. 図: experiment_0_validation.pdf, experiment_0P_validation_protect.pdf.
+2026-10-28 にベースモデルの DES の長さだけ変えた: ウォームアップ 1,000,000, 計測 4,000,000 イベント, 10 レプリケーション
+(旧は 100,000 / 1,000,000 / 20 で, ウォームアップが遅い時定数 1/β の 5 倍に満たなかった. 旧の結果は archive/experiment_0_short_warmup/).
+提案モデルは旧の設定のまま (同じ設定でやり直した結果は archive/experiment_0P_long_warmup/).
 
 ## 実験 1: ρ の走査
 
@@ -65,6 +68,8 @@ r1 の短と長は比較の地図の格子 (r1 = 0.1, 17.8) にそろえる.
 
 - 走査: K ∈ {100, 200, 500, 1000} × ρ (実験 1 と同じ 35 点) × r1 ∈ {0.1, 17.8}. δ=0.6, α=0.005, β=0.003.
 - 出力: results/experiment_4_short.csv, results/experiment_4_long.csv,
+  results/experiment_4_split.csv (長フェーズ K=1000 の P_block を超過による棄却と立ち上がりによる棄却に分けた表.
+  サーバーを切らない場合 β=1e-8 の P_block も持つ. 2026-10-28 追加),
   figures/experiment_4_K_sensitivity_{short,long}.{pdf,png}.
   旧 results/experiment_4_{weak,medium,strong}.csv と figures/experiment_4_K_sensitivity_{weak,medium,strong}.* は消す.
 - 確認する主張:

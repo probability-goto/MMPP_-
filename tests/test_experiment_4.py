@@ -37,3 +37,22 @@ def test_K200_matches_experiment_1(phase, condition):
         ref = e1[float(r["rho"])]
         for k in ("P_block_arrival_stable", "E_W", "Cost", "ERP"):
             assert float(r[k]) == pytest.approx(float(ref[k]), rel=1e-12)
+
+
+def test_split_matches_long_K1000():
+    """内訳 (experiment_4_split.csv) の P_block が長フェーズの K=1000 の行と一致し,
+    立ち上がりによる棄却 = P_block - 超過による棄却, かつサーバーを切らない場合は超過による棄却にほぼ一致する."""
+    def load(name):
+        with open(REPO / "results" / name, encoding="utf-8") as f:
+            return list(csv.DictReader(f))
+    long_ = {float(r["rho"]): r for r in load("experiment_4_long.csv") if int(r["K"]) == 1000}
+    rows = load("experiment_4_split.csv")
+    assert len(rows) == 5
+    for r in rows:
+        rho, p, ex = float(r["rho"]), float(r["P_block_arrival_stable"]), float(r["excess"])
+        assert p == float(long_[rho]["P_block_arrival_stable"])
+        rho_B = float(r["rho_B"])
+        assert ex == (0.0 if rho_B <= 1 + 1e-12 else pytest.approx(0.8 * (rho_B - 1) / rho_B, rel=1e-12))
+        assert float(r["startup"]) == pytest.approx(p - ex, abs=1e-15)
+        assert abs(float(r["always_on_minus_excess"])) <= 0.003
+        assert r["check"] == "ok"

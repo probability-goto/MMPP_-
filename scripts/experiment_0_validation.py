@@ -7,12 +7,15 @@
 理論値がシミュレーションの 95% CI に入っているか, 保存則 E[B]+E[I]+E[S]+E[Off]=c,
 流量バランス lambda_eff = b*mu*E[B] が成り立つかをコンソールに出力する.
 
---rhos で rho を指定すると, その点だけを照合して結果を出す (図は描かない). 標準の設定で信頼区間から外れた点を,
-ウォームアップと計測を長くして独立なシードでやり直すのに使う (results/experiment_0/base_long.log).
+--rhos で rho を指定すると, その点だけを照合して結果を出す (図は描かない).
+
+既定の設定 (ウォームアップ 1,000,000 イベント, 計測 4,000,000 イベント, 10 レプリケーション) は
+論文の設定 (results/experiment_0/base.log). 2026-10-28 に, ウォームアップが遅い時定数 1/beta の
+5 倍に満たないという警告をなくすため, 100,000 / 1,000,000 / 20 から変えた.
 
 使用例:
-    python scripts/experiment_0_validation.py --n-points 10 --n-reps 20 \
-        --warmup-events 100000 --measurement-events 1000000
+    python scripts/experiment_0_validation.py --n-points 10 --n-reps 10 \
+        --warmup-events 1000000 --measurement-events 4000000
     python scripts/experiment_0_validation.py --quick  # 開発中の軽量実行
 """
 import argparse
@@ -101,9 +104,9 @@ def parse_args() -> argparse.Namespace:
     """コマンドライン引数を解析する."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--n-points", type=int, default=10, help="rho スイープ点数")
-    parser.add_argument("--n-reps", type=int, default=20, help="独立レプリケーション数")
-    parser.add_argument("--warmup-events", type=int, default=100_000)
-    parser.add_argument("--measurement-events", type=int, default=1_000_000)
+    parser.add_argument("--n-reps", type=int, default=10, help="独立レプリケーション数")
+    parser.add_argument("--warmup-events", type=int, default=1_000_000)
+    parser.add_argument("--measurement-events", type=int, default=4_000_000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument(

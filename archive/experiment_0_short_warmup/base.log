@@ -1,0 +1,144 @@
+
+=== rho = 0.3 (lambda_bar = 30) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block       2.4215e-06  2.9527e-06 -2.2635e-06   8.169e-06      OK
+  E[N]              33.503       33.36       33.22        33.5      NG
+  E[W]              1.1168      1.1154      1.1133      1.1174      OK
+  lambda_eff            30       29.91      29.758      30.062      OK
+  rho_server           0.3     0.29873     0.29724     0.30022      OK
+  Cost              3.6645      3.6546      3.6459      3.6633      NG
+  -> 4/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 2.771e-13
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 3.708e-02
+
+=== rho = 0.3722 (lambda_bar = 37.22) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block       2.7631e-05  4.4384e-05  1.6499e-05  7.2268e-05      OK
+  E[N]              41.169      41.111       40.94      41.281      OK
+  E[W]              1.1061      1.1044      1.1025      1.1063      OK
+  lambda_eff        37.221      37.225      37.051        37.4      OK
+  rho_server       0.37221     0.37166     0.36986     0.37345      OK
+  Cost              4.4207      4.4127      4.3991      4.4263      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 6.395e-14
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 5.958e-02
+
+=== rho = 0.4444 (lambda_bar = 44.44) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block       0.00019887  0.00020315  0.00012905  0.00027726      OK
+  E[N]              49.302      49.174      48.835      49.512      OK
+  E[W]              1.1095      1.1082      1.1053      1.1112      OK
+  lambda_eff        44.436      44.373      44.038      44.709      OK
+  rho_server       0.44436     0.44322     0.43985     0.44659      OK
+  Cost              5.1157       5.104       5.088      5.1199      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 4.263e-14
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 3.553e-15, lambda_eff - b*mu*E[B] = 5.105e-02
+
+=== rho = 0.5167 (lambda_bar = 51.67) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block        0.0012534   0.0013051    0.001136   0.0014742      OK
+  E[N]              58.929      58.925      58.515      59.335      OK
+  E[W]               1.142       1.139      1.1352      1.1428      OK
+  lambda_eff        51.602      51.736      51.395      52.076      OK
+  rho_server       0.51602     0.51669      0.5132     0.52018      OK
+  Cost              5.6851      5.6902       5.673      5.7073      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 3.553e-15, lambda_eff - b*mu*E[B] = 2.984e-13
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 6.683e-02
+
+=== rho = 0.5889 (lambda_bar = 58.89) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block        0.0080189   0.0077113   0.0073378   0.0080847      OK
+  E[N]              72.729      72.028      71.326      72.731      OK
+  E[W]               1.245      1.2387      1.2338      1.2436      NG
+  lambda_eff        58.417      58.147       57.69      58.605      OK
+  rho_server       0.58417     0.58046     0.57578     0.58514      OK
+  Cost              6.0747      6.0558      6.0373      6.0743      NG
+  -> 4/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.421e-14
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.013e-01
+
+=== rho = 0.6611 (lambda_bar = 66.11) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block         0.036412    0.035675    0.034833    0.036518      OK
+  E[N]              90.141       90.39      89.343      91.438      OK
+  E[W]               1.415      1.4115      1.4057      1.4174      OK
+  lambda_eff        63.704      64.032      63.441      64.622      OK
+  rho_server       0.63704     0.63941     0.63334     0.64547      OK
+  Cost              6.3033      6.3117      6.2867      6.3367      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 7.105e-15
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 9.126e-02
+
+=== rho = 0.7333 (lambda_bar = 73.33) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block         0.086156     0.08549    0.083907    0.087073      OK
+  E[N]              102.78      102.51      101.54      103.48      OK
+  E[W]              1.5337       1.531      1.5247      1.5373      OK
+  lambda_eff        67.015      66.951      66.491      67.411      OK
+  rho_server       0.67015     0.66874     0.66413     0.67335      OK
+  Cost              6.4312      6.4244      6.4054      6.4434      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 5.684e-14
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 7.747e-02
+/workspaces/MMPP_-/scripts/experiment_0_validation.py:169: RuntimeWarning: ウォームアップが遅い時定数 1/beta = 200.00 に対して 4.69 倍しかありません. warmup_events を増やすことを検討してください.
+  check_warmup_duration(params, replications)
+
+=== rho = 0.8056 (lambda_bar = 80.56) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block          0.13875     0.13819     0.13666     0.13972      OK
+  E[N]              110.43      111.21      109.96      112.47      OK
+  E[W]              1.5916      1.5926      1.5869      1.5982      OK
+  lambda_eff        69.379      69.824      69.232      70.416      OK
+  rho_server       0.69379     0.69721     0.69139     0.70304      OK
+  Cost              6.5178      6.5304      6.5088      6.5519      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 8.527e-14
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.020e-01
+
+=== rho = 0.8778 (lambda_bar = 87.78) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block          0.18714     0.18673     0.18474     0.18873      OK
+  E[N]              115.62       115.3      114.22      116.38      OK
+  E[W]              1.6205      1.6182      1.6124       1.624      OK
+  lambda_eff        71.351      71.249      70.782      71.717      OK
+  rho_server       0.71351      0.7113     0.70663     0.71596      OK
+  Cost              6.5877      6.5777       6.561      6.5945      OK
+  -> 6/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 2.984e-13
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 3.553e-15, lambda_eff - b*mu*E[B] = 1.195e-01
+/workspaces/MMPP_-/scripts/experiment_0_validation.py:169: RuntimeWarning: ウォームアップが遅い時定数 1/beta = 200.00 に対して 4.33 倍しかありません. warmup_events を増やすことを検討してください.
+  check_warmup_duration(params, replications)
+
+=== rho = 0.95 (lambda_bar = 95) ===
+  metric            theory         sim       CI_lo       CI_hi   in_CI
+  P_block          0.23025      0.2286     0.22614     0.23107      OK
+  E[N]              119.58      118.15       116.9       119.4      NG
+  E[W]              1.6353      1.6293      1.6226      1.6361      OK
+  lambda_eff        73.126      72.509       71.97      73.047      NG
+  rho_server       0.73126     0.72421     0.71871     0.72971      NG
+  Cost               6.649       6.616      6.5944      6.6376      NG
+  -> 2/6 指標で理論値が 95% CI 内
+  [保存則・流量バランス]
+    [theory] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 1.137e-13
+    [sim] E[B]+E[I]+E[S]+E[Off]-c = 0.000e+00, lambda_eff - b*mu*E[B] = 8.788e-02
+
+=== 合格基準サマリ ===
+理論値が sim 95% CI 内: 52/60 (rho 点ごとに 6 指標中 5 つ以上が目安)
+保存則の最大誤差: 3.553e-15
+流量バランスの最大誤差: 1.195e-01
+
+キャプション用情報: Experiment 0 (medium burst, delta=0.6, sigma=0.1, CV of interarrival time = 1.454-1.456)
+
+図を保存しました: figures/experiment_0_validation.png, figures/experiment_0_validation.pdf
+exit=0
