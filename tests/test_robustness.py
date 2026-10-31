@@ -26,7 +26,7 @@ def test_select_A_cells():
 
 def test_point_counts():
     assert len(rb.points_A(SM)) == 4 * (7 + 11 + 9)
-    assert len(rb.points_B(SM)) == 23 * 4
+    assert len(rb.points_B(SM)) == 27 * 4
 
 
 @pytest.mark.parametrize("cell", A_CELLS, ids=[rb.cell_tag(k) for k in A_CELLS])

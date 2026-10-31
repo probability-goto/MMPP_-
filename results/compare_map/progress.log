@@ -488,3 +488,61 @@
 2026-10-23T17:10:56 computed=296 reused=0 elapsed=1381s last=rhoB0.8,r1=56.23,Predictive,fine,beta=0.0008078,n_target=20,gamma=1
 2026-10-23T17:11:09 rhoB0.8,r1=56.23 マス完了: computed=301 reused=0 bad=0 elapsed=1394s
 2026-10-23T17:11:38 rhoB0.8,r1=100 マス完了: computed=7 reused=1 bad=0 elapsed=29s
+2026-10-31T06:34:35 rhoB1.12,r1=0.1 マス完了: computed=0 reused=0 bad=0 elapsed=0s
+2026-10-31T06:34:35 rhoB1.12,r1=0.5623 マス完了: computed=0 reused=0 bad=0 elapsed=0s
+2026-10-31T06:34:35 rhoB1.12,r1=3.162 マス完了: computed=0 reused=0 bad=0 elapsed=0s
+2026-10-31T06:35:35 computed=58 reused=0 elapsed=60s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=1.581e-05,n_target=5,gamma=1
+2026-10-31T06:36:36 computed=116 reused=0 elapsed=121s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=0.005,n_target=10,gamma=1
+2026-10-31T06:37:36 computed=165 reused=0 elapsed=182s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=3.749e-06,n_target=15,gamma=1
+2026-10-31T06:38:39 computed=192 reused=0 elapsed=244s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=3.749e-06,n_target=15,gamma=30
+2026-10-31T06:39:44 computed=218 reused=0 elapsed=309s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=8.891e-07,n_target=20,gamma=1
+2026-10-31T06:40:49 computed=227 reused=0 elapsed=375s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=8.891e-07,n_target=20,gamma=3
+2026-10-31T06:41:55 computed=236 reused=0 elapsed=440s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=8.891e-07,n_target=20,gamma=10
+2026-10-31T06:43:00 computed=245 reused=0 elapsed=505s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=8.891e-07,n_target=20,gamma=30
+2026-10-31T06:44:05 computed=254 reused=0 elapsed=571s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=8.891e-07,n_target=20,gamma=100
+2026-10-31T06:45:11 computed=263 reused=0 elapsed=636s last=rhoB1.12,r1=5.623,Predictive,coarse,beta=8.891e-07,n_target=20,gamma=1000
+2026-10-31T06:46:11 computed=276 reused=0 elapsed=696s last=rhoB1.12,r1=5.623,Base,fine,beta=0.0005774,n_target=0,gamma=1
+2026-10-31T06:47:14 computed=297 reused=0 elapsed=759s last=rhoB1.12,r1=5.623,Predictive,fine,beta=0.003095,n_target=20,gamma=1
+2026-10-31T06:47:18 rhoB1.12,r1=5.623 マス完了: computed=301 reused=0 bad=0 elapsed=763s
+2026-10-31T06:48:18 computed=66 reused=0 elapsed=60s last=rhoB1.12,r1=10,Predictive,coarse,beta=2.108e-06,n_target=5,gamma=3
+2026-10-31T06:49:18 computed=123 reused=0 elapsed=120s last=rhoB1.12,r1=10,Predictive,coarse,beta=0.0001581,n_target=10,gamma=3
+2026-10-31T06:50:20 computed=168 reused=0 elapsed=182s last=rhoB1.12,r1=10,Predictive,coarse,beta=0.0001581,n_target=15,gamma=1
+2026-10-31T06:51:20 computed=194 reused=0 elapsed=243s last=rhoB1.12,r1=10,Predictive,coarse,beta=3.749e-05,n_target=15,gamma=30
+2026-10-31T06:52:21 computed=218 reused=0 elapsed=303s last=rhoB1.12,r1=10,Predictive,coarse,beta=5e-07,n_target=20,gamma=1
+2026-10-31T06:53:26 computed=227 reused=0 elapsed=369s last=rhoB1.12,r1=10,Predictive,coarse,beta=5e-07,n_target=20,gamma=3
+2026-10-31T06:54:32 computed=236 reused=0 elapsed=434s last=rhoB1.12,r1=10,Predictive,coarse,beta=5e-07,n_target=20,gamma=10
+2026-10-31T06:55:37 computed=245 reused=0 elapsed=500s last=rhoB1.12,r1=10,Predictive,coarse,beta=5e-07,n_target=20,gamma=30
+2026-10-31T06:56:42 computed=254 reused=0 elapsed=564s last=rhoB1.12,r1=10,Predictive,coarse,beta=5e-07,n_target=20,gamma=100
+2026-10-31T06:57:47 computed=263 reused=0 elapsed=629s last=rhoB1.12,r1=10,Predictive,coarse,beta=5e-07,n_target=20,gamma=1000
+2026-10-31T06:58:47 computed=276 reused=0 elapsed=690s last=rhoB1.12,r1=10,Base,fine,beta=0.001369,n_target=0,gamma=1
+2026-10-31T06:59:50 computed=297 reused=0 elapsed=753s last=rhoB1.12,r1=10,Predictive,fine,beta=0.00174,n_target=20,gamma=1
+2026-10-31T06:59:54 rhoB1.12,r1=10 マス完了: computed=301 reused=0 bad=0 elapsed=756s
+2026-10-31T06:59:54 rhoB1.12,r1=17.78 マス完了: computed=0 reused=0 bad=0 elapsed=0s
+2026-10-31T07:00:54 computed=63 reused=0 elapsed=60s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=0.003749,n_target=5,gamma=1
+2026-10-31T07:01:54 computed=120 reused=0 elapsed=120s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=6.668e-07,n_target=10,gamma=3
+2026-10-31T07:02:56 computed=167 reused=0 elapsed=181s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=1.186e-05,n_target=15,gamma=1
+2026-10-31T07:03:56 computed=191 reused=0 elapsed=242s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=1.581e-07,n_target=15,gamma=30
+2026-10-31T07:04:57 computed=217 reused=0 elapsed=303s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=0.01581,n_target=15,gamma=1000
+2026-10-31T07:05:57 computed=225 reused=0 elapsed=363s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=0.003749,n_target=20,gamma=1
+2026-10-31T07:07:02 computed=234 reused=0 elapsed=428s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=0.003749,n_target=20,gamma=3
+2026-10-31T07:08:08 computed=243 reused=0 elapsed=494s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=0.003749,n_target=20,gamma=10
+2026-10-31T07:09:14 computed=252 reused=0 elapsed=560s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=0.003749,n_target=20,gamma=30
+2026-10-31T07:10:19 computed=261 reused=0 elapsed=625s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=0.003749,n_target=20,gamma=100
+2026-10-31T07:11:25 computed=270 reused=0 elapsed=691s last=rhoB1.12,r1=31.62,Predictive,coarse,beta=0.003749,n_target=20,gamma=1000
+2026-10-31T07:12:30 computed=296 reused=0 elapsed=756s last=rhoB1.12,r1=31.62,Predictive,fine,beta=0.001436,n_target=20,gamma=1
+2026-10-31T07:12:41 rhoB1.12,r1=31.62 マス完了: computed=301 reused=0 bad=0 elapsed=767s
+2026-10-31T07:13:42 computed=66 reused=0 elapsed=61s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=3.749e-07,n_target=5,gamma=3
+2026-10-31T07:14:43 computed=123 reused=0 elapsed=122s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=2.812e-05,n_target=10,gamma=3
+2026-10-31T07:15:44 computed=159 reused=0 elapsed=183s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=2.812e-05,n_target=10,gamma=1000
+2026-10-31T07:16:45 computed=177 reused=0 elapsed=244s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=2.812e-05,n_target=15,gamma=3
+2026-10-31T07:17:48 computed=197 reused=0 elapsed=307s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=0.0005,n_target=15,gamma=30
+2026-10-31T07:18:55 computed=219 reused=0 elapsed=374s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=3.749e-07,n_target=20,gamma=1
+2026-10-31T07:20:04 computed=227 reused=0 elapsed=443s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=8.891e-08,n_target=20,gamma=3
+2026-10-31T07:21:11 computed=235 reused=0 elapsed=510s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=0.008891,n_target=20,gamma=3
+2026-10-31T07:22:16 computed=242 reused=0 elapsed=575s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=0.0005,n_target=20,gamma=10
+2026-10-31T07:23:18 computed=249 reused=0 elapsed=637s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=2.812e-05,n_target=20,gamma=30
+2026-10-31T07:24:22 computed=257 reused=0 elapsed=701s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=6.668e-06,n_target=20,gamma=100
+2026-10-31T07:25:27 computed=265 reused=0 elapsed=766s last=rhoB1.12,r1=56.23,Predictive,coarse,beta=1.581e-06,n_target=20,gamma=1000
+2026-10-31T07:26:31 computed=290 reused=0 elapsed=830s last=rhoB1.12,r1=56.23,Predictive,fine,beta=4.543e-05,n_target=20,gamma=10
+2026-10-31T07:27:31 rhoB1.12,r1=56.23 マス完了: computed=301 reused=0 bad=0 elapsed=889s
+2026-10-31T07:27:31 rhoB1.12,r1=100 マス完了: computed=0 reused=0 bad=0 elapsed=0s

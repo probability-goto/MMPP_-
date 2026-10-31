@@ -9,8 +9,8 @@ Base の ERP 最小値と比べる.
 固定: c=20, K=200, b=5, mu=1, delta=0.6, alpha=0.005 (1/alpha=200).
 到着は build_mmpp. rho = rho_B / (1 + delta), sigma = alpha / r1.
 マス: rho_B in {0.6, 0.8, 1.12} x r1 in R1_LEVELS (experiment_8_map.py と同じ, 対数 5 点 [0.1, 100]).
-rho_B in {0.6, 0.8} の行では, 改善が立ち上がる位置と最大になる位置を決めるために
-log10 r1 in {0.75, 1, 1.5, 1.75} (R1_FINE) を加える (rho_B=1.12 はどの r1 でも同等なので加えない).
+すべての行で, 改善が立ち上がる位置と最大になる位置を決めるために
+log10 r1 in {0.75, 1, 1.5, 1.75} (R1_FINE) を加える.
 定常分布は GTH.
 
 Base の探索 (experiment_8_map.py と同じ):
@@ -77,7 +77,6 @@ DELTA = e8.DELTA
 ALPHA = 0.005
 RHO_B_LEVELS = [0.6, 0.8, 1.12]
 R1_LEVELS = e8.R1_LEVELS
-RHO_B_FINE_R1 = [0.6, 0.8]
 R1_FINE = [float(10 ** e) for e in (0.75, 1.0, 1.5, 1.75)]
 R1_ALL = sorted(R1_LEVELS + R1_FINE)
 N_BETA = e8.N_BETA
@@ -115,7 +114,7 @@ def row_name(rho_B: float) -> str:
 
 
 def r1_levels(rho_B: float) -> List[float]:
-    return R1_ALL if rho_B in RHO_B_FINE_R1 else R1_LEVELS
+    return R1_ALL
 
 
 def cell_params(rho_B: float, r1: float) -> dict:
@@ -536,11 +535,13 @@ def _md_matrix(title, sm, fn) -> List[str]:
 
 
 def _combo_label(c: dict) -> str:
-    return "Base" if c["pred_is_base"] else f"({c['pred']['n_target']}, {c['pred']['gamma']:g})"
+    if c["pred_is_base"]:
+        return "Base"
+    return rf"$n_{{\mathrm{{target}}}}$={c['pred']['n_target']}" + "\n" + rf"$\gamma$={c['pred']['gamma']:g}"
 
 
 def plot_improvement(sm, fig_dir: str = FIG_DIR) -> List[str]:
-    """改善率 [%] のヒートマップ (行 rho_B, 列 log10 r1). 同等のマスは灰色."""
+    """改善率 [%] のヒートマップ (行 rho_B, 列 r1). 同等のマスは灰色で, 最良点の組を示さない."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -560,8 +561,10 @@ def plot_improvement(sm, fig_dir: str = FIG_DIR) -> List[str]:
     # マスとカラーバーで同じ色の対応にする
     cmap = ListedColormap(plt.get_cmap("Blues")(np.linspace(0.15, 1.0, 256)))
     norm = Normalize(vmin=0, vmax=vmax)
+    gray = (0.85, 0.85, 0.85, 1)
 
-    fig, ax = plt.subplots(figsize=(12, 4.6))
+    fig = plt.figure(figsize=(12, 5.2))
+    ax = fig.add_axes([0.08, 0.13, 0.9, 0.68])
     rgba = np.ones(M.shape + (4,))
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
@@ -570,16 +573,18 @@ def plot_improvement(sm, fig_dir: str = FIG_DIR) -> List[str]:
             elif improved[i, j]:
                 rgba[i, j] = cmap(norm(M[i, j]))
             else:
-                rgba[i, j] = (0.85, 0.85, 0.85, 1)
+                rgba[i, j] = gray
     ax.imshow(rgba, aspect="auto", origin="lower")
     for (rho_B, r1), c in sm.items():
         i, j = RHO_B_LEVELS.index(rho_B), R1_ALL.index(r1)
-        dark = improved[i, j] and norm(M[i, j]) > 0.6
-        color = "white" if dark else "black"
-        ax.text(j, i + 0.12, f"{M[i, j]:.2f}", ha="center", va="center", fontsize=13,
+        if not improved[i, j]:
+            ax.text(j, i, f"{M[i, j]:.2f}%", ha="center", va="center", fontsize=12, color="0.35")
+            continue
+        color = "white" if norm(M[i, j]) > 0.6 else "black"
+        ax.text(j, i + 0.2, f"{M[i, j]:.2f}%", ha="center", va="center", fontsize=13,
                 color=color)
-        ax.text(j, i - 0.2, _combo_label(c), ha="center", va="center", fontsize=10,
-                color=color)
+        ax.text(j, i - 0.17, _combo_label(c), ha="center", va="center", fontsize=10,
+                color=color, linespacing=1.5)
     for i, rho_B in enumerate(RHO_B_LEVELS):
         for j, r1 in enumerate(R1_ALL):
             if (rho_B, r1) not in sm:
@@ -590,14 +595,16 @@ def plot_improvement(sm, fig_dir: str = FIG_DIR) -> List[str]:
     ax.grid(which="minor", color="white", linewidth=2)
     ax.tick_params(which="minor", length=0)
     ax.set_xticks(range(len(R1_ALL)))
-    ax.set_xticklabels([f"{np.log10(r):.2f}" for r in R1_ALL], fontsize=11)
+    ax.set_xticklabels([f"{r:.3g}" for r in R1_ALL], fontsize=11)
     ax.set_yticks(range(len(RHO_B_LEVELS)))
     ax.set_yticklabels([rf"$\rho_B$={v:g}" for v in RHO_B_LEVELS], fontsize=12)
-    ax.set_xlabel(r"$\log_{10} r_1$", fontsize=14)
+    ax.set_xlabel(r"$r_1$", fontsize=14)
+
+    cax = fig.add_axes([0.08, 0.90, 0.35, 0.03])
     sm_ = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    cb = fig.colorbar(sm_, ax=ax, fraction=0.04, pad=0.02)
-    cb.set_label("ERP improvement vs Base [%]", fontsize=11)
-    fig.tight_layout()
+    cb = fig.colorbar(sm_, cax=cax, orientation="horizontal")
+    cb.set_label("ERP improvement vs Base [%]", fontsize=10)
+    cax.xaxis.set_label_position("top")
     os.makedirs(fig_dir, exist_ok=True)
     png = os.path.join(fig_dir, "compare_map_improvement.png")
     pdf = os.path.splitext(png)[0] + ".pdf"
@@ -611,11 +618,10 @@ def report(out_dir: str = OUT_DIR, fig_dir: str = FIG_DIR) -> str:
     sm = summaries(out_dir)
     caption = (
         "キャプション用情報: c=20, K=200, b=5, 1/mu=1, delta=0.6, alpha=0.005 (1/alpha=200), "
-        "rho=rho_B/1.6, sigma=alpha/r1, r1 は [0.1, 100] の対数 5 点 "
-        "(rho_B=0.6, 0.8 の行では log10 r1 = 0.75, 1, 1.5, 1.75 を加える. — は計算していないマス). "
+        "rho=rho_B/1.6, sigma=alpha/r1, r1 は [0.1, 100] の対数 5 点に 5.62, 10, 31.6, 56.2 を加えた 9 点. "
         "値は ERP の改善率 (Base の ERP 最小値に対する, P_block <= P_ref を満たす Predictive の "
-        "ERP 最小値の減少率) [%]. 下の括弧は最良点の (n_target, gamma). "
-        f"灰色は改善率 {100 * IMPROVE_THRESHOLD:g}% 以下 (同等). "
+        "ERP 最小値の減少率) [%]. 下段は最良点の (n_target, gamma). "
+        f"灰色は改善率 {100 * IMPROVE_THRESHOLD:g}% 以下 (同等) で, 最良点の組は示さない. "
         "Predictive は保護あり, beta, n_target in {0,5,10,15,20}, "
         "gamma in {1,3,10,30,100,1000} を最適化.")
     print(caption)

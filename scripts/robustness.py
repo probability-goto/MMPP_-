@@ -17,7 +17,7 @@ results/compare_map/summary.csv の値を使う.
     「Base より悪い」= ERP の相対差 (対 Base の ERP 最小値) > +0.1% または P / P_ref > 1.05
     (旧実験 9 のしきい値付きの判定と同じ).
 パート B (Base の最良の beta のまま規則を加える; 規則ごとに分ける):
-    15 マスすべてで Base の ERP 最小点の beta* を固定し, 事前セットアップ (n_target, gamma) =
+    比較の地図の 27 マスすべてで Base の ERP 最小点の beta* を固定し, 事前セットアップ (n_target, gamma) =
     (10, 1), (20, 1) と Delayoff の加速 (0, 3), (0, 10) を計算して, 同じ beta* の Base と比べる.
     判定は旧実験 9 のしきい値付きの 5 区分 (改善 / 同等 / 棄却のみ改善 / 引き換え / 悪化).
     beta は設定ごとに最適化しない (どの設定も Base の beta*).
@@ -69,7 +69,7 @@ SUMMARY_CSV = os.path.join(cm.OUT_DIR, "summary.csv")
 P = "P_block_arrival_stable"
 
 RHO_B_LEVELS = cm.RHO_B_LEVELS
-R1_LEVELS = cm.R1_ALL  # 比較の地図の全マス (rho_B=1.12 の行は cm.R1_LEVELS だけ)
+R1_LEVELS = cm.R1_ALL  # 比較の地図の全マス
 CONTROL_1 = (0.8, 0.1)
 CONTROL_2_ROW = 1.12
 N_TOP = 2
@@ -719,8 +719,8 @@ def plot_B(rows, fig_dir) -> List[str]:
         for s in ax.spines.values():
             s.set_visible(False)
         ax.set_xticks(range(len(R1_LEVELS)))
-        ax.set_xticklabels([f"{np.log10(v):.2f}" for v in R1_LEVELS], fontsize=10)
-        ax.set_xlabel(r"$\log_{10} r_1$", fontsize=13)
+        ax.set_xticklabels([f"{v:.3g}" for v in R1_LEVELS], fontsize=10)
+        ax.set_xlabel(r"$r_1$", fontsize=13)
         kind = "pre-setup" if nt > 0 else "delayoff accel."
         ax.set_title(rf"{kind}: $(n_{{\mathrm{{target}}}}, \gamma)$=({nt}, {g:g})", fontsize=11.5)
     for ax in axes2[:, 0]:
