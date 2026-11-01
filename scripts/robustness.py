@@ -694,8 +694,10 @@ def plot_B(rows, fig_dir) -> List[str]:
     import matplotlib.pyplot as plt
     from matplotlib.patches import Patch
 
-    fig, axes2 = plt.subplots(2, 2, figsize=(15, 8.6), sharey=True)
+    # マスに「ΔERP=」「P/P_ref=」を書くので, 2x2 ではなく縦に 4 段並べてマスを広くする
+    fig, axes2 = plt.subplots(len(B_CONFIGS), 1, figsize=(13, 14), sharex=True, squeeze=False)
     axes = axes2.flat
+    present = set()  # 凡例には図に現れる区分だけを並べる
     for ax, (name, rule, nt, g) in zip(axes, B_CONFIGS):
         rgba = np.ones((len(RHO_B_LEVELS), len(R1_LEVELS), 4))
         for i, rho_B in enumerate(RHO_B_LEVELS):
@@ -707,12 +709,17 @@ def plot_B(rows, fig_dir) -> List[str]:
                     continue
                 r = m[0]
                 cat = category5(_f(r, "rel_ERP"), _f(r, "p_ratio"))
+                present.add(cat)
                 color, label, ink = CAT_STYLE[cat]
                 rgba[i, j] = matplotlib.colors.to_rgba(color)
-                ax.text(j, i + 0.17, label, ha="center", va="center", fontsize=9.5, color=ink,
+                ax.text(j, i + 0.2, label, ha="center", va="center", fontsize=11, color=ink,
                         fontweight="bold")
-                ax.text(j, i - 0.17, f"{100 * _f(r, 'rel_ERP'):+.2f}%\n{_f(r, 'p_ratio'):.2f}",
-                        ha="center", va="center", fontsize=7.5, color=ink, linespacing=1.1)
+                # 実験 5 の地図 (n_target=, γ=) と同じく, 何の値かを書く
+                d_erp = 100 * _f(r, "rel_ERP")
+                d_txt = "0.00" if round(d_erp, 2) == 0 else f"{d_erp:+.2f}"  # -0.00 を出さない
+                ax.text(j, i - 0.15, rf"$\Delta$ERP={d_txt}%" "\n"
+                        rf"$P/P_{{\mathrm{{ref}}}}$={_f(r, 'p_ratio'):.2f}",
+                        ha="center", va="center", fontsize=9.5, color=ink, linespacing=1.3)
         ax.imshow(rgba, aspect="auto", origin="lower")
         ax.set_xticks(np.arange(-0.5, len(R1_LEVELS)), minor=True)
         ax.set_yticks(np.arange(-0.5, len(RHO_B_LEVELS)), minor=True)
@@ -722,20 +729,18 @@ def plot_B(rows, fig_dir) -> List[str]:
         for s in ax.spines.values():
             s.set_visible(False)
         ax.set_xticks(range(len(R1_LEVELS)))
-        ax.set_xticklabels([f"{v:.3g}" for v in R1_LEVELS], fontsize=10)
-        ax.set_xlabel(r"$r_1$", fontsize=13)
+        ax.set_xticklabels([f"{v:.3g}" for v in R1_LEVELS], fontsize=12)
         kind = "pre-setup" if nt > 0 else "delayoff accel."
-        ax.set_title(rf"{kind}: $(n_{{\mathrm{{target}}}}, \gamma)$=({nt}, {g:g})", fontsize=11.5)
+        ax.set_title(rf"{kind}: $(n_{{\mathrm{{target}}}}, \gamma)$=({nt}, {g:g})", fontsize=13)
+    axes2[-1, 0].set_xlabel(r"$r_1$", fontsize=15)
     for ax in axes2[:, 0]:
         ax.set_yticks(range(len(RHO_B_LEVELS)))
-        ax.set_yticklabels([rf"$\rho_B$={v:g}" for v in RHO_B_LEVELS], fontsize=12)
+        ax.set_yticklabels([rf"$\rho_B$={v:g}" for v in RHO_B_LEVELS], fontsize=13)
     handles = [Patch(facecolor=CAT_STYLE[c][0], edgecolor="#bbbbbb", label=CAT_STYLE[c][1])
-               for c in CATEGORIES5]
-    fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 1.02),
-               ncol=len(CATEGORIES5), fontsize=11, frameon=False)
-    fig.text(0.5, -0.02, r"cell text: category, $\Delta$ERP vs Base at $\beta^*$, "
-             r"$P / P_{\mathrm{Base}}(\beta^*)$", ha="center", fontsize=10, color="#52514e")
-    fig.tight_layout(rect=(0, 0, 1, 0.92))
+               for c in CATEGORIES5 if c in present]
+    fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 1.0),
+               ncol=len(handles), fontsize=13, frameon=False)
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
     os.makedirs(fig_dir, exist_ok=True)
     png = os.path.join(fig_dir, "robustness_B.png")
     pdf = os.path.splitext(png)[0] + ".pdf"
