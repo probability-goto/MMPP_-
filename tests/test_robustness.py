@@ -25,7 +25,7 @@ def test_select_A_cells():
 
 
 def test_point_counts():
-    assert len(rb.points_A(SM)) == 4 * (7 + 11 + 9)
+    assert len(rb.points_A(SM)) == 4 * (15 + 21 + 16)
     assert len(rb.points_B(SM)) == 27 * 4
 
 
@@ -36,7 +36,7 @@ def test_reference_point_matches_summary(cell):
     pts = [p for p in rb.points_A(SM) if (p["rho_B"], p["r1"]) == cell]
     ref = [p for p in pts if (p["sweep"], p["value"]) in
            [("beta_mult", 1.0), ("n_target", s["pred_n_target"]), ("gamma", s["pred_gamma"])]]
-    # n_target* が奇数 (15 など) のとき, n_target の格子 {0, 2, ..., 20} には基準点が入らない
+    # n_target の格子 {0, 1, ..., 20} は n_target* をいつも含むが, 格子を変えたときのために条件で書く
     assert len(ref) == 2 + (s["pred_n_target"] in rb.NT_SWEEP)
     for p in ref:
         assert (p["beta"], p["n_target"], p["gamma"]) == \

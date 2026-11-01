@@ -65,3 +65,21 @@
 2026-10-31T07:34:22 done=20/25 elapsed=24.6s eta=41.0s last=[BG] ρ_B=1.12, r1=10,βγ (0.000174, 20, 10)
 2026-10-31T07:35:03 done=25/25 elapsed=64.9s eta=0.0s last=[BG] ρ_B=1.12, r1=56.2,βγ (0.0003952, 20, 3)
 2026-10-31T07:35:03 [BG] 完了: 今回計算 8 点, 検査違反 0 件, 経過 64.9s
+2026-11-01T18:56:40 [A] 開始: 総点数 208 (計算済み 72, 今回計算 136)
+2026-11-01T18:57:43 done=80/208 elapsed=63.4s eta=1013.8s last=[A] ρ_B=0.8, r1=17.8,beta_mult=1.93
+2026-11-01T18:58:18 done=90/208 elapsed=98.5s eta=645.9s last=[A] ρ_B=0.8, r1=17.8,n_target=11
+2026-11-01T18:59:14 done=100/208 elapsed=154.5s eta=596.0s last=[A] ρ_B=0.8, r1=17.8,gamma=25.1
+2026-11-01T19:00:19 done=109/208 elapsed=218.8s eta=585.5s last=[A] ρ_B=0.8, r1=31.6,beta_mult=0.268
+2026-11-01T19:00:26 done=110/208 elapsed=226.2s eta=583.2s last=[A] ρ_B=0.8, r1=31.6,beta_mult=0.373
+2026-11-01T19:01:26 done=120/208 elapsed=285.8s eta=523.9s last=[A] ρ_B=0.8, r1=31.6,n_target=3
+2026-11-01T19:01:57 done=130/208 elapsed=317.6s eta=427.2s last=[A] ρ_B=0.8, r1=31.6,gamma=2.51
+2026-11-01T19:03:02 done=139/208 elapsed=382.0s eta=393.4s last=[A] ρ_B=0.8, r1=31.6,gamma=398
+2026-11-01T19:03:09 done=140/208 elapsed=389.1s eta=389.1s last=[A] ρ_B=0.8, r1=31.6,gamma=631
+2026-11-01T19:03:32 done=150/208 elapsed=411.9s eta=306.3s last=[A] ρ_B=0.8, r1=0.1,beta_mult=3.73
+2026-11-01T19:03:47 done=160/208 elapsed=426.8s eta=232.8s last=[A] ρ_B=0.8, r1=0.1,n_target=15
+2026-11-01T19:04:14 done=170/208 elapsed=454.3s eta=176.1s last=[A] ρ_B=0.8, r1=0.1,gamma=63.1
+2026-11-01T19:04:29 done=180/208 elapsed=469.3s eta=121.7s last=[A] ρ_B=1.12, r1=3.16,beta_mult=0.72
+2026-11-01T19:04:39 done=190/208 elapsed=479.0s eta=73.1s last=[A] ρ_B=1.12, r1=3.16,n_target=7
+2026-11-01T19:04:58 done=200/208 elapsed=498.4s eta=31.1s last=[A] ρ_B=1.12, r1=3.16,gamma=6.31
+2026-11-01T19:05:06 done=208/208 elapsed=506.2s eta=0.0s last=[A] ρ_B=1.12, r1=3.16,gamma=631
+2026-11-01T19:05:06 [A] 完了: 今回計算 136 点, 検査違反 0 件, 経過 506.2s

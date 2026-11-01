@@ -12,8 +12,10 @@ results/compare_map/summary.csv の値を使う.
     対象のマスは summary.csv から選ぶ: 改善率が大きい順に 2 マス, 対照 1 (rho_B=0.8, r1=0.1),
     対照 2 (rho_B=1.12 の行で改善率が最も小さいマス). 重複したら次の候補を使う.
     基準点 = 各マスの Predictive の主な基準での最良点 (beta*, n_target*, gamma*). 1 つのパラメータ
-    だけを動かし, 他は基準点に固定する: beta = beta* x {0.1, 0.3, 0.5, 1, 2, 3, 10},
-    n_target in {0, 2, ..., 20}, gamma in {1, 2, 3, 5, 10, 30, 100, 300, 1000}.
+    だけを動かし, 他は基準点に固定する: beta = beta* x 10^(k/7) (k = -7, ..., 7. 0.1〜10 倍の 15 点),
+    n_target in {0, 1, ..., 20} (21 点), gamma = 10^(k/5) (k = 0, ..., 15. 1〜1000 の 16 点).
+    値は有効数字 3 桁に丸める. 2026-11-01 より前の粗い格子 (beta 7 点, n_target 11 点, gamma 9 点)
+    の結果は archive/robustness_A_coarse_grid/ にある.
     「Base より悪い」= ERP の相対差 (対 Base の ERP 最小値) > +0.1% または P / P_ref > 1.05
     (旧実験 9 のしきい値付きの判定と同じ).
 パート B (Base の最良の beta のまま規則を加える; 規則ごとに分ける):
@@ -77,9 +79,9 @@ N_TOP = 2
 PLOT_A_ROLES = ("改善率の上位 1",)
 
 SWEEPS = ["beta_mult", "n_target", "gamma"]
-BETA_MULT = [0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 10.0]
-NT_SWEEP = list(range(0, 21, 2))
-GAMMA_SWEEP = [1.0, 2.0, 3.0, 5.0, 10.0, 30.0, 100.0, 300.0, 1000.0]
+BETA_MULT = [float(f"{10 ** (k / 7):.3g}") for k in range(-7, 8)]
+NT_SWEEP = list(range(0, 21))
+GAMMA_SWEEP = [float(f"{10 ** (k / 5):.3g}") for k in range(0, 16)]
 
 # パート B の設定: (名前, 規則, n_target, gamma)
 B_CONFIGS = [("presetup nt=10", "事前セットアップ", 10, 1.0),
@@ -559,7 +561,8 @@ def plot_A(key, cr, s, fig_dir) -> List[str]:
     from matplotlib.lines import Line2D
     from matplotlib.ticker import FuncFormatter, NullFormatter
 
-    xlabels = {"beta_mult": r"$\beta / \beta^*$", "n_target": r"$n_{\mathrm{target}}$",
+    # 論文では β^* をベースモデルの ERP を最小にする β に使うので, 最良点の β は β_best と書く
+    xlabels = {"beta_mult": r"$\beta / \beta_{\mathrm{best}}$", "n_target": r"$n_{\mathrm{target}}$",
                "gamma": r"$\gamma$"}
     ref_x = {"beta_mult": 1.0, "n_target": s["pred_n_target"], "gamma": s["pred_gamma"]}
     fig, axes = plt.subplots(2, 3, figsize=(14, 8.5), sharex="col")
@@ -606,7 +609,7 @@ def plot_A(key, cr, s, fig_dir) -> List[str]:
         Line2D([], [], color="0.5", linestyle=":", linewidth=1),
     ]
     labels = ["not worse than Base", "worse than Base",
-              f"threshold (+{100 * ERP_TIE:g}% / {P_HI:g})", "reference point"]
+              f"threshold (+{100 * ERP_TIE:g}% / {P_HI:g})", "best point (Exp. 5)"]
     fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 1.0), ncol=4,
                fontsize=13)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
