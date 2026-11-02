@@ -109,7 +109,7 @@ def exp0(m: Macros) -> None:
         return path, sum(int(a) for a, _ in hits), sum(int(b) for _, b in hits)
 
     for log, key, what in [
-        ("base.log", "Base", "ベースモデル (10 点 × 6 指標. ウォームアップ 1,000,000, 計測 4,000,000 イベント, 10 レプリケーション)"),
+        ("base.log", "Base", "ベースモデル (10 点 × 6 指標. ウォームアップ 1,000,000, 計測 4,000,000 イベント, 20 レプリケーション)"),
         ("predictive_protect.log", "Pred", "提案モデル (保護あり. ウォームアップ 100,000, 計測 1,000,000 イベント, 20 レプリケーション)"),
     ]:
         path, inci, total = in_ci(log)

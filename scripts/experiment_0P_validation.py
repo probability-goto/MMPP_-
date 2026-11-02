@@ -15,7 +15,8 @@ Predictive 拡張の 2 機構 (事前セットアップ, Delayoff 加速) が実
 モデルで, 図は experiment_0P_validation.{png,pdf}.
 
 既定の設定 (ウォームアップ 100,000 イベント, 計測 1,000,000 イベント, 20 レプリケーション) は
-論文の設定 (results/experiment_0/predictive_protect.log). ベースモデルの実験 0 の既定 (1,000,000 / 4,000,000 / 10) とは違う.
+論文の設定 (results/experiment_0/predictive_protect.log). ベースモデルの実験 0 の既定 (1,000,000 / 4,000,000 / 20) とは
+イベント数が違う (レプリケーション数は同じ).
 ベースモデルと同じ設定でやり直した結果は archive/experiment_0P_long_warmup/ (論文では使わない).
 
 使用例:
