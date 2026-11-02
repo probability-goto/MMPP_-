@@ -1,0 +1,2047 @@
+% レポート用のドキュメントクラス（\chapterが使えるようになります）
+\documentclass[a4paper, 12pt, dvipdfmx]{jsreport} 
+% 数式パッケージ（\textやpmatrixを使うために【必須】です）
+\usepackage{amsmath, amssymb, amsthm, bm}
+\usepackage{algorithm, algpseudocode}  % Algorithm 環境
+\usepackage{verbatim}       
+% コード用(既定で含まれる)
+\usepackage{booktabs}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{url} % URLを扱うためのパッケージ
+\usepackage{geometry}
+\geometry{top=20mm, bottom=20mm, left=23mm, right=23mm}
+\newtheorem{theorem}{定理}
+\newtheorem{lemma}[theorem]{補題}
+\newtheorem{proposition}[theorem]{命題}
+\newtheorem{corollary}[theorem]{系}
+\newtheorem{definition}[theorem]{定義}
+\newtheorem{example}[theorem]{例}
+\newtheorem{remark}[theorem]{注意}
+\usepackage[T1]{fontenc}
+\usepackage{subcaption} 
+\usepackage{graphicx}
+\usepackage{float} 
+\setcounter{MaxMatrixCols}{12} % 12列以上の行列を許可する
+
+
+\begin{document}
+
+% 表紙
+\begin{titlepage}
+    \begin{center}
+        \vspace*{0.1cm}
+        {\huge 令和 8年度}\\[1cm]
+        {\huge 筑波大学大学院}\\[1cm]
+        {\huge 修士論文}\\[3cm]
+        
+        
+        \vspace*{\fill} % ページ下部まで均等に伸ばす
+        \vspace{1cm} % 必要に応じて追加でスペースを下げる
+        \huge
+        \begin{tabbing}
+            題　　目：\= バースト性を考慮したマルチサーバー\\ 
+                      \> 待ち行列モデルにおける省電力・応答性能の解析 \\[1cm]
+            主 専 攻 ：\> 社会工学学位プログラム \\[1cm]
+            学籍番号：\> 202520451 \\[1cm]
+            氏　　名：後藤優希 \\[1cm]
+            指導教員：\= Phung-Duc Tuan \\
+        \end{tabbing}
+
+    \end{center}
+\end{titlepage}
+
+% 空白ページ
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+
+
+% 表紙
+\begin{titlepage}
+    \begin{center}
+        \vspace*{0cm}
+        \Large{バースト性を考慮したマルチサーバー待ち行列モデルにおける省電力・応答性能の解析}\\[1cm]
+        \Large 社会工学学位プログラム専攻 \quad 202520451 \quad 後藤優希 \\[1cm]
+    \end{center}
+    \begin{flushright}
+        \Large 指導教員：Phung-Duc Tuan
+    \end{flushright}
+
+\vspace{2cm}
+\begin{center}
+    \Large{要旨}
+\end{center}
+
+\end{titlepage}
+
+% 空白ページ
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+
+\renewcommand{\contentsname}{} % 目次の見出しを非表示にする
+
+
+% ============================================================
+% Introduction 章
+%
+% 本研究の位置づけ:
+%   先行研究 Le-Anh & Phung-Duc (2025) の M/M/c/SET-BATCH/Delayoff モデルを
+%   MMPP 到着へ拡張する.  対象は Web / API / ML 推論などのアプリケーション
+%   領域を主とするデータセンターワークロード. 
+%
+% 参考文献キー (BibTeX の想定):
+%   \cite{LeAnh2025}   — 先行研究 (Le-Anh & Phung-Duc 2025)
+%   \cite{Gandhi2010}  — [1] Data center 消費電力の実態
+%   \cite{Gandhi2013}  — [19] Autoscale in data centers
+%   \cite{Leland1994}  — Ethernet traffic の self-similarity
+%   \cite{PenderPhung2016} — [28] 非定常到着の M/M/c/Setup-Delay
+%   \cite{Inoue2021}   — [35] GPU 推論サーバーのコスト関数
+%   \cite{MaccioDown2018} — Delayoff の漸近的最適性
+%
+% 使用パッケージ:
+%   \usepackage{amsmath, amssymb, bm}
+%   \usepackage{cite}
+%   \usepackage{graphicx}
+% ============================================================
+
+\chapter{序章}
+\label{sec:introduction}
+
+\section{背景}
+\label{sec:background}
+
+データセンターは現代の情報基盤を支える中核的な計算資源であり, その消費電力は
+急速に増加している. 国際エネルギー機関(IEA)によれば, 世界のデータセンターの
+電力消費は2024年に約$415$~TWhであり, これは世界の電力消費の約$1. 5\%$に
+相当する.  さらに2030年には約$945$~TWhに達すると予測されている
+\cite{IEA2025}.  日本においても, データセンターの電力消費は2024年の
+$19$~TWhから, 2034年には$57$--$66$~TWhへと3倍以上に増加すると予測されて
+いる\cite{WoodMackenzie2025}.  このように電力消費の総量が増加する一方で, 
+消費された電力の多くが有効に使われていないという問題がある. 
+
+電力が浪費される主な要因の一つは, 処理を行っていないアイドル状態のサーバーで
+ある.  サーバーの消費電力は処理量に比例しない.  BarrosoとH\"{o}lzleは, 
+エネルギー効率の高いサーバーであっても, ほとんど処理を行っていないときに
+最大電力の約半分を消費し, エネルギー効率への配慮が少ないサーバーでは
+アイドル時の消費電力がさらに高くなることを指摘している
+\cite{BarrosoHolzle2007}.  また, サーバーの稼働率はデータセンターの種類によって
+大きく異なる.  米国のデータセンターの電力消費を推計したLawrence Berkeley
+National Laboratory(LBNL)の報告書は, 企業などが自ら運用する社内データセンター
+および小規模データセンターのサーバーの平均稼働率を, 2014年に$11\%$とし, 
+2027年までに$20\%$へ上昇すると見積もっている.  これに対し, コロケーション
+データセンターでは2014年の$21\%$から2027年の$35\%$へ, ハイパースケール
+データセンターでは$45\%$から$50\%$へと推移するとしている\cite{Shehabi2024}. 
+同報告書の推計では, 稼働していない時間のサーバーはアイドル状態として電力を
+消費し続けるものとして扱われている. したがって, 本研究が対象とする社内
+データセンターのような中規模のシステムでは, サーバーは時間の大半をアイドル
+状態で過ごし, その間も電力を消費し続けていることになる. 
+
+アイドル状態のサーバーによる電力の浪費を削減する直接的な方法は, 処理のない
+サーバーの電源を切ることである. しかし, 多くの企業はアイドル状態のサーバーの
+電源を切ることを消極的である. 電源を切ったサーバーを再び処理可能な状態に
+するにはセットアップが必要であり, その時間は典型的に$200$秒である
+のに対し, ジョブのサービス時間は典型的に$1$秒未満だからである
+\cite{Gandhi2014}. さらに, セットアップ中のサーバーは処理を行えないにもかかわらず, 
+その期間中ずっとピーク時の電力を消費する\cite{Gandhi2014}. したがって, 
+アイドル状態のサーバーの電源を切ることが有利であるとは限らず, サーバーの
+オン・オフの管理には, 消費電力の削減と応答時間の性能との間のトレードオフが
+生じる. 
+
+このトレードオフに対処するため, サーバーの電源をオンオフするタイミングを
+工夫する方法が研究と実務の両面で検討されてきた. 
+
+第一は, アイドル状態になったサーバーの電源をすぐには切らず, 一定時間待機させて
+から切る方法である. 本研究ではこの方法をDelayoffと呼ぶ. 待機中に次のジョブが
+到着すれば, セットアップを行わずに処理を再開できる. Gandhiらは, この方法を用いた容量管理方式を実際のサーバー環境に実装し, 電源をすぐに切る方式よりも応答時間の遅延を抑えつつ, すべてのサーバーを常に稼働させる方式よりも消費電力を削減できることを示した. \cite{Gandhi2012AutoScale}. また, サーバーレスコンピューティングの基盤でも, 関数の実行後に資源を一定時間保持するkeep-aliveとして同様の方法が用い
+られている\cite{Shahrad2020}. 
+
+第二は, 負荷の増加を予測し, セットアップを先に始めておく方法である. セット
+アップ時間は長いため, 負荷が増えてから起動を始めたのでは間に合わない場合が
+あるからである. 例えば, AWSが提供する予測スケーリングは, 過去の負荷の履歴から
+将来の負荷を予測し, インスタンスを事前に起動する\cite{AWSPredictive}. 
+Shahradらも, 関数の呼び出し間隔の履歴から次の呼び出しを予測し, 事前にメモリへ
+ロードする方式を提案している\cite{Shahrad2020}. これらの方法はいずれも, 過去の
+履歴に基づいて将来の負荷を予測する点で共通している. 
+
+第三は, 複数のジョブをまとめて処理するバッチ処理である. 機械学習の
+推論サーバーであるNVIDIA Triton Inference Server は, 到着した推論要求を
+まとめてバッチとして処理する機能を備えている\cite{Triton}.  バッチ処理では
+1回の処理で多くのジョブを扱えるという利点がある. 
+
+これらの方法は, これまでにも多く解析されてきた. ただし, 
+セットアップを伴う既存の待ち行列モデルの多くは, ジョブの到着をポアソン過程と仮定している. また, バッファ容量を無限と仮定する
+モデルも多い. 
+しかし, 実際のデータセンターにおける到着は, 短時間に集中して到着が発生し、その後は閑散が続くようなバースト性を持つ. 
+Bensonらは, 実際に稼働している10か所のデータセンター(大学3か所, 企業
+2か所, クラウド5か所)のネットワークトラフィックを計測し, トラフィックがON/OFF型のパターンを示すことを明らかにした\cite{Benson2010}. また, あるLLMのサービス事業者の1年間の実運用のリクエストログを分析した研究でも, 多くのモデルでバースト性を観測した\cite{AYearLLMServing}. 
+
+このバースト性は, 次の二つの問題を生む. 一つはジョブの棄却の増加である. バーストの間は短時間に多くのジョブが到着するため, バッファが満杯になり, 到着したジョブが拒否されやすくなる. 
+実際のシステムでもキューの長さには上限が設けられており, キューの最大長を超えた要求は拒否される\cite{Triton}. もう一つはサーバーの起動の遅れである. セットアップ時間はサービス時間に比べて非常に長い
+ため, 負荷が増えてから起動を始める方法では, バーストに間に合わないおそれがある. 実際にAWSは, 予測スケーリングは
+周期的に負荷が増加するWebサイトやアプリケーションに適しており, 周期的でない, あるいは予測できない負荷の急増には向かないとしている\cite{AWSBlog2018}. 
+
+\section{本研究の目的と提案}
+\label{sec:proposal}
+
+本研究の目的は, バースト性を持つ到着の下で, セットアップ・Delayoff・バッチ処理
+を組み合わせたサーバー群の消費電力と応答性能を評価し, バーストによるジョブの棄却の増加とサーバーの起動の遅れを考慮した運用方策を検討することである. 
+そのために本研究では, 先行研究\cite{LeAnh2025}
+のバッチ処理・セットアップ・Delayoffのモデルを, 次の二点で拡張したものをベースモデルとする. 第一に, 到着過程を2相のマルコフ変調ポアソン過程(MMPP)とする. MMPPによって, 閑散期と繁忙期を確率的に切り替え, それぞれの期間で異なる到着率を持つことで高負荷の期間が続くというバースト性を表現する. 第二に, バッファ容量を有限とし, ブロッキング確率を評価する. 定常分布の計算にはGTHアルゴリズム
+\cite{GrassmannTaksarHeyman1985}を用い, 微小なブロッキング確率も低い相対誤差で求める. 
+
+そして, サーバーの起動の遅れにフェーズの情報で対処できるかを調べるため, MMPPのフェーズの切り替わりを負荷変動のシグナルとして用いる制御をベースモデルに加えたモデル (以下, 提案モデル) を提案する. このモデルは, 閑散期から繁忙期へ切り替わった時点でセットアップを始め, 繁忙期から閑散期へ切り替わった後はIdle状態のサーバーの電源をより早く切る. 
+なお本研究では, フェーズの切り替わりを観測できるものと仮定する. 
+
+本研究では次の 3 点を調べる. 
+\begin{itemize}
+    \item バースト性はDelayoffを用いたサーバー群の性能をどう変えるか. 
+    \item フェーズの情報を用いる制御は, エネルギー・応答時間積 (ERP) が最小になるように Delayoff 率を選んだベースモデルより, ERP を下げられるか. 下げられるならば, どのような条件で, どの規則によるか. 
+    \item その改善は, 制御パラメータの設定のずれに対して頑健か. 
+\end{itemize}
+
+本研究の主な貢献は次の4点である. 
+
+\begin{enumerate}
+    \item \textbf{MMPP 到着と有限バッファへのモデルの拡張. }
+        先行研究\cite{LeAnh2025}のM/M/c/SET-BATCH/Delayoffモデルを, MMPP到着と有限バッファを持つモデルへ拡張し, 到着のバースト性とジョブの拒否を明示的に扱えるようにする. 
+    \item \textbf{GTHアルゴリズムによる厳密な数値解析. }
+        有限バッファのモデルの生成行列を構築し, GTHアルゴリズムによって定常分布を求める. 生成行列の帯構造を利用することで, 計算量をバッファ容量に対して線形に抑えつつ, 微小なブロッキング確率を低い相対誤差で評価する. 
+    \item \textbf{バースト性が性能指標に与える影響の定量化. }
+        バースト期の負荷, 到着率の振幅, フェーズの長さとセットアップ時間の比という3つの軸を
+        変える数値実験により, ブロッキング確率, 平均応答時間, 消費電力, および
+        ERP に対するバースト性の影響を明らかにする. 
+    \item \textbf{フェーズの情報を用いる制御モデルの提案とベースモデルとの比較. }
+        MMPP のフェーズの切り替わりを, セットアップの開始と電源を切る時機のきっかけとして用いる制御をベースモデルに加えた提案モデルを定式化する. ブロッキング確率がベースモデルを上回らない範囲で両モデルの ERP の最小値を比較し, 改善が得られる条件, その大きさ, 改善をもたらす規則, 設定への感度を明らかにする. 
+\end{enumerate}
+
+\section{対象とするワークロードと到着の性質}
+\label{sec:workload}
+
+本研究が主として対象とするワークロード領域は, 現代のデータセンターに
+おける\textbf{Web/API/アプリケーション処理}である. 具体例として
+以下が挙げられる. 
+
+\begin{itemize}
+    \item WebサーバーおよびAPIゲートウェイへのリクエスト処理
+    \item 機械学習(ML)推論サービスへの推論リクエスト
+        (Tesla V100等GPUによる並列バッチ処理\cite{Inoue2021})
+    \item アプリケーションログの集約・変換パイプライン\cite{LeAnh2025}
+    \item クラウド上のETL(Extract, Transform, Load)処理
+        (AWS Batch, Google Cloud Batch 等)
+\end{itemize}
+
+具体的なバースト性の発生要因として次が挙げられる. Web/APIリクエストは
+時間帯(ラッシュアワー)や外部イベント(ニュース, セール, ソーシャルメディアの拡散)に起因する需要変動を示す. ML推論サービスでは, 上流アプリケーションのバッチ的なリクエスト送出パターンに従って推論要求が集中的に到着する. 
+アプリケーションログでは, 上流システムの障害やスパイクトラフィックが
+下流のログ処理に短時間の集中負荷を生む. これらのバースト性はPoisson仮定
+では原理的に表現できず, 適切なモデル化には非定常あるいは相関のある到着過程
+が必要となる. 
+
+\section{先行研究}
+\label{sec:limitations}
+
+上記のように, データセンターのWeb/API/アプリケーション領域では到着の
+バースト性が実運用上の重要な特性である. しかし待ち行列理論に基づく既存の
+セットアップ・バッチ処理モデル研究の大多数は, 数理的な取り扱いやすさを
+優先して, 到着をPoisson過程と仮定してきた. 
+
+加えて, 先行研究\cite{LeAnh2025}は計算量削減のため, 有限バッファ
+$K$を持つシステムの解析を無限バッファ近似で置き換えている. しかし本研究が対象とするバースト到着下では, 繁忙期にバッファが瞬間的に満杯に達しブロック
+(ジョブ損失)が発生する可能性がPoissonの場合より本質的に高くなる. 
+したがってバースト到着モデルにおいては, 有限バッファでの厳密解と
+ブロッキング確率の定量評価が重要な意義を持つ. 
+
+
+
+\chapter{数理モデル}
+\label{chap:mathematical_model}
+
+本章では, データセンター等におけるサーバの消費電力と応答時間のトレードオフを評価するために構築した2つの待ち行列モデルについて, その数学的定式化を行う. 
+\ref{sec:system-definition}節で対象システムと2つのモデルの概要を述べ, 
+\ref{sec:base-model}節でベースモデル, \ref{sec:predictive-model}節で提案モデルを定式化する. 定常分布の計算法と性能評価指標は
+両モデルに共通であるため, 第~\ref{chap:analysis}章でまとめて述べる. 
+
+\section{対象システムとモデルの定義}
+\label{sec:system-definition}
+本研究では, サーバー台数$c$, バッチ処理サイズ$b$のマルチサーバー
+システムを対象とし, ジョブの到着過程にマルコフ変調ポアソン過程(MMPP)
+を適用する. 到着過程の環境フェーズを$F\in\{0, 1\}$とし, $F=0$を
+閑散状態(到着率が低い状態), $F=1$をバースト状態(混雑が継続する状態)
+とする. フェーズ内での遷移(到着を伴わない遷移)を表す率行列を$C_0$, 
+到着を表す率行列を$C_1$とする. 
+
+各サーバーは, 次の4つの状態のいずれかを取る. 
+\begin{itemize}
+    \item \textbf{Off}: 電源を切り, 電力を消費しない停止状態. 
+    \item \textbf{Setup}: 電源投入後, ジョブを処理可能になるまでの
+        起動(準備)状態. 電力を消費するが処理は行えない. 
+    \item \textbf{Busy}: ジョブを処理している稼働状態. 
+    \item \textbf{Idle}: 電源は入っているがジョブを処理していない待機状態. 
+\end{itemize}
+
+本研究では以下の2つのモデルを定義する. 
+
+\begin{enumerate}
+    \item \textbf{MMPP/M/c/SET-BATCH/Delayoff}:
+        バッチ処理の完了後, サーバーはただちにOffへ移行せず, 平均
+$1/\beta$の指数分布に従う時間だけIdle状態を維持する. この間に処理すべきジョブが到着すれば処理を
+再開し, 到着がなければOffへ移行する. 
+    \item \textbf{MMPP/M/c/SET-BATCH/Delayoff/Predictive
+        }: MMPPのフェーズ遷移をトラフィック
+の増減シグナルとして利用し, サーバー状態を能動的に遷移させる. 
+具体的には, 閑散フェーズ($F=0$)から繁忙フェーズ($F=1$)へ
+遷移した瞬間に事前セットアップを開始する. 
+逆に繁忙フェーズから閑散フェーズへ遷移した際は, DelayoffのIdle状態の
+待機レートを定数倍したものへと
+引き上げ, より早期にOffへ移行させる. 
+\end{enumerate}
+以下, 1をベースモデル, 2を提案モデルと呼ぶ. 
+
+\section{ベースモデル: MMPP/M/c/SET-BATCH/Delayoff}
+\label{sec:base-model}
+
+本節では, ベースモデルの状態空間, 遷移率, 生成行列を定式化する. 
+
+\subsection{状態空間}
+\label{sec:state-space}
+ベースモデルの状態空間$\mathcal{S}$は, 次の3つの変数の組による
+3次元状態空間として定義される. 
+
+\begin{equation}
+    \mathcal{S} = \{(i, j, F) \mid 0 \le i \le c, \; 0 \le j \le K, \;
+    F \in \{0, 1\}\}
+\end{equation}
+
+ここで$i$はアクティブなサーバー台数, $j$は有限バッファ$K$のシステム内に存在する
+ジョブ数, $F$はMMPPの環境フェーズである. 本研究では, Busy状態
+およびIdle状態にあるサーバー, すなわち電源が入りジョブ処理に関与
+しうるサーバーをアクティブと呼び, その台数を$i$とする. 
+
+\begin{table}[H]
+\centering
+\caption{システムパラメータおよび状態変数の定義}
+\label{tab:parameters}
+\begin{tabular}{cl}
+\hline
+記号 & 定義 \\
+\hline
+\multicolumn{2}{l}{\textbf{システム構成パラメータ}} \\
+$c$ & サーバーの総台数 \\
+$K$ & システムの最大容量(バッファ長) \\
+$b$ & バッチサイズ(1台のサーバーが一度に処理するジョブ数) \\
+\multicolumn{2}{l}{\textbf{遷移レート}} \\
+$\mu$ & 1バッチあたりのサービス率 \\
+$\alpha$ & サーバーのセットアップ率 \\
+$\beta$ & Idle状態からOff状態へ移行するレート\\
+\multicolumn{2}{l}{\textbf{到着プロセス(MMPP)}}\\
+$F$ & 環境フェーズ ($F \in \{0, 1\}$. \ $0$: 閑散状態, $1$: バースト状態) \\
+$C_0$ & 到着を伴わないフェーズ遷移率行列(サイズ$2\times2$) \\
+$C_1$ & 到着を表す遷移率行列 (サイズ$2\times2$) \\
+\multicolumn{2}{l}{\textbf{状態変数}} \\
+$i$ & アクティブ(BusyまたはIdle)なサーバーの台数($0\le i\le c$) \\
+$j$ & システム内に存在するジョブの総数($0\le j \le K$) \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{各サーバー状態の台数}
+ベースモデルでは, システムの状態を個別のサーバーごとに追跡するのではなく, 
+アクティブなサーバー数$i$とジョブ数$j$の組み合わせに集約することで, 状態空間の爆発を防ぐ. 環境フェーズ$F$は到着過程のみを制御し, 
+各サーバー状態の台数構成には影響しないため, 台数導出は$(i, j)$のみの関数として与えられる. 
+
+任意のシステム状態$(i, j, F)$において, 全$c$台のサーバーがそれぞれIdle(待機中), Busy(稼働中), Setup(起動中), Off(停止中)
+のいずれの状態にあるかは, 以下の式によって決定される. 
+
+\begin{align}
+    \text{Idleサーバー数:} \quad
+        I(i, j) &= \max\!\left(i - \left\lfloor \frac{j}{b} \right\rfloor, \; 0\right) \label{eq:idle} \\
+    \text{Busyサーバー数:} \quad
+        B(i, j) &= i - I(i, j) \label{eq:busy} \\
+    \text{Setupサーバー数:} \quad
+        S(i, j) &= \max\!\left( \min\!\left( \left\lfloor \frac{j - i b}{b} \right\rfloor, \; c - i \right), \; 0 \right) \label{eq:setup} \\
+    \text{Offサーバー数:} \quad
+        O(i, j) &= c - i - S(i, j) \label{eq:off}
+\end{align}
+
+
+\subsection{遷移率}
+\label{sec:transition-rates}
+システムは連続時間マルコフ連鎖として定式化される. 現在の状態を$x=(i, j, F)$とし, 別の状態$x'=(i', j', F')$へ遷移する遷移率を$q(x\to x')$と表す. 以下, 到着・環境フェーズ遷移とサーバー状態遷移に
+分けて各遷移率を与える. 
+
+\paragraph{到着および環境フェーズの遷移}
+\label{sec:arrival-transition}
+
+ジョブの到着および環境フェーズの変動はMMPPに従う. フェーズ$F$における到着率を$\lambda_F$とする. 
+MMPPでは到着によって
+フェーズは変化しないため, 到着を伴う遷移行列は対角行列
+$C_1=\mathrm{diag}(\lambda_0, \lambda_1)$である. 
+フェーズの切り替わりは到着を伴わずに起こり, その率は率行列$C_0$の
+非対角成分$(C_0)_{F, F'}$($F\neq F'$) で表される. 
+$C_0$の対角成分は$(C_0+C_1)\bm{e}= \bm{0}$ を満たすように定める. 
+
+\begin{itemize}
+    \item ジョブの到着($j\to j+1$):
+    システム容量に達していない場合 ($j < K$), 到着に伴いジョブ数が 1
+    増加する.  環境フェーズは $F$ のまま変わらない. 
+    \[ q\big((i, j, F) \to (i, j+1, F)\big) = (C_1)_{F, F} = \lambda_F \]
+    ジョブ数が上限に達している場合 ($j = K$) は, 到着したジョブは
+    破棄 (ブロック) されるものとする. 
+
+    \item 到着を伴わないフェーズ遷移 ($F \to F'$):
+    ジョブ数・サーバー状態は変化せず, 環境フェーズのみが遷移する
+    ($F \neq F'$). 
+    \[ q\big((i, j, F) \to (i, j, F')\big) = (C_0)_{F, F'} \]
+\end{itemize}
+
+\paragraph{サーバー状態の変化による遷移}
+\label{sec:server-transition}
+
+各サーバーの状態遷移は, 現在の稼働状態 (Busy, Idle, Setup) にある
+サーバー台数に比例したレートで発生する.  これらは式
+(\ref{eq:idle})–(\ref{eq:setup}) で定義した $B(i, j), I(i, j), S(i, j)$
+を用いて次のように定式化される. 
+
+\begin{itemize}
+    \item \textbf{バッチ処理の完了 ($j \to j-b$)}:
+    ジョブ数がバッチサイズ以上 ($j \ge b$) の場合に発生する.  完全な
+    バッチを処理しているサーバー $\min(i, \lfloor j/b \rfloor)$ 台が
+    それぞれレート $\mu$ で処理を完了し, ジョブ数が $b$ 減少する. 
+    \[ q\big((i, j, F) \to (i, j-b, F)\big)
+        = \min\!\left(i, \left\lfloor \frac{j}{b} \right\rfloor\right)\mu
+        \quad (j \ge b) \]
+
+    \item \textbf{セットアップの完了 ($i \to i+1$)}:
+    起動中 (Setup) のサーバー $S(i, j)$ 台がそれぞれレート $\alpha$ で
+    セットアップを完了し, アクティブなサーバー数が 1 増加する. 
+    \[ q\big((i, j, F) \to (i+1, j, F)\big) = S(i, j)\, \alpha \]
+
+    \item \textbf{Idle サーバーの停止 ($i \to i-1$)}:
+    Delayoff 運用の下, 待機中 (Idle) のサーバー $I(i, j)$ 台が, ジョブ
+    の到着がないままそれぞれレート $\beta$ で待機時間を終え, Off へ移行
+    する (アクティブなサーバー数が 1 減少する). 
+    \[ q\big((i, j, F) \to (i-1, j, F)\big) = I(i, j)\, \beta \]
+\end{itemize}
+
+\subsection{生成行列のブロック表現}
+\label{sec:generator_matrix}
+ 
+前節で定義した各遷移率に基づき, 連続時間マルコフ連鎖の生成行列 $Q$ を
+構築する.  ジョブ数 $j$ をレベルの基準とし, $Q$ を部分行列の組み合わせとして表現する.  アクティブなサーバー台数 $i$ の状態空間サイズを $D_S = c+1$, 環境フェーズの空間サイズを $D_M = 2$ とする. 
+
+バッチサイズ $b$ の下方遷移を含むため, $Q$ は次のブロック帯行列の構造をとる. 
+
+\begin{equation}
+    Q = \begin{pmatrix}
+        Q^{(0)}_{0} & Q^{(+)}_{0} & 0 & \dots & \dots & \dots & 0 \\
+        0 & Q^{(0)}_{1} & Q^{(+)}_{1} & 0 & \dots & \dots & 0 \\
+        \vdots & \vdots & \ddots & \ddots & \ddots & & \vdots \\
+        Q^{(-)}_{b} & 0 & \dots & Q^{(0)}_{b} & Q^{(+)}_{b} & \dots & 0 \\
+        0 & Q^{(-)}_{b+1} & \dots & 0 & Q^{(0)}_{b+1} & \ddots & 0 \\
+        \vdots & \vdots & \ddots & \vdots & \vdots & \ddots & Q^{(+)}_{K-1} \\
+        0 & \dots & 0 & Q^{(-)}_{K} & \dots & \dots & Q^{(0)}_{K}
+    \end{pmatrix}
+\end{equation}
+
+各ブロックは $D_S D_M \times D_S D_M$ (すなわち $2(c+1) \times 2(c+1)$)
+の正方行列であり, それぞれ以下のクロネッカー演算によって構築される. 
+
+\paragraph{到着による遷移行列 $Q^{(+)}_j$ ($j \to j+1$)}
+\label{sec:q-plus}
+
+到着はアクティブ台数$i$や環境フェーズ$F$に依存せず発生するため, $Q^{(+)}_j$ は $D_S$ 次元の
+単位行列 $I_{D_S}$ と MMPP の到着行列 $C_1$ のクロネッカー積で表される. 
+\begin{equation}
+    Q^{(+)}_{j} = I_{D_S} \otimes C_1 \quad (0 \le j \le K-1)
+\end{equation}
+
+左の因子を単位行列 $I_{D_S}$ とすることで
+「到着によって $i$ が変化しない」ことが表され (非対角ブロックが零行列となる), 
+どのブロックにも同じ $C_1$ が現れることで「到着率が $i$ に依存しない」ことが
+表される.  状態は辞書式順序 $(i, F)$, すなわち $i$ を外側の添字として並べている
+ため, $i$ に関する行列を左に, $F$ に関する行列を右に置く. 
+
+具体例として, $c=1$ (アクティブ台数 $i \in \{0, 1\}$, $D_S=2$), 環境
+フェーズ $F \in \{0, 1\}$ ($D_M=2$) の計 4 状態からなるレベル内状態空間
+$\{(0, 0), (0, 1), (1, 0), (1, 1)\}$ を考えると, $Q_j^{(+)}$ は次のように展開される. 
+\begin{equation}
+Q_j^{(+)} = I_2 \otimes C_1 =
+\begin{pmatrix}
+1 \cdot C_1 & 0 \cdot C_1 \\
+0 \cdot C_1 & 1 \cdot C_1
+\end{pmatrix}
+=
+\begin{pmatrix}
+\lambda_0 & 0 & 0 & 0 \\
+0 & \lambda_1 & 0 & 0 \\
+0 & 0 & \lambda_0 & 0 \\
+0 & 0 & 0 & \lambda_1
+\end{pmatrix}
+\label{eq:kronecker_example_q_plus}
+\end{equation}
+
+左上ブロックはアクティブなサーバーが 0 台 ($i=0$, サーバーは Off または
+Setup) のときの到着を, 右下ブロックはアクティブなサーバーが 1 台
+($i=1$, サーバーは Idle または Busy) のときの到着を表す.  両ブロックはともに
+$C_1$ であり, 到着で $i$ が変わる遷移を表す非対角ブロックは零行列である. 
+
+\paragraph{バッチ処理完了による遷移行列 $Q^{(-)}_j$ ($j \to j-b$)}
+\label{sec:q-minus}
+
+Busy のサーバーによるバッチ処理完了を表す行列である.  状態 $(i, j, F)$ では
+Busy の $B(i, j)$ 台がそれぞれ率 $\mu$ で処理を完了するため, 処理完了の率は
+$B(i, j)\mu$ である.  処理を完了したサーバーは次のバッチの処理に移るか
+Idle になるかのいずれかであり, どちらの場合もアクティブなままであるため, 
+アクティブ台数 $i$ は変化しない.  また, 処理完了の率は環境フェーズ $F$ に
+依存せず, 処理完了によって $F$ も変化しない.  したがって
+\[
+    q\big((i, j, F) \to (i, j-b, F)\big) = B(i, j)\, \mu \quad (j \ge b)
+\]
+である.  この率を $i$ ごとに対角成分に並べた $D_S \times D_S$ の対角行列
+$M_\mu(j)$ を定義する. 
+\begin{equation}
+    M_\mu(j) = \mu\, \mathrm{diag}\big(B(0, j), B(1, j), \dots, B(c, j)\big)
+\end{equation}
+$M_\mu(j)$ が対角行列であることは, 処理完了によって $i$ が変化しないことを
+表す.  これとフェーズ空間の単位行列 $I_{D_M}$ とのクロネッカー積をとる. 
+\begin{equation}
+    Q^{(-)}_{j} = M_\mu(j) \otimes I_{D_M} \quad (b \le j \le K)
+\end{equation}
+
+$M_\mu(j) \otimes I_{D_M}$ の $(i, i')$ ブロックは
+$\big(M_\mu(j)\big)_{i i'} I_{D_M}$ である.  右の因子が単位行列であることで
+「処理完了によって $F$ が変化しない」ことが, どのフェーズに対しても同じ
+$M_\mu(j)$ の成分が現れることで「処理完了の率が $F$ に依存しない」ことが
+表される.  
+
+具体例として $c=1$, $D_M=2$ の 4 状態空間を考える.  $b \le j \le K$ では, 
+$B(0, j) = \min(0, \lfloor j/b \rfloor) = 0$ (アクティブなサーバーがない), 
+$B(1, j) = \min(1, \lfloor j/b \rfloor) = 1$ ($j \ge b$ より, アクティブな
+1 台は Busy) であるから, $M_\mu(j) = \mathrm{diag}(0, \mu)$ となり, 
+$Q_j^{(-)}$ は次のように展開される. 
+\begin{equation}
+Q_j^{(-)} = M_{\mu}(j) \otimes I_2 =
+\begin{pmatrix}
+0 \cdot I_2 & 0 \cdot I_2 \\
+0 \cdot I_2 & \mu \cdot I_2
+\end{pmatrix}
+=
+\begin{pmatrix}
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & \mu & 0 \\
+0 & 0 & 0 & \mu
+\end{pmatrix}
+\label{eq:kronecker_example_q_minus}
+\end{equation}
+
+1, 2 行目 ($i=0$) がすべて $0$ であることは, アクティブなサーバーがなければ
+処理完了が起こらないことを表す.  3, 4 行目 ($i=1$) の対角成分 $\mu$ は, 
+閑散フェーズ ($F=0$) とバーストフェーズ ($F=1$) のどちらでも, Busy の 1 台が
+同じ率 $\mu$ で処理を完了することを表す.  また, 対角成分以外がすべて $0$ で
+あることは, 処理完了によってアクティブ台数 $i$ も環境フェーズ $F$ も変化
+しないことを表す. 
+
+\paragraph{同一レベル内の遷移行列 $Q^{(0)}_j$ ($j \to j$)}
+\label{sec:q-zero}
+
+ジョブ数が変化しない遷移, すなわちセットアップ完了, Idle サーバーの停止, 
+および到着を伴わないフェーズ遷移を表す.  まず, サーバー内部の状態遷移を
+表す $D_S \times D_S$ 行列 $M_{int}(j)$ を, 次の非対角成分を持つ行列として
+定義する. 
+\begin{itemize}
+    \item $i \to i+1$ (セットアップ完了) の成分: $S(i, j)\, \alpha$
+    \item $i \to i-1$ (Idle サーバーの停止) の成分: $I(i, j)\, \beta$
+\end{itemize}
+対角成分は, 各行の和が $0$ となるよう, 他状態への遷移率の総和の符号を
+反転した値とする. 
+
+このとき, 同一レベル内の遷移ブロック $Q^{(0)}_j$ は, クロネッカー和
+($\oplus$) を用いて次のように表される. 
+\begin{equation}
+    Q^{(0)}_{j} = M_{int}(j) \oplus C_0 - Q^{(-)}_{j}
+\end{equation}
+これを展開すると次式を得る. 
+\begin{equation}
+    Q^{(0)}_{j} = M_{int}(j) \otimes I_{D_M} + I_{D_S} \otimes C_0
+        - M_\mu(j) \otimes I_{D_M}
+\end{equation}
+
+第 1 項と第 2 項のクロネッカー和は, 「サーバー状態の遷移」と「環境フェーズの遷移」が独立に並行して起こることを表す.  第 3 項 $-Q^{(-)}_j$ は, 生成行列 $Q$ の各行の和が $0$ となる条件を満たすため, 下位レベルへ遷移するレート分を対角成分から差し引く補正項である. 
+
+\subsection{境界条件 ($j = K$)}
+\label{sec:boundary_conditions}
+\label{sec:boundary-upper}
+
+前節で定義したブロック行列は, システムの中間レベル ($b \le j < K$) に
+おける一般的な遷移を表す.  本モデルは有限容量 $K$ のシステムであり, 
+状態空間の上限において, 境界条件を適切に処理する必要がある. 
+ジョブ数が容量上限 $K$ に達している状態では, 新たな到着はシステムに
+受け入れられず破棄される.  ただし MMPP の下では, 「到着ジョブの破棄」と
+「環境フェーズの遷移」は独立に進行するため, ジョブが破棄される場合でも, 
+到着イベントに伴うフェーズ遷移 $C_1$ の効果は保持されなければならない. 
+
+上限 $j=K$ では上位レベルへの遷移ブロック $Q^{(+)}_K$ が存在しない. 
+したがって確率保存条件を満たすため, 本来 $Q^{(+)}_K = I_{D_S} \otimes C_1$
+として上位レベルへ流出するはずであったレートを, 同一レベル内の遷移ブロック
+$Q^{(0)}_K$ に補正する. 
+
+\begin{equation}
+    Q^{(0)}_{K} = M_{int}(K) \oplus C_0 - Q^{(-)}_{K} + I_{D_S} \otimes C_1. 
+\end{equation}
+
+% ===================================================================
+\section{提案モデル: MMPP/M/c/SET-BATCH/Delayoff/Predictive}
+\label{sec:predictive-model}
+ 
+本節では, ベースモデルに MMPP の環境フェーズを用いた制御規則を加えた提案モデルを
+定式化する.  サーバーの 4 状態, 到着過程, サービス, 
+セットアップ, Delayoff の仮定はベースモデルと同じである.  以下では, ベースモデルとの
+差分である制御規則, 状態空間, 遷移率, 生成行列の構造を述べる. 
+
+ベースモデルであるDelayoff単体の制御は, 系内のジョブ数 $j$ だけに基づく反応的な制御である. 
+この制御には次の 2 つの制約がある. 
+ 
+\begin{itemize}
+    \item \textbf{起動の遅れ. }\\
+    セットアップは, 完全なバッチ $\lfloor j/b \rfloor$ に対してアクティブな
+    サーバーが不足したときに初めて開始される (式~\eqref{eq:setup}). 
+    したがってバーストが始まっても, ジョブが蓄積するまでサーバーは起動されず, 
+    起動を始めてからも平均 $1/\alpha$ の時間は処理に加わらない. 
+    この間にバッファが満杯になれば, 到着したジョブは棄却される. 
+ 
+    \item \textbf{フェーズ共通の $\beta$. }\\
+    Delayoff 率 $\beta$ は 2 つのフェーズで共通である.  バーストに備えて
+    Idle サーバーを長く保つために $\beta$ を小さくすると, 閑散フェーズでも
+    Idle サーバーが長く残り電力を消費する.  逆に $\beta$ を大きくすると, 
+    バーストの開始時に起動済みのサーバーが不足しやすくなる. 
+\end{itemize}
+ 
+そこで本研究では, 到着率の切り替わりそのものを表すMMPP の環境フェーズ$F$ を負荷変動のシグナルとして用い, 次の 2 つの規則を加える. 
+\begin{description}
+  \item P1: バーストフェーズへの切り替わりの時点で, ジョブの蓄積を待たずにセットアップを開始する. 
+  \item P2: 閑散フェーズの間は Delayoffによるidle状態を短くする. 
+\end{description}
+なお本研究では, 現在の環境フェーズ $F$ を遅れなく観測できるものと仮定する. 
+
+\subsection{制御規則}
+\label{sec:pred-rules}
+
+以下, アクティブなサーバー (Busy または Idle) とセットアップ中のサーバーを
+合わせて電源オンのサーバーと呼ぶ.  その台数は, アクティブ台数 $i$ と
+セットアップ中の台数 $s$ を用いて $i+s$ である. 
+
+提案モデルは, ベースモデルのパラメータ (表~\ref{tab:parameters}) に加えて, 
+次の 2 つの制御パラメータをもつ. 
+\begin{itemize}
+    \item 目標台数$n_{\mathrm{target}}$ ($0 \le n_{\mathrm{target}} \le c$):
+    バーストフェーズの開始時に確保する電源オンのサーバーの台数. 
+    (P1) で起動を始める台数と, セットアップの取り消しと Delayoff を止める保護が働く範囲を定める. 
+    \item 加速係数$\gamma$ ($\gamma \ge 1$):
+    閑散フェーズにおける Delayoff 率の, ベースモデルの $\beta$ に対する倍率. 
+    (P2) で用いる. 
+\end{itemize}
+
+新たに加えたP1, P2を以下のように定義する. 
+
+\begin{enumerate}
+    \item[(P1)] \textbf{事前セットアップ. } \\
+    環境フェーズが $F=0$ から $F=1$ へ遷移した瞬間に, Off のサーバーのうち
+    \begin{equation}
+        \Delta(i, s) = \max\bigl(n_{\mathrm{target}} - i - s, \; 0\bigr)
+        \label{eq:pred-delta}
+    \end{equation}
+    台のセットアップを同時に開始する.  すなわち電源オンの台数を
+    $\max(i+s, \, n_{\mathrm{target}})$ まで引き上げる.  なお, バーストフェーズにおいて電源オンの台数が $n_{\mathrm{target}}$ 以下である
+    間は, セットアップの取り消しと Delayoff による電源オフを行わない. 
+    これを保護と呼び, 保護が働く条件を指示関数
+    \begin{equation}
+        \Pi(i, s, F) =
+        \begin{cases}
+            1 & (F = 1 \text{ かつ } i+s \le n_{\mathrm{target}}), \\
+            0 & (\text{それ以外})
+        \end{cases}
+        \label{eq:pred-protect}
+    \end{equation}
+    で表す. 
+ 
+    \item[(P2)] \textbf{Delayoff の加速. }
+    Idle サーバー 1 台あたりの Delayoff 率を, フェーズに応じて
+    \begin{equation}
+        \beta_F =
+        \begin{cases}
+            \gamma\beta & (F = 0), \\
+            \beta       & (F = 1)
+        \end{cases}
+        \label{eq:pred-betaF}
+    \end{equation}
+    とする.  すなわち閑散フェーズに滞在している間は, Idle サーバーの電源を
+    平均 $1/(\gamma\beta)$ の待機時間で切る. 
+\end{enumerate}
+
+
+\subsection{状態空間の拡張}
+\label{sec:pred-state-space}
+ 
+提案モデルはベースモデルと異なり, (P1) によって, セットアップ中の台数がジョブ数から定まる $S(i, j)$ を上回りうる. 
+そこで提案モデルでは, セットアップ中の台数 $s$ を状態変数に加え, 
+状態空間を
+\begin{equation}
+    \mathcal{S}^{P} = \bigl\{ (i, s, j, F) \bigm|
+        i \ge 0, \; s \ge 0, \; i + s \le c, \;
+        0 \le j \le K, \; F \in \{0, 1\} \bigr\}
+    \label{eq:pred-state-space}
+\end{equation}
+とする. 
+
+ $i+s \le c$ を満たす $(i, s)$ の組の数を $N_{IS} = (c+1)(c+2)/2$ とおくと, 
+$|\mathcal{S}^{P}| = N_{IS}(K+1)D_M$ である. 
+各サーバー状態の台数は次のように定める.  Busy と Idle の台数は, セットアップ中の
+サーバーが処理に加わらないため, ベースモデルと同じ式~\eqref{eq:idle}, 
+\eqref{eq:busy} の $I(i, j)$, $B(i, j)$ を用いる.  セットアップ中の台数は状態変数
+$s$ そのものであり, Off の台数は $O(i, s) = c - i - s$ である. 
+ 
+ 
+表~\ref{tab:pred-parameters} に提案モデルで新たに定義される記号をまとめる. 
+ 
+\begin{table}[H]
+\centering
+\caption{提案モデルで追加される記号}
+\label{tab:pred-parameters}
+\begin{tabular}{cl}
+\hline
+記号 & 定義 \\
+\hline
+\multicolumn{2}{l}{\textbf{制御パラメータ}} \\
+$n_{\mathrm{target}}$ & 事前セットアップの目標台数 ($0 \le n_{\mathrm{target}} \le c$) \\
+$\gamma$ & 閑散フェーズにおける Delayoff の加速係数 ($\gamma \ge 1$) \\
+\multicolumn{2}{l}{\textbf{状態変数}} \\
+$s$ & セットアップ中のサーバーの台数 ($0 \le s \le c - i$) \\
+\multicolumn{2}{l}{\textbf{補助関数}} \\
+$\Delta(i, s)$ & 事前セットアップで起動を始める台数 (式~\eqref{eq:pred-delta}) \\
+$\Pi(i, s, F)$ & 保護の指示関数 (式~\eqref{eq:pred-protect}) \\
+$\beta_F$ & フェーズ $F$ における Delayoff 率 (式~\eqref{eq:pred-betaF}) \\
+$O(i, s)$ & Off のサーバーの台数 ($= c - i - s$) \\
+\hline
+\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------
+\subsection{遷移率}
+\label{sec:pred-transitions}
+ 
+現在の状態を $x = (i, s, j, F) \in \mathcal{S}^{P}$ とする.  反応的なセットアップの
+増減を表す 2 つの指示量を
+\[
+u(i, s, j) =
+\begin{cases}
+    1 & (S(i, j+1) > s), \\
+    0 & (\text{それ以外}), 
+\end{cases}
+\qquad
+\kappa(i, s, j, F) =
+\begin{cases}
+    1 & (S(i, j-b) < s \text{ かつ } \Pi(i, s, F) = 0), \\
+    0 & (\text{それ以外})
+\end{cases}
+\]
+$u$ は, 到着によってジョブ数が $j+1$ になったときに必要なセットアップ台数
+$S(i, j+1)$ が現在の $s$ を上回るならば, セットアップを 1 台追加することを表す. 
+$\kappa$ は, バッチ処理の完了によってジョブ数が $j-b$ になったときに必要な
+セットアップ台数 $S(i, j-b)$ が現在の $s$ を下回るならば, セットアップを 1 台
+取り消すことを表す.  ただし保護 ($\Pi = 1$) の間は取り消さない. 
+$S(i, j+1) \le c-i$ であるから, $u = 1$ ならば $s < c-i$ であり, 追加に必要な
+Off のサーバーは存在する. 
+このとき$x = (i, s, j, F)$の遷移と遷移率は表~\ref{tab:pred-transitions} のとおりである. 
+ 
+\begin{table}[H]
+\centering
+\caption{提案モデルにおける$x = (i, s, j, F)$の遷移}
+\label{tab:pred-transitions}
+\begin{tabular}{llll}
+\toprule
+事象 & 条件 & 遷移先 & 遷移率 \\
+\midrule
+到着 & $j < K$ & $(i, \; s + u, \; j+1, \; F)$ & $\lambda_F$ \\
+セットアップ完了 & $s \ge 1$ & $(i+1, \; s-1, \; j, \; F)$ & $s\, \alpha$ \\
+バッチ処理完了 & $j \ge b$ & $(i, \; s - \kappa, \; j-b, \; F)$ & $B(i, j)\, \mu$ \\
+フェーズ遷移 (P1) & $F = 0$ & $(i, \; s + \Delta(i, s), \; j, \; 1)$ & $(C_0)_{0, 1}$ \\
+フェーズ遷移 & $F = 1$ & $(i, \; s, \; j, \; 0)$ & $(C_0)_{1, 0}$ \\
+Delayoff (P2) & $I(i, j) > 0$ & $(i-1, \; s, \; j, \; F)$
+    & $I(i, j)\, \beta_F\, \bigl(1 - \Pi(i, s, F)\bigr)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+ 
+
+ 
+% ---------------------------------------------------------------------
+
+\subsection{生成行列の構造}
+\label{sec:pred-generator}
+ 
+$i+s \le c$ を満たす組 $(i, s)$ を, $i$ の昇順に, 同じ $i$ の中では $s$ の昇順に
+並べ, その番号を
+\begin{equation}
+    \iota(i, s) = \sum_{k=0}^{i-1} (c - k + 1) + s
+               = \frac{i(2c - i + 3)}{2} + s
+    \qquad (0 \le \iota(i, s) \le N_{IS} - 1)
+    \label{eq:pred-iota}
+\end{equation}
+とする.  状態 $(i, s, j, F)$ の番号を
+\begin{equation}
+    \mathrm{idx}(i, s, j, F) = \bigl( j\, N_{IS} + \iota(i, s) \bigr) D_M + F
+    \label{eq:pred-index}
+\end{equation}
+と定める.  これはジョブ数 $j$ をレベルとし, レベル内を
+$(i, F)$ の辞書式順序で並べるベースモデルの並べ方の$i$ を $\iota(i, s)$ に置き換えたものである. 
+1 レベルの状態数は $D_P = N_{IS} D_M = (c+1)(c+2)$ である. 
+ 
+レベル $j$ を変える遷移は到着 ($j \to j+1$) とバッチ処理完了 ($j \to j-b$) だけで
+あり, セットアップ完了, Delayoff, フェーズ遷移はいずれも同じレベルの中で起こる. 
+したがって提案モデルの生成行列 $Q^{P}$ も, 式~\eqref{eq:block-band-Q} と
+同じブロック帯構造をとる.  各ブロックの大きさは $D_P \times D_P$ であり, 
+以下ではこれを $Q^{P(+)}_j$, $Q^{P(-)}_j$, $Q^{P(0)}_j$ と書く. 
+ 
+\paragraph{各ブロックの表現}
+フェーズについての $2 \times 2$ 行列を
+\begin{equation}
+    E_0 = \begin{pmatrix} 1 & 0 \\ 0 & 0 \end{pmatrix}, \quad
+    E_1 = \begin{pmatrix} 0 & 0 \\ 0 & 1 \end{pmatrix}, \quad
+    E_{01} = \begin{pmatrix} 0 & 1 \\ 0 & 0 \end{pmatrix}, \quad
+    E_{10} = \begin{pmatrix} 0 & 0 \\ 1 & 0 \end{pmatrix}
+\end{equation}
+とおく.  $E_F$ ($F = 0, 1$) はフェーズが $F$ のときだけ遷移を許し, フェーズを変えない
+行列であり, $E_{FF'}$ はフェーズを $F$ から $F'$ へ移す行列である. 
+
+次に, サーバー側の遷移を表す $N_{IS} \times N_{IS}$ 行列を定める.  行と列は組 $(i, s)$ に
+対応し, 番号 $\iota(i, s)$ の順に並べる.  以下, 「$(i, s) \to (i', s')$ の成分」は
+行 $\iota(i, s)$, 列 $\iota(i', s')$ の成分を表し, 記載のない成分は $0$ とする. 
+\begin{itemize}
+    \item \textbf{到着によるセットアップの追加 ($s \to s + u$)}:
+    到着によってジョブ数が $j+1$ になったとき, 必要なセットアップ台数 $S(i, j+1)$ が
+    $s$ を上回れば, セットアップを 1 台追加する. 
+    到着の率は $C_1$ が与えるので, この行列は遷移先だけを指定し, 成分は $1$ である. 
+    \[ U_j\big((i, s) \to (i, \, s + u(i, s, j))\big) = 1 \]
+ 
+    \item \textbf{バッチ処理の完了と取り消し ($s \to s - \kappa$)}:
+    Busy の $B(i, j)$ 台がそれぞれレート $\mu$ で処理を完了する.  このとき
+    必要なセットアップ台数 $S(i, j-b)$ が $s$ を下回れば, 保護の間を除き
+    セットアップを 1 台取り消す. 
+    \[ M^{(-)}_{j, F}\big((i, s) \to (i, \, s - \kappa(i, s, j, F))\big) = B(i, j)\, \mu
+        \quad (j \ge b) \]
+ 
+    \item \textbf{セットアップの完了 ($i \to i+1$, $s \to s-1$)}:
+    セットアップ中の $s$ 台がそれぞれレート $\alpha$ で起動を完了し, 
+    アクティブなサーバー数が 1 増加する. 
+    \[ A\big((i, s) \to (i+1, \, s-1)\big) = s\, \alpha \quad (s \ge 1) \]
+ 
+    \item \textbf{Idle サーバーの停止 ($i \to i-1$)}:
+    Idle の $I(i, j)$ 台がそれぞれレート $\beta_F$ で Off へ移行する. 
+    保護の間 ($\Pi = 1$) は停止しない. 
+    \[ H_{j, F}\big((i, s) \to (i-1, \, s)\big) = I(i, j)\, \beta_F\, \bigl(1 - \Pi(i, s, F)\bigr) \]
+ 
+    \item \textbf{事前セットアップ ($s \to s + \Delta$)}:
+    フェーズが $0$ から $1$ へ遷移した瞬間に, セットアップ中の台数を $\Delta(i, s)$
+    増やす (P1).  遷移の率は $(C_0)_{0, 1}$ が与えるので, 成分は $1$ である. 
+    \[ R\big((i, s) \to (i, \, s + \Delta(i, s))\big) = 1 \]
+\end{itemize}
+ 
+このとき各ブロックは次のように表される. 
+\begin{align}
+    Q^{P(+)}_j &= U_j \otimes C_1
+        \qquad (0 \le j \le K-1), 
+        \label{eq:pred-Qplus} \\
+    Q^{P(-)}_j &= \sum_{F=0}^{1} M^{(-)}_{j, F} \otimes E_F
+        \qquad (b \le j \le K), 
+        \label{eq:pred-Qminus} \\
+    Q^{P(0)}_j &= A \otimes I_{D_M}
+        + \sum_{F=0}^{1} H_{j, F} \otimes E_F
+        + (C_0)_{0, 1}\, R \otimes E_{01}
+        + (C_0)_{1, 0}\, I_{N_{IS}} \otimes E_{10}
+        - \Lambda_j
+        \qquad (0 \le j \le K). 
+        \label{eq:pred-Qzero}
+\end{align}
+
+ここで $\Lambda_j$ は, $Q^{P}$ の各行の和が $0$ となるように定める対角行列である. 
+到着とバッチ処理完了がサーバーの台数を変えるため, $Q^{P(+)}_j$, $Q^{P(-)}_j$ の左の因子が単位行列や対角行列ではなく, $s$ をずらす行列 $U_j$, $M^{(-)}_{j, F}$ になる.  また, 保護と (P2) によって
+取り消しと Delayoff の率がフェーズに依存するため, それらの項は単一のクロネッカー積ではなく, フェーズごとのクロネッカー積の和$\sum_F (\cdot) \otimes E_F$ で表され, (P1) によってフェーズ遷移
+$0 \to 1$ がサーバー状態を変えるため, $C_0$ の非対角成分の項が
+$I_{N_{IS}} \otimes C_0$ ではなく $R \otimes E_{01}$ と $I_{N_{IS}} \otimes E_{10}$ に
+分かれる. 
+
+
+ 
+% ---------------------------------------------------------------------
+\chapter{解析手法と性能評価指標}
+\label{chap:analysis}
+
+本章では, 第~\ref{chap:mathematical_model} 章で定式化した 2 つのモデルに共通の解析手法と
+性能評価指標を述べる.  \ref{sec:numerical} 節で定常分布と到達可能な状態への縮約, 
+\ref{sec:gth} 節で GTH アルゴリズム, \ref{sec:band} 節で帯構造と計算量, 
+\ref{sec:performance_metrics} 節で性能評価指標, \ref{sec:comparison} 節で
+2 つのモデルの比較方法を述べる. 
+
+\section{定常分布の数値計算}
+\label{sec:numerical}
+第~\ref{chap:mathematical_model} 章で構築した生成行列 $Q$ ($Q^{P}$ も同様) を用いると, システムの定常分布ベクトル
+$\bm{\pi}$ は, 次の方程式を満たす確率ベクトルとして
+特徴づけられる. 
+\begin{equation}
+    \bm{\pi} Q = \bm{0}, \qquad \bm{\pi} \bm{e} = 1
+    \label{eq:global-balance}
+\end{equation}
+本研究では, この方程式の数値解法として Grassmann--Taksar--Heyman (GTH)
+アルゴリズム \cite{GrassmannTaksarHeyman1985} を用いる (\ref{sec:gth} 節). 
+以降, 方程式を解く状態の総数を $N$ と表す.  ベースモデルでは 1 レベルあたりの
+状態数が $D = D_S D_M = 2(c+1)$ であり, $N = D(K+1)$ である. 
+ 
+ \subsection{到達可能な状態への縮約}
+\label{sec:reachable}
+% 対応する実装: mmpp_predictive/solver.py (到達集合の抽出と縮約)
+
+提案モデルの状態空間 $\mathcal{S}^{P}$ には, 初期状態 $(0, 0, 0, 0)$ から到達できない
+状態が含まれる (例えば $n_{\mathrm{target}} = 0$, $\gamma = 1$ の場合, 到達できる
+状態は $s = S(i, j)$ を満たすものに限られる.  命題~\ref{prop:pred-reduction}). 
+到達できない状態の定常確率は $0$ であり, これらを含めたままでは生成行列は
+既約でない.  そこで提案モデルでは, 次の手順で到達可能な状態だけに縮約して
+定常分布を求める. 
+\begin{enumerate}
+    \item 初期状態 $(0, 0, 0, 0)$ から, 正の遷移率をもつ遷移をたどって到達できる
+    状態の集合 $\mathcal{R}$ を幅優先探索で求める. 
+    \item $Q^{P}$ から $\mathcal{R}$ に属する行と列を, 元の番号の順序のまま取り出す. 
+    \item 縮約した生成行列に GTH アルゴリズムを適用する. 
+    \item 到達できない状態の定常確率を $0$ とする. 
+\end{enumerate}
+状態の順序を保ったまま行と列を取り除くので, 縮約後の行列もブロック帯構造を保ち, 
+帯幅は式~\eqref{eq:pred-band} の上界を超えない.  提案モデルでは $N = |\mathcal{R}|$ である. 
+ベースモデルでは状態空間 $\mathcal{S}$ をそのまま用いる. 
+
+\paragraph{状態の番号}
+
+ベースモデルでは第~\ref{sec:generator_matrix} 節の配列に従い, レベル $j$ を主分類, レベル内を
+辞書式順序 $(i, F)$ として, 状態 $(i, j, F)$ に番号
+\begin{equation}
+    \nu(i, j, F) = jD + 2i + F + 1
+    \label{eq:state-index}
+\end{equation}
+を付けてGTHアルゴリズムを適用する.  このとき最後の状態は $N = \nu(c, K, 1)$, すなわちアクティブな
+サーバーが $c$ 台, ジョブ数が $K$, 環境フェーズがバーストフェーズの状態である.  
+提案モデルでは, 式~\eqref{eq:pred-index} の番号の順に到達可能な状態を並べ, 
+$1$ から $N$ までの番号を付け直して GTH アルゴリズムを適用する. 
+
+% ============================================================
+
+\paragraph{ブロック帯構造}
+定常分布ベクトルをレベル $j$ ごとに
+$\bm{\pi} = (\bm{\pi}_0, \bm{\pi}_1, \ldots, \bm{\pi}_K)$ と分割する. 
+各 $\bm{\pi}_j$ は $D$ 次元の行ベクトルである.  状態遷移は同一レベル内の
+遷移 ($\bm{\pi}_j \to \bm{\pi}_j$), 到着による上位レベルへの遷移
+($\bm{\pi}_j \to \bm{\pi}_{j+1}$), バッチサービス完了による下位レベルへ
+の遷移 ($\bm{\pi}_j \to \bm{\pi}_{j-b}$) の 3 種に限られるため, $Q$ は
+対角ブロック $Q^{(0)}_j$, その上位に $Q^{(+)}_j$, 下位 $b$ ブロック目に
+$Q^{(-)}_j$ が並ぶブロック帯行列となる. 
+\begin{equation}
+Q =
+\begin{pmatrix}
+Q^{(0)}_0    & Q^{(+)}_0   &        &          &            &            &            \\
+             & Q^{(0)}_1   & Q^{(+)}_1   &          &            &            &            \\
+             &             & \ddots & \ddots   &            &            &            \\
+Q^{(-)}_b    &             &        & Q^{(0)}_b & Q^{(+)}_b   &            &            \\
+             & Q^{(-)}_{b+1}&        &          & Q^{(0)}_{b+1}& \ddots     &            \\
+             &             & \ddots &          &            & \ddots     & Q^{(+)}_{K-1} \\
+             &             &        & Q^{(-)}_K &            &            & Q^{(0)}_K
+\end{pmatrix}
+\label{eq:block-band-Q}
+\end{equation}
+
+\section{GTH アルゴリズム}
+\label{sec:gth}
+
+\subsection{GTH アルゴリズムの導入}
+\label{sec:gth-intro}
+通常の Gauss 消去は微小な成分の相対精度を保証しないことが知られている. 
+消去の各段でピボット (対角要素) を負の数と正の数の和, すなわち絶対値の引き算によって更新するため, 桁落ちが生じうる. 
+GTH アルゴリズムはピボットを引き算に
+よって更新する代わりに, 生成行列の各行の和が $0$ であるという性質を用いて, 
+これを非対角要素の和として計算することで引き算による丸め誤差を防ぐ. 
+ 
+ここで$Q$ の $(r, s)$ 成分を $q_{rs}$ とする.  GTH は消去の第 $m$ 段
+($m = 1, 2, \ldots, N-1$) において状態 $m$ を連鎖から取り除く.  第 $m$ 段の
+開始時点における非対角要素を $q^{(m)}_{rs}$ ($r, s \ge m$, $r \ne s$) とし, 
+$q^{(1)}_{rs} = q_{rs}$ とする.  GTH は次の 3 つの式からなる
+\cite{OCinneide1996}. 
+\begin{align}
+    \text{(GTH1)} \quad
+        & \eta_m = \sum_{s=m+1}^{N} q^{(m)}_{ms}, 
+        \label{eq:gth1} \\
+    \text{(GTH2)} \quad
+        & q^{(m+1)}_{rs} = q^{(m)}_{rs}
+            + \frac{q^{(m)}_{rm}\, q^{(m)}_{ms}}{\eta_m}, 
+        \qquad r, s = m+1, \ldots, N, \; r \ne s, 
+        \label{eq:gth2} \\
+    \text{(GTH3)} \quad
+        & a_N = 1, \qquad
+          a_m = \frac{1}{\eta_m} \sum_{r=m+1}^{N} a_r\, q^{(m)}_{rm}, 
+          \qquad m = N-1, N-2, \ldots, 1. 
+        \label{eq:gth3}
+\end{align}
+ 
+\paragraph{GTH1 (ピボットの計算)}
+$\eta_m$ は, 第 $m$ 段の時点で状態 $m$ から残りの状態へ出る遷移率の総和で
+ある.  これは第 $m$ 段のピボット (対角要素) の絶対値に等しいが, GTH では
+対角要素を更新して求めるのではなく, 非負の非対角要素の和として直接計算する. 
+ 
+\paragraph{GTH2 (状態の消去)}
+$q^{(m)}_{ms} / \eta_m$ は, 状態 $m$ を離れるときに状態 $s$ へ移る確率である. 
+したがって式~\eqref{eq:gth2} は, 状態 $r$ から状態 $m$ への流れのうち, $m$ を
+経由して $s$ へ向かう分を, $r$ から $s$ への直接の遷移として付け替える操作を
+表す.  確率論的には, 第 $m+1$ 段の非対角要素 $\{q^{(m+1)}_{rs}\}$ は, 元の連鎖を
+状態 $m+1, \ldots, N$ にいる間だけ観測して得られる連鎖 (打ち切り連鎖) の生成
+行列の非対角要素に一致する \cite{OCinneide1996}.  
+第 $m$ 段の開始時点で残っている状態 $m, \ldots, N$ に
+ついて, 非対角要素を $q^{(m)}_{rs}$ とし, 対角要素を各行の非対角要素の和の
+符号を反転した値とする $(N-m+1) \times (N-m+1)$ 行列を $\widehat{Q}^{(m)}$ と
+書く.  
+$\widehat{Q}^{(1)} = Q$ であり, $\widehat{Q}^{(m)}$ を
+\begin{equation}
+    \widehat{Q}^{(m)} =
+    \begin{pmatrix}
+        -\eta_m     & \bm{v}_m^\top \\
+        \bm{w}_m    & \widehat{Q}^{(m)}_{\mathrm{SE}}
+    \end{pmatrix}
+\end{equation}
+と分割する.  ここで $\bm{v}_m^\top = (q^{(m)}_{ms})_{s > m}$ は状態 $m$ から
+残りの状態への遷移率, $\bm{w}_m = (q^{(m)}_{rm})_{r > m}$ は残りの状態から
+状態 $m$ への遷移率である.  このとき, 状態 $m$ を消去した行列は
+\begin{equation}
+    \widehat{Q}^{(m+1)} = \widehat{Q}^{(m)}_{\mathrm{SE}}
+        + \frac{\bm{w}_m \bm{v}_m^\top}{\eta_m}
+    \label{eq:gth2-matrix}
+\end{equation}
+で与えられ, その非対角要素を書き下したものが GTH2 (式~\eqref{eq:gth2})
+である.  
+式~\eqref{eq:gth2-matrix} を $m$ 段繰り返した結果を消去済みの状態集合を $\mathcal{E} = \{1, \ldots, m\}$, 
+残りの状態集合を $\mathcal{R} = \{m+1, \ldots, N\}$ として $Q$ を分割すると, 
+\begin{equation}
+    \widehat{Q}^{(m+1)} = Q_{\mathcal{R}\mathcal{R}}
+        + Q_{\mathcal{R}\mathcal{E}}
+          \left( -Q_{\mathcal{E}\mathcal{E}} \right)^{-1}
+          Q_{\mathcal{E}\mathcal{R}}
+    \label{eq:gth-schur}
+\end{equation}
+が成り立つ.  
+任意の状態 $r$ ($1 \le r \le N-1$) から, 正の遷移率を持つ遷移列によって状態 $N$ へ到達できる条件下では, $-Q_{\mathcal{E}\mathcal{E}}$ は正則であり, その逆行列は非負行列となる. 
+したがって式~\eqref{eq:gth-schur} の非対角要素は非負の行列の積と和で表され, 非負である \cite{OCinneide1996}.  GTH はこの非負の量を, 式~\eqref{eq:gth2}
+により非負の数の加算・乗算・除算のみで計算する. 
+ 
+\paragraph{GTH3 (後退代入)}
+消去の終了後, $a_N = 1$ から出発して $m = N-1, \ldots, 1$ の順に $a_m$ を
+定める.  $\bm{a} = (a_1, \ldots, a_N)$ は $\bm{a} Q = \bm{0}$, $a_N = 1$ を
+満たす解であり, 定常分布とは $\bm{a} = \bm{\pi} / \pi_N$ の関係にある. 
+
+% -------------------------------------------------------------------
+\subsection{掃き出し行列と LU 分解の関係}
+\label{sec:gth-lu}
+
+\paragraph{LU 分解との関係}GTH2 で計算した値によって元の非対角要素を順に上書きすると, 消去の終了後, 位置 $(r, s)$ ($r \ne s$) には $h_{rs} = q^{(\min(r, s))}_{rs}$ が格納される. この行列 $H = (h_{rs})$ ($h_{rr} = 0$) を掃き出し行列 (sweep matrix) と呼ぶ\cite{OCinneide1996}.  $H$ の狭義下三角部分を $H_{\mathrm{L}}$, 狭義上三角部分を$H_{\mathrm{U}}$ とし, $\Delta = \mathrm{diag}(\eta_1, \ldots, \eta_{N-1}, 0)$, $\Delta^{-} = \mathrm{diag}(\eta_1^{-1}, \ldots, \eta_{N-1}^{-1}, 0)$ とすると, \begin{equation}    L = H_{\mathrm{L}} - \Delta, \qquad U = I - \Delta^{-} H_{\mathrm{U}}    \label{eq:gth-lu}\end{equation}に対して $Q = LU$ が成り立つ \cite[式~(3. 1)]{OCinneide1996}.  $L$ は最終列が零ベクトルの下三角行列, $U$ は対角要素がすべて $1$ の上三角行列である.  すなわちGTH の消去過程は, $Q$ の LU 分解を計算する過程にほかならない.  $U$ は正則であるから, $\bm{a} Q = \bm{0}$ は $\bm{a} L = \bm{0}$ と同値であり, $L$ の第 $m$列 ($m \le N-1$) についてこれを書き下したものが GTH3 である.  また $L$ の第 $N$列は零ベクトルであるため $a_N$ は自由に定めることができ, これが $a_N = 1$ の正規化に対応する.  以上より, GTH は「ピボットを非対角要素の和として計算するLU 分解」と「$L$ による後退代入」からなる直接法として位置づけられる.  
+
+
+% ===================================================================
+\section{帯構造と計算量}
+\label{sec:band}
+ 
+定常分布ベクトルをレベル $j$ ごとに
+$\bm{\pi} = (\bm{\pi}_0, \bm{\pi}_1, \ldots, \bm{\pi}_K)$ と分割する. 
+各 $\bm{\pi}_j$ は $D$ 次元 (提案モデルでは $D_P$ 次元) の行ベクトルである.  状態遷移は同一レベル内の
+遷移 ($\bm{\pi}_j \to \bm{\pi}_j$), 到着による上位レベルへの遷移
+($\bm{\pi}_j \to \bm{\pi}_{j+1}$), バッチサービス完了による下位レベルへ
+の遷移 ($\bm{\pi}_j \to \bm{\pi}_{j-b}$) の 3 種に限られるため, $Q$ は
+対角ブロック $Q^{(0)}_j$, その上位に $Q^{(+)}_j$, 下位 $b$ ブロック目に
+$Q^{(-)}_j$ が並ぶブロック帯行列となる. 
+この構造は式~\eqref{eq:block-band-Q} に示したとおりであり, 提案モデルの $Q^{P}$ も
+同じ形をとる (\ref{sec:pred-generator} 節). 
+ 
+レベルをまたぐ遷移は到着とバッチ処理完了だけであるから, $Q$ の非零要素は
+主対角の周りの帯に収まる.  主対角より下の非零要素が主対角から離れる最大の距離を
+下帯幅 $p$, 上の非零要素の最大の距離を上帯幅 $q$ とする. 
+ベースモデルでは, 到着による状態番号の変化量が $D$, バッチ処理完了による変化量が
+$-bD$ であり, レベル内の遷移の変化量は絶対値が $D$ 未満であるから, 
+$C_1$ が対角のとき $p = bD$, $q = D$ である. 
+提案モデルについて, 状態番号~\eqref{eq:pred-index} の変化量を遷移ごとに見る. 
+到着の変化量は $D_P$ または $D_P + D_M$ ($u = 1$ のとき) であり, 
+バッチ処理完了の変化量は $-b D_P$ または $-b D_P - D_M$ ($\kappa = 1$ のとき)
+である.  レベル内の遷移の変化量は, セットアップ完了が $(c-i) D_M$, 
+Delayoff が $-(c-i+2) D_M$, 事前セットアップが $\Delta(i, s) D_M + 1$ であり, 
+いずれも絶対値が $D_P$ 未満である.  したがって $Q^{P}$ の下帯幅と上帯幅は
+\begin{equation}
+    p^{P} \le b D_P + D_M, \qquad q^{P} \le D_P + D_M
+    \label{eq:pred-band}
+\end{equation}
+を満たす.  縮約 (\ref{sec:reachable} 節) は状態の順序を保つので, 
+縮約後の帯幅もこの上界を超えない. 
+ 
+いずれのモデルでも $p, q$ は $K$ によらない. 
+提案モデルの上界~\eqref{eq:pred-band} は名目の状態空間についての値であり, 
+縮約後の実際の帯幅はこれより小さくなりうる.  この上界の役割は, 帯幅が $K$ によらないことを
+示す点にある. 
+ 
+GTH アルゴリズムはピボットの選択 (行や列の入れ替え) を行わないので, 消去の過程で
+新たに生じる非零要素 (フィルイン) は帯の内側に限られる.  第 $m$ 段の GTH2 で
+更新されるのは $m < r \le m+p$, $m < s \le m+q$ の範囲の要素だけであるから, 
+演算量は $O(Npq)$, 記憶量は $O(N(p+q))$ である.  $p, q$ が $K$ によらず $N$ が
+$K$ に比例するので, 計算量は $K$ に比例する. 
+ 
+\begin{remark}[状態の並べ方の選択]
+\label{rem:pred-order}
+$(i, s)$ を最上位にとり $\mathrm{idx} = (\iota(i, s)(K+1) + j) D_M + F$ と並べると, 
+セットアップ完了と Delayoff による状態番号の変化量が $(K+1) D_M$ の倍数となり, 
+帯幅が $K$ に比例して増える.  計算量は $O(N p q)$ であり, 
+$N$ も $K$ に比例するので, この並べ方では計算量が
+$K^3$ に比例する.  式~\eqref{eq:pred-index} のように $j$ を最上位にとることで, 
+帯幅が $K$ によらず, 計算量は $K$ に比例する. 
+\end{remark}
+% TODO: 縮約後の帯幅 (p, q) と計算時間・メモリの実測値の表を, 
+%       benchmark の CSV から生成して挿入する (本文に数値を手書きしない). 
+
+% ===================================================================
+
+% ===================================================================
+\section{性能評価指標}
+\label{sec:performance_metrics}
+
+定常分布ベクトル $\pi$ を得た後, システムの応答性能および消費電力を評価
+するための各種パフォーマンス指標を導出する.  指標は 2 つのモデルで共通の形で
+定義する.  対象とするモデルの状態空間を $\mathcal{X}$ (ベースモデルでは $\mathcal{S}$, 
+提案モデルでは $\mathcal{S}^{P}$) とし, 状態 $x \in \mathcal{X}$ の定常確率を
+$\pi(x)$ と表す (到達できない状態では $\pi(x) = 0$).  状態 $x$ のジョブ数を
+$j(x)$, 環境フェーズを $F(x)$ と書き, Busy, Idle, Setup の台数を
+\begin{equation}
+    B(x) = B(i, j), \qquad I(x) = I(i, j), \qquad
+    S(x) =
+    \begin{cases}
+        S(i, j) & (\text{ベースモデル}, \ x = (i, j, F)), \\
+        s      & (\text{提案モデル}, \ x = (i, s, j, F))
+    \end{cases}
+    \label{eq:metric-server-count}
+\end{equation}
+とする.  提案モデルではセットアップ中の台数は状態変数 $s$ そのものである. 
+
+\subsection{サーバー状態に関する指標}
+\label{sec:metric-server}
+
+稼働中 (Busy), 起動中 (Setup), 待機中 (Idle) の各状態にあるサーバーの
+平均台数は, 式~\eqref{eq:metric-server-count} の $B(x), S(x), I(x)$ を用いて, 
+それぞれ定常確率による期待値として与えられる. 
+
+\begin{align}
+    \text{平均稼働サーバー数:} \quad
+        E[B] &= \sum_{x \in \mathcal{X}} B(x)\, \pi(x) \\
+    \text{平均セットアップサーバー数:} \quad
+        E[S] &= \sum_{x \in \mathcal{X}} S(x)\, \pi(x) \\
+    \text{平均アイドルサーバー数:} \quad
+        E[I] &= \sum_{x \in \mathcal{X}} I(x)\, \pi(x)
+\end{align}
+
+
+\subsection{応答時間に関する指標}
+\label{sec:metric-response}
+
+システム内に存在する平均ジョブ数 $E[N]$ は, 定常確率を用いた期待値として
+与えられる. 
+\begin{equation}
+    E[N] = \sum_{x \in \mathcal{X}} j(x)\, \pi(x)
+\end{equation}
+
+平均応答時間 $E[W]$ の導出にはリトルの法則を用いる.  本モデルは有限容量
+$K$ を持ち, 満杯時の到着は破棄されるため, システムに実際に受け入れられた
+ジョブの有効到着率 $\lambda_{\mathrm{eff}}$ を用いる.  フェーズ $F$ における
+到着率を $\lambda_F$ (MMPP の到着行列を用いて $\lambda_F = (C_1 \bm{e})_F$, $\bm{e}$ は全成分 $1$ の列ベクトル) とすると, 有効到着率は満杯状態 ($j=K$) を除いた次式で与えられる. 
+\begin{equation}
+    \lambda_{\mathrm{eff}} = \sum_{x \in \mathcal{X}:\, j(x) < K}
+        \lambda_{F(x)}\, \pi(x)
+\end{equation}
+したがって, 平均応答時間 $E[W]$ は次式で求められる. 
+\begin{equation}
+    E[W] = \frac{E[N]}{\lambda_{\mathrm{eff}}}
+\end{equation}
+
+\subsection{消費電力とトレードオフの評価}
+\label{sec:metric-cost}
+
+システムの単位時間あたりの平均消費電力 $\mathit{Cost}$ は, 各サーバー
+状態の消費電力係数を平均台数に乗じて算出する.  Busy, Setup, Idle 状態の
+消費電力係数をそれぞれ $C_b, C_s, C_i$ とすると, $\mathit{Cost}$ は次式で
+定義される. 
+\begin{equation}
+    \mathit{Cost} = C_b\, E[B] + C_s\, E[S] + C_i\, E[I]
+\end{equation}
+
+本研究では, 先行研究\cite{LeAnh2025}と同様にGPU 推論サーバー
+(Tesla V100) の実測に基づく線形コスト関数（まだ原著未確認）より, 
+\begin{equation}
+    C_b = C_s = 0. 04419\, b + 0. 15503, 
+    \qquad
+    C_i = 0. 6\, C_b
+    \label{eq:cost-function}
+\end{equation}
+とする. 
+そして消費電力と応答時間のトレードオフを総合的に評価する指標として, 
+エネルギー遅延積 (Energy-Response Product; ERP) を次式で定義する. 
+\begin{equation}
+    \mathit{ERP} = E[W] \times \mathit{Cost}
+\end{equation}
+
+$\mathit{ERP}$ は応答性能とエネルギー効率を単一の尺度で表し, 値が小さい
+ほど両者のバランスに優れることを意味する.  ただし $E[W]$ はシステムに受け入れられた
+ジョブについての量であり, $\mathit{ERP}$ は棄却されたジョブを含まない. 
+そのため有限バッファの本モデルでは, $\mathit{ERP}$ を次節のブロッキング確率と
+組み合わせて評価する. 
+
+\subsection{ブロッキング確率に関する指標}
+\label{sec:metric-block}
+
+本モデルは有限容量 $K$ を持つため, ジョブ数が $K$ に達している状態で到着した
+ジョブは破棄される.  この破棄の起こりやすさを表す指標として, 到着ジョブが
+バッファ満杯によりブロックされる確率 $P_{\mathrm{block}}$ を定義する. 
+
+到着は MMPP に従い, フェーズ $F$ における到着率は $\lambda_F = (C_1 \bm{e})_F$
+であり, ブロッキング確率は満杯状態 ($j = K$) における到着率で重み付けされた定常確率を, 全状態における到着率で重み付けした定常確率で正規化した
+\begin{equation}
+    P_{\mathrm{block}}
+    = \frac{\displaystyle \sum_{x \in \mathcal{X}:\, j(x) = K}
+        \lambda_{F(x)}\, \pi(x)}
+        {\displaystyle \sum_{x \in \mathcal{X}}
+        \lambda_{F(x)}\, \pi(x)}
+    \label{eq:full-prob}
+\end{equation}
+で与えられる.  
+
+
+
+
+
+% 追加章: 数値解析結果と実験計画
+% ===================================================================
+\chapter{数値実験}
+\label{chap:numerical_results}
+
+本章では, まず解析の実装が正しいことを離散事象シミュレーションで確かめる (実験 0).
+次にベースモデルについて, トラフィック強度 (実験 1), Delayoff 率 (実験 2), バースト性の 2 つの軸
+(実験 3), バッファ容量 (実験 4) に対する性能評価指標の結果を調べ, バースト性が性能をどう変えるかを明らかにする.
+実験 1〜4 をまとめてフェーズの情報を用いる制御に改善の余地がある条件を示した後,
+ブロッキング確率がベースモデルを上回らない範囲で両モデルの ERP の最小値を比べ (実験 5), その改善の頑健性を調べる (実験 6).
+
+\section{共通設定}
+\label{sec:common-setup}
+
+\paragraph{システムとコスト}
+サーバー台数 $c=20$, バッファ容量 $K=200$ (実験 4 を除く), バッチサイズ $b=5$, サービス率 $\mu=1$ とする.
+コスト関数の係数は式~\eqref{eq:cost-function} より
+$C_b = C_s = 0.376$, $C_i = 0.226$ である.
+
+\paragraph{到着過程}
+トラフィック強度を
+\begin{equation}
+    \rho = \frac{\bar{\lambda}}{c b \mu}
+    \label{eq:traffic-intensity}
+\end{equation}
+とする. ここで $\bar{\lambda}$ は平均到着率である. 到着過程は対称な 2 相 MMPP とし, 振幅 $\delta$
+($0 \le \delta < 1$) と位相遷移率 $\sigma$ によって
+\begin{equation}
+    \lambda_0 = \bar{\lambda}(1 - \delta), \quad
+    \lambda_1 = \bar{\lambda}(1 + \delta), \quad
+    C_1 = \begin{pmatrix} \lambda_0 & 0 \\ 0 & \lambda_1 \end{pmatrix}, \quad
+    C_0 = \begin{pmatrix} -(\lambda_0 + \sigma) & \sigma \\ \sigma & -(\lambda_1 + \sigma) \end{pmatrix}
+    \label{eq:mmpp-2phase}
+\end{equation}
+と定める. 各フェーズの平均滞在時間は $1/\sigma$であるから,
+各フェーズに滞在する時間の割合はともに $1/2$ であり, $\delta = 0$ はポアソン到着に一致する.
+
+\paragraph{バースト期の負荷とフェーズの長さ}
+結果を次の 2 つの量で整理する. 1 つはバースト期の負荷
+\begin{equation}
+    \rho_B = \frac{\lambda_1}{c b \mu} = \rho(1+\delta)
+    \label{eq:rho-burst}
+\end{equation}
+であり, $\rho_B > 1$ のとき全サーバーが稼働してもバースト期の到着を処理しきれない (棄却の増加).
+もう 1 つはフェーズの平均の長さとセットアップの平均時間の比
+\begin{equation}
+    r_1 = \frac{1/\sigma}{1/\alpha} = \frac{\alpha}{\sigma}
+    \label{eq:r1}
+\end{equation}
+であり, $r_1 < 1$ のとき, 繁忙期が始まってから起動したサーバーは多くの場合その繁忙期のうちに処理に
+加われない (起動の遅れ).
+
+\paragraph{パラメータの水準}
+セットアップ率は $\alpha = 0.005$ とする (実験 0, 2 を除く). $1/\mu$ を 1 秒とみなすと, $1/\alpha = 200$ は
+序章で述べたセットアップ時間に当たる. 振幅は $\delta = 0.6$ とする (実験 3-A を除く). フェーズの長さは $r_1 \in \{0.1, 1, 17.8\}$ から,
+バースト期の負荷は $\rho_B \in \{0.8, 1.12\}$ ($\rho = 0.5, 0.7$) から選ぶ.
+以下, $r_1 = 0.1$ を短フェーズ, $r_1 = 17.8$ を長フェーズと呼ぶ.
+
+\paragraph{Delayoff 率}
+実験 1, 3, 4 の Delayoff 率は, 作業負荷によらずコストの係数だけで決まる損益分岐の値
+\begin{equation}
+    \beta_{\mathrm{BE}} = \frac{C_i}{C_s}\, \alpha = 0.6\, \alpha
+    \label{eq:beta-be}
+\end{equation}
+とする.
+これは, Idle のまま時間 $\tau$ 待つ電力量 $C_i \tau$ が, 電源を切って再びセットアップする電力量
+$C_s / \alpha$ と等しくなる $\tau = C_s / (C_i \alpha)$ を平均待ち時間とする規則である.
+サーバーがアクティブ (Busy または Idle) になるのはセットアップの完了 (率 $\alpha E[S]$) だけであり, アクティブでなくなるのは
+Delayoff (率 $\beta E[I]$) だけであるから, 定常状態では $\alpha E[S] = \beta E[I]$ が成り立つ.
+したがって $\beta = \beta_{\mathrm{BE}}$ のとき $C_i E[I] = C_s E[S]$, すなわち Idle の電力とセットアップの
+電力が等しい. $\beta$ の調整は実験 2 で扱う.
+
+実験1から4までの各実験の設定を表~\ref{tab:exp-setup} にまとめる.
+
+\begin{table}[H]
+\centering
+\caption{実験 1〜4 の設定 ($c=20$, $b=5$, $\mu=1$).}
+\label{tab:exp-setup}
+\small
+\begin{tabular}{llp{0.4\textwidth}l}
+\toprule
+実験 & 走査変数 & 条件 & Delayoff 率 \\
+\midrule
+1 & $\rho \in [0.1, 0.95]$ & ポアソン, $r_1 \in \{0.1, 1, 17.8\}$ & $\beta_{\mathrm{BE}}$ \\
+2 & $\beta \in [10^{-8}, 10^{2}]$ & $\rho_B \in \{0.8, 1.12\}$ $\times$ $\sigma \in \{0.05, 2.81 \times 10^{-4}\}$ $\times$ $\alpha \in \{0.005, 0.1, 1\}$ & 走査 \\
+3-A & $\delta \in [0, 0.95]$ & $r_1 \in \{0.1, 17.8\}$ $\times$ $\rho \in \{0.5, 0.7\}$ & $\beta_{\mathrm{BE}}$ \\
+3-B & $r_1 \in [0.01, 1000]$ & $\rho_B \in \{0.8, 1.12\}$ & $\beta_{\mathrm{BE}}$ \\
+4 & $\rho$ (実験 1 と同じ) & $K \in \{100, 200, 500, 1000\}$ $\times$ $r_1 \in \{0.1, 17.8\}$ & $\beta_{\mathrm{BE}}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{実験 0: 両モデルの理論とシミュレーションの整合性}
+\label{sec:exp0-validation}
+
+まず構築した2つのモデルの実装の正当性を, 独立に実装した離散事象シミュレーションとの
+比較により検証する. シミュレーションはいずれもウォームアップ 100{,}000 イベントを破棄した後, 1{,}000{,}000 イベントの統計から時間平均を算出する. これを異なるシードで 20 回独立に実行する.
+両実験とも $\delta = 0.6$, $\sigma = 0.1$, $\alpha = 0.1$, $\beta = 0.005$ ($r_1 = 1$) とし, $\rho$ を
+$[0.3, 0.95]$ の範囲で変化させる. 6 指標 ($P_{\mathrm{block}}$, $\mathrm{E}[N]$,
+$\mathrm{E}[W]$, $\lambda_{\mathrm{eff}}$, $\rho_{\text{server}} = \mathrm{E}[B]/c$,
+$\mathrm{Cost}$) について, 理論値 (実線) とシミュレーション値 (95\% 信頼区間付きの点)
+を重ねて図示する.
+提案モデルの制御パラメータは $n_{\mathrm{target}} = 10$, $\gamma = 5$ とする.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{experiment_0_validation_(2).pdf}
+    \caption{ベースモデルの理論値とシミュレーション値の比較}
+    \label{fig:exp0}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{experiment_0P_validation_protect_(1).pdf}
+    \caption{提案モデルの理論値とシミュレーション値の比較}
+    \label{fig:exp0P}
+\end{figure}
+
+図~\ref{fig:exp0} と図~\ref{fig:exp0P} のとおり, 60 個の比較 (6 指標 $\times$ 10 点) のうち信頼区間が理論値を
+含んだのは, ベースモデルで 58 個, 提案モデルで 59 個であり, 両モデルとも理論とシミュレーションは概ね整合しているといえる.
+
+% ============================================================
+% 実験 1: トラフィック強度に対する応答 (ベースモデル)
+% ============================================================
+
+\section{実験 1: トラフィック強度に対する応答}
+\label{sec:exp1-traffic-response}
+
+$\rho$ を $[0.1, 0.95]$ で走査し, ポアソン到着と 3 つのフェーズの長さ ($r_1 = 0.1, 1, 17.8$) で
+4 指標を比べる (図~\ref{fig:exp1-traffic}, 表~\ref{tab:exp1-values}). $\delta = 0.6$ であるから,
+$\rho > 0.625$ で $\rho_B > 1$ となる. 図の点線は $\rho_B = 1$ ($\rho = 0.625$) を表す.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{experiment_1_traffic_(5).pdf}
+    \caption{$\rho$ に対する 4 指標の応答.}
+    \label{fig:exp1-traffic}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{実験 1 の代表的な $\rho$ での 4 指標.}
+\label{tab:exp1-values}
+\small
+\begin{tabular}{llrrrr}
+\toprule
+$\rho$ & 条件 & $P_{\mathrm{block}}$ & $E[W]$ & Cost & ERP \\
+\midrule
+$0.3$ & ポアソン & $1.02 \times 10^{-4}$ & $1.251$ & $3.037$ & $3.800$ \\
+$0.3$ & $r_1=0.1$ & $1.21 \times 10^{-2}$ & $1.675$ & $3.952$ & $6.619$ \\
+$0.3$ & $r_1=1$ & $2.83 \times 10^{-2}$ & $1.678$ & $3.669$ & $6.154$ \\
+$0.3$ & $r_1=17.8$ & $5.94 \times 10^{-3}$ & $1.312$ & $3.077$ & $4.037$ \\
+\midrule
+$0.5$ & ポアソン & $3.22 \times 10^{-4}$ & $1.190$ & $4.685$ & $5.573$ \\
+$0.5$ & $r_1=0.1$ & $7.15 \times 10^{-2}$ & $1.876$ & $5.514$ & $10.342$ \\
+$0.5$ & $r_1=1$ & $8.51 \times 10^{-2}$ & $1.791$ & $5.141$ & $9.207$ \\
+$0.5$ & $r_1=17.8$ & $1.68 \times 10^{-2}$ & $1.321$ & $4.571$ & $6.037$ \\
+\midrule
+$0.95$ & ポアソン & $1.74 \times 10^{-2}$ & $1.390$ & $7.368$ & $10.244$ \\
+$0.95$ & $r_1=0.1$ & $3.41 \times 10^{-1}$ & $1.949$ & $6.286$ & $12.250$ \\
+$0.95$ & $r_1=1$ & $3.55 \times 10^{-1}$ & $1.943$ & $5.918$ & $11.497$ \\
+$0.95$ & $r_1=17.8$ & $2.87 \times 10^{-1}$ & $1.772$ & $5.655$ & $10.021$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{ブロッキング確率}
+バースト性のある 3 条件の $P_{\mathrm{block}}$ は, すべての $\rho$ でポアソン到着の 16 倍以上である.
+$\rho_B < 1$ では長フェーズの $P_{\mathrm{block}}$ が最も小さく, $r_1 = 1$ が最も大きい.
+これはフェーズの長さがセットアップ時間と同程度以下では, 繁忙期が始まってから起動したサーバーが処理に加わる前に,
+繁忙期の到着がバッファを埋めるためである. 長フェーズでは繁忙期の間にセットアップが完了し,
+処理能力が到着率に追いつく. $\rho_B > 1$ では差が縮み, どの条件でも繁忙期の到着のうち全サーバーの処理能力を超える分が棄却される.
+
+\paragraph{平均応答時間}
+ポアソン到着の $E[W]$ は $\rho = 0.6$ で最小 ($1.182$) となる U 字型である. 長フェーズも $\rho = 0.4$ で
+最小 ($1.292$) となるが, $\rho_B = 1$ を越えると急増し, $\rho = 0.85$ で $1.778$ に達する.
+$r_1 = 0.1$ と $1$ の $E[W]$ は全域で $1.66$ 以上と大きく, $\rho \approx 0.7$ で最大 ($2.01$) となった後わずかに減る.
+この減少はリトルの公式 $E[W] = E[N]/\lambda_{\mathrm{eff}}$ で説明できる. 高負荷では繁忙期にバッファが満杯に近づくため増えた到着の多くは棄却される. $r_1 = 0.1$ で $\rho$ を $0.7$ から $0.95$ に上げると,
+平均到着率は $25$ 増えるが, $\lambda_{\mathrm{eff}}$ は $55.3$ から $62.6$ へ $7.3$ しか増えない.
+系内のジョブ数 $E[N]$ の増加率はさらに小さく ($111$ から $122$ へ $9.6\%$),
+$\lambda_{\mathrm{eff}}$ の増加率 ($13.2\%$) を下回るため, $E[W]$ がわずかに下がる.
+
+
+\paragraph{消費電力と ERP}
+$\rho_B < 1$ では, $r_1 = 0.1$ と $1$ の Cost がポアソン到着より大きい. $\rho = 0.5$ の $E[S]$ はポアソン到着の
+$1.23$ に対し $r_1 = 0.1$ で $2.69$ であり, 繁忙期に起動したサーバーを閑散期に切ることを繰り返している.
+$\beta = \beta_{\mathrm{BE}}$ では Idle の電力がセットアップの電力と等しいので, 起動の増加はそのまま Idle の電力の
+増加を伴う. 長フェーズの Cost はポアソン到着に近い. 高負荷ではバースト性のある条件の棄却がポアソン到着よりはるかに多いため, 処理中の台数 $E[B] = \bar{\lambda}(1 - P_{\mathrm{block}})/(b\mu)$ が抑えられ, Cost はポアソン到着を下回る. ERP は $\rho_B < 1$ の全点で $r_1 = 0.1$, $1$, $17.8$, ポアソン到着の順に大きい.
+高負荷での Cost と ERP の頭打ちは棄却によるものであり, ERP は $P_{\mathrm{block}}$ と合わせて評価する必要がある.
+
+% ============================================================
+% 実験 2: Delayoff 率の調整 (ベースモデル)
+% ============================================================
+
+\section{実験 2: Delayoff 率の調整}
+\label{sec:exp2-delayoff-response}
+
+実験 1 の棄却と応答時間の悪化が, Delayoff 率の選び方によるものかを調べる. $\beta$ を $[10^{-8}, 10^{2}]$ で
+走査し, $\rho_B \in \{0.8, 1.12\}$, 2 つのフェーズの長さ, $\alpha \in \{0.005, 0.1, 1\}$ を組み合わせる.
+フェーズの長さは位相遷移率 $\sigma \in \{0.05, 2.81 \times 10^{-4}\}$ で固定するので ($\alpha = 0.005$ で
+$r_1 = 0.1, 17.8$), $\alpha$ を変えると $r_1$ も変わる. 図~\ref{fig:exp2-erp} と図~\ref{fig:exp2-pblock} に
+ERP と $P_{\mathrm{block}}$ を, 表~\ref{tab:exp2-optimum} に ERP を最小にする $\beta$ と
+$\beta_{\mathrm{BE}}$ での値を示す. 以下, ERP を最小にする $\beta$ を $\beta^*$ と書く. 図の星は損益分岐の値
+$\beta_{\mathrm{BE}} = 0.6\alpha$, 円は $\beta^*$ を表す. 表の括弧内は, $\beta_{\mathrm{BE}}$ での ERP の最小値との差である.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{experiment_2_delayoff_erp_(1).pdf}
+    \caption{Delayoff 率 $\beta$ に対する ERP.}
+    \label{fig:exp2-erp}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{experiment_2_delayoff_pblock_(1).pdf}
+    \caption{Delayoff 率 $\beta$ に対する $P_{\mathrm{block}}$.}
+    \label{fig:exp2-pblock}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{ERP を最小にする $\beta^*$ と, 損益分岐の値 $\beta_{\mathrm{BE}}$ での ERP と $P_{\mathrm{block}}$.}
+\label{tab:exp2-optimum}
+\small
+\begin{tabular}{lllrrrrrr}
+\toprule
+$\rho_B$ & フェーズ & $\alpha$ & $r_1$ & $\beta^*$ & ERP & $P_{\mathrm{block}}$ & ERP ($\beta_{\mathrm{BE}}$) & $P_{\mathrm{block}}$ ($\beta_{\mathrm{BE}}$) \\
+\midrule
+$0.8$ & 短 & $0.005$ & $0.1$ & $5.62 \times 10^{-5}$ & $6.308$ & $1.35 \times 10^{-4}$ & $10.342$ ($+64.0\%$) & $7.15 \times 10^{-2}$ \\
+$0.8$ & 短 & $0.1$ & $2$ & $1.78 \times 10^{-3}$ & $6.246$ & $2.08 \times 10^{-4}$ & $7.717$ ($+23.6\%$) & $3.28 \times 10^{-2}$ \\
+$0.8$ & 短 & $1$ & $20$ & $3.16 \times 10^{-1}$ & $5.001$ & $6.34 \times 10^{-5}$ & $5.007$ ($+0.1\%$) & $7.48 \times 10^{-5}$ \\
+$0.8$ & 長 & $0.005$ & $17.8$ & $5.62 \times 10^{-4}$ & $5.639$ & $9.74 \times 10^{-3}$ & $6.037$ ($+7.1\%$) & $1.68 \times 10^{-2}$ \\
+$0.8$ & 長 & $0.1$ & $356$ & $5.62 \times 10^{-3}$ & $4.913$ & $5.30 \times 10^{-4}$ & $5.373$ ($+9.4\%$) & $1.76 \times 10^{-3}$ \\
+$0.8$ & 長 & $1$ & $3560$ & $1.78 \times 10^{-1}$ & $4.689$ & $3.45 \times 10^{-5}$ & $4.778$ ($+1.9\%$) & $5.34 \times 10^{-5}$ \\
+\midrule
+$1.12$ & 短 & $0.005$ & $0.1$ & $10^{-8}$ (下限) & $9.708$ & $6.29 \times 10^{-2}$ & $12.072$ ($+24.4\%$) & $2.09 \times 10^{-1}$ \\
+$1.12$ & 短 & $0.1$ & $2$ & $10^{-8}$ (下限) & $9.708$ & $6.29 \times 10^{-2}$ & $10.262$ ($+5.7\%$) & $1.46 \times 10^{-1}$ \\
+$1.12$ & 短 & $1$ & $20$ & $6.00 \times 10^{-1}$ & $8.368$ & $7.34 \times 10^{-2}$ & $8.368$ ($+0.0\%$) & $7.34 \times 10^{-2}$ \\
+$1.12$ & 長 & $0.005$ & $17.8$ & $1.78 \times 10^{-3}$ & $8.910$ & $1.08 \times 10^{-1}$ & $8.976$ ($+0.7\%$) & $1.09 \times 10^{-1}$ \\
+$1.12$ & 長 & $0.1$ & $356$ & $1.78 \times 10^{-2}$ & $8.394$ & $8.78 \times 10^{-2}$ & $8.507$ ($+1.3\%$) & $8.82 \times 10^{-2}$ \\
+$1.12$ & 長 & $1$ & $3560$ & $3.16 \times 10^{-1}$ & $8.207$ & $8.68 \times 10^{-2}$ & $8.220$ ($+0.2\%$) & $8.69 \times 10^{-2}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{短フェーズ}
+$\alpha = 0.005$ の短フェーズでは, ERP を最小にする $\beta$ が非常に小さい. $\rho_B = 0.8$ で
+$5.62 \times 10^{-5}$, $\rho_B = 1.12$ で走査範囲の下限であり,
+Idle のサーバーをほとんど切らないのが最良である. $\beta_{\mathrm{BE}}$ は ERP をそれぞれ $64.0\%$,
+$24.4\%$悪くし, $\rho_B = 0.8$ の $P_{\mathrm{block}}$ を $1.35 \times 10^{-4}$ から
+$7.15 \times 10^{-2}$ に増やす. そのため実験 1 の短フェーズの棄却の大半はサーバーを切ることによって生じているといえる.
+フェーズがセットアップ時間より短いと, 閑散期に切ったサーバーは次の繁忙期に間に合わない.
+
+\paragraph{長フェーズ}
+長フェーズでは, $\rho_B$ によらず ERP の最小が走査範囲の内部にある. 閑散期がセットアップ時間より長いので, 閑散期に Idle のサーバーを切れば電力を大きく節約できる. 一方, 切ったサーバーは次の繁忙期の始まりから約 $200$ で処理に加わるので, 応答時間と棄却の悪化は繁忙期の始まりに限られる. $\beta$ を大きくすると, 節約は増えるが, 繁忙期の中でもサーバーを切るようになって悪化も増える. この 2 つが釣り合う $\beta$ で ERP が最小となる.
+$\beta_{\mathrm{BE}}$ との ERP の差は $7.1\%$ と $0.7\%$ に縮む.
+ただし $\rho_B = 0.8$ では, $\beta^*$ でも $P_{\mathrm{block}} = 9.74 \times 10^{-3}$ が残る.
+
+\paragraph{セットアップ率と Cost}
+$\alpha = 1$ ではどの条件も $r_1 \ge 20$ となり, $\beta_{\mathrm{BE}}$ と ERP の最小値の差は $1.9\%$ 以下である.
+また全 12 条件で, Cost を最小にする $\beta$ は ERP を最小にする $\beta$ 以上であった.
+つまりCost だけで $\beta$ を選ぶと, Idle のサーバーを早く切りすぎてしまう.
+
+\paragraph{フェーズ別の解析}
+MMPP の到着は, 各フェーズの中では率 $\lambda_F$ のポアソン過程である. フェーズが十分に長ければ, 系は各フェーズの中で
+その到着率に応じた定常状態に近づき, フェーズが切り替わった直後の過渡的な状態は無視できる. 以下, 系をフェーズごとの
+定常状態で近似することを準静的な近似と呼ぶ. 準静的な近似の下で各フェーズの ERP を最小にする $\beta$ を求めるため, 到着率を
+$\lambda_0$ または $\lambda_1$ に固定したポアソン到着の系を解いた (表~\ref{tab:exp2-phasewise}).
+表の「閑散期の $\beta^*$」と「繁忙期の $\beta^*$」は, 各フェーズの系で ERP を最小にする $\beta$ である. 「繁忙期の悪化」は
+閑散期の $\beta^*$ を繁忙期に用いたときの繁忙期の ERP の悪化, 「閑散期の悪化」はその逆である. Idle は, 閑散期の $\beta^*$ を
+用いたときの繁忙期の $E[I]$ である.
+$\alpha = 0.005$ では, 閑散期の ERP を最小にする $\beta$ は $3.16 \times 10^{-4}$ ($\rho_B$ によらない. 以下 $\beta_{\mathrm{qs}}$), 繁忙期は走査範囲の下限であり, 2 桁以上違う.
+しかし繁忙期の ERP は $\beta$ に鈍感であり, $\beta_{\mathrm{qs}}$ を繁忙期に用いても, 繁忙期の ERP の悪化は
+$1.32\%$ ($\rho_B = 0.8$), $0.02\%$ ($\rho_B = 1.12$) に留まる. これは, 繁忙期には到着が多く, Idle のサーバーはすぐに次のジョブの
+処理に移るので, 平均待ち時間 $1/\beta \approx 3200$ の Delayoff が完了することはまれだからである.
+逆に, 繁忙期の ERP を最小にする $\beta$ を閑散期に用いると, 閑散期の ERP は $45.6\%$ ($\rho_B = 0.8$), $40.0\%$ ($\rho_B = 1.12$) 悪くなる.
+したがって準静的な近似の下では, $\beta_{\mathrm{qs}}$ を 2 つのフェーズで共通に使えば, Delayoff 率をフェーズによらず
+共通にすることによる損失は小さい. 実際の系でこの損失が生じるかは, フェーズの切り替わりによって, ERP を最小にする共通の $\beta$ が
+$\beta_{\mathrm{qs}}$ からずれるかで決まる. これを実験 5 で確かめる.
+
+
+\begin{table}[H]
+\centering
+\caption{フェーズ別の解析 (準静的な近似).}
+\label{tab:exp2-phasewise}
+\small
+\begin{tabular}{llrrrrr}
+\toprule
+$\rho_B$ & $\alpha$ & 閑散期の $\beta^*$ & 繁忙期の $\beta^*$ & 繁忙期の悪化 & 閑散期の悪化 & Idle \\
+\midrule
+$0.8$ & $0.005$ & $3.16 \times 10^{-4}$ & $10^{-8}$ (下限) & $+1.32\%$ & $+45.6\%$ & $3.224$ \\
+$0.8$ & $0.1$ & $1.00 \times 10^{-2}$ & $3.16 \times 10^{-6}$ & $+1.60\%$ & $+34.5\%$ & $2.880$ \\
+$0.8$ & $1$ & $1.78 \times 10^{-1}$ & $1.00 \times 10^{-1}$ & $+0.24\%$ & $+0.8\%$ & $1.997$ \\
+$1.12$ & $0.005$ & $3.16 \times 10^{-4}$ & $10^{-8}$ (下限) & $+0.02\%$ & $+40.0\%$ & $0.027$ \\
+$1.12$ & $0.1$ & $1.00 \times 10^{-2}$ & $10^{-8}$ (下限) & $+0.03\%$ & $+52.4\%$ & $0.027$ \\
+$1.12$ & $1$ & $1.78 \times 10^{-1}$ & $10^{-8}$ (下限) & $+0.05\%$ & $+70.7\%$ & $0.023$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+% 実験 3: 振幅とフェーズの長さ (ベースモデル)
+% ============================================================
+
+\section{実験 3: 振幅とフェーズの長さ}
+\label{sec:exp3-burstiness-response}
+
+本実験ではバースト性の 2 つの軸を 1 つずつ変える. 実験 3-A は振幅 $\delta$ を, 実験 3-B はフェーズの長さ $r_1$ を走査する.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{experiment_3_burstiness_delta_(2).pdf}
+    \caption{振幅 $\delta$ に対する 4 指標の応答.}
+    \label{fig:exp3-delta}
+\end{figure}
+
+\paragraph{3-A: 振幅}
+$\delta$ を $[0, 0.95]$ で走査し, $r_1 \in \{0.1, 17.8\}$ と $\rho \in \{0.5, 0.7\}$ を組み合わせる
+(図~\ref{fig:exp3-delta}. 実線は長フェーズ, 破線は短フェーズ). $\rho = 0.5$ では $\rho_B < 1$ のままであり, $\rho = 0.7$ では $\delta > 0.43$
+で $\rho_B > 1$ となる. $P_{\mathrm{block}}$ は 4 条件とも $\delta$ とともに滑らかに増える.
+短フェーズでは $\rho_B < 1$ でも増加が大きく, $\rho = 0.5$ で $\delta = 0$ の $3.22 \times 10^{-4}$ から
+$\delta = 0.95$ の $0.241$ に達する. これは全サーバーの
+処理能力が足りていても起動が追いつかないためである.
+
+長フェーズで $\rho_B > 1$ のとき, 繁忙期が十分長いとバッファはすぐに満杯になり,
+その後は到着率 $\lambda_1$ のうち全サーバーの処理能力 $cb\mu$ を超える分, すなわち繁忙期の到着の $(\rho_B - 1)/\rho_B$ が
+棄却される. 到着のうち繁忙期に来る割合は $\lambda_1/(\lambda_0 + \lambda_1) = (1+\delta)/2$ であるから, 全体の棄却の割合はほぼ
+\begin{equation}
+    \frac{1+\delta}{2} \cdot \frac{\rho_B - 1}{\rho_B}
+    \label{eq:excess-fraction}
+\end{equation}
+となる. 以下, この棄却を超過による棄却と呼ぶ. 超過による棄却は全サーバーが常に起動していても生じ, $\rho_B \le 1$ では
+$0$ である. 例えば $\rho = 0.7$, $\delta = 0.6$ では $\lambda_1 = 112$ のうち $cb\mu = 100$ を超える $12$ ($10.7\%$) が棄却され,
+繁忙期の到着は全体の $80\%$ であるから, 超過による棄却は $0.086$ である. 実際の $P_{\mathrm{block}}$ は $0.109$ であり, その差 $0.024$ ($\rho_B > 1$ となる $\delta \ge 0.45$ では $0.024$〜$0.034$) は, 繁忙期の始まりに閑散期に
+切られたサーバーがまだ起動中で, 処理能力が $cb\mu$ に届かないために生じると考えられる.
+
+
+Cost は, 長フェーズでは $\delta$ とともにほぼ単調に減少し,
+短フェーズでは $\delta$ とともに上がった後, 棄却が増える大きな $\delta$ で下がる.
+$\delta$ を変えても平均到着率は変わらないので, 処理中の台数 $E[B] = \bar{\lambda}(1 - P_{\mathrm{block}})/(b\mu)$ は増えず,
+棄却が増えるほど減る. それに伴って長フェーズでは Idle と Setup の台数も減る. これは閑散期は到着が少なく長いので余った台が切られ,
+繁忙期はほぼ全台が処理中で待機する台が少ないためである. Cost の減少のうち, 棄却による分は $\rho = 0.5$ で $40\%$,
+$\rho = 0.7$ で $78\%$ であり, 残りは Idle と Setup の減少による. 短フェーズでは繁忙期ごとに起動した台が Idle で残るため,
+Idle と Setup が増えて Cost が上がる.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{experiment_3_burstiness_r1.pdf}
+    \caption{フェーズの長さ $r_1$ に対する 4 指標の応答.}
+    \label{fig:exp3-r1}
+\end{figure}
+
+\paragraph{3-B: フェーズの長さ}
+$r_1$ を $[0.01, 1000]$ で走査し, $\rho_B \in \{0.8, 1.12\}$ で比べる (図~\ref{fig:exp3-r1}. 点線は $r_1 = 1$).
+$P_{\mathrm{block}}$, $E[W]$, ERP はどちらの $\rho_B$ でも $r_1 = 0.18$〜$0.56$ で最大となる山形である.
+フェーズがとても短いと 1 回の繁忙期の到着はバッファに吸収され,
+フェーズが長いと繁忙期の間にセットアップが追いつく. その間, すなわちフェーズの長さがセットアップ時間の
+数分の 1 のときが最も悪い. 実験 1 で $r_1 = 1$ の $P_{\mathrm{block}}$ が $r_1 = 0.1$ より大きかったことも, この山の位置と整合する.
+
+$r_1$ を大きくすると 1 回のフェーズが長くなり, フェーズが切り替わった直後の時間の割合が小さくなる. そのため $r_1 \to \infty$ では,
+系はほぼいつも各フェーズの到着率での定常状態にあり, $P_{\mathrm{block}}$ は準静的な近似の値, すなわち各フェーズの定常状態の
+$P_{\mathrm{block}}$ を到着の割合で重み付けた値に近づく. $\rho_B = 0.8$ では閑散期が $5.5 \times 10^{-5}$, 繁忙期が $3.1 \times 10^{-3}$ であり,
+重み $0.2$, $0.8$ で平均すると $0.0025$ となる. これは $r_1 = 1000$ の $0.0028$ とほぼ一致する. 一方, 長フェーズ ($r_1 = 17.8$) の
+$P_{\mathrm{block}}$ は $0.0168$ であり, 準静的な近似の値との差 $0.0143$ (約 $85\%$) は, フェーズが切り替わった直後に生じている.
+これは, 閑散期には多くのサーバー (平均 $13.6$ 台) が切られており, 繁忙期が始まって到着率が $20$ から $80$ に上がっても,
+それらのサーバーがセットアップ (平均 $200$) を終えるまでは処理能力が足りず, バッファが満杯になって棄却が起こるためである.
+
+% ============================================================
+% 実験 4: バッファ容量 K に対する感度 (ベースモデル)
+% ============================================================
+
+\section{実験 4: バッファ容量 $K$ に対する感度}
+\label{sec:exp4-K-sensitivity}
+
+$K \in \{100, 200, 500, 1000\}$ と短・長フェーズを組み合わせ, $\rho$ を実験 1 と同じく走査する
+(図~\ref{fig:exp4-K}, 表~\ref{tab:exp4-pblock}). $K = 200$ の結果は実験 1 と一致する. 図の点線は $\rho_B = 1$ を表し,
+表の「比」は $K = 200$ の $P_{\mathrm{block}}$ を $K = 1000$ の値で割ったものである.
+なお $K = 100$ は全サーバーが同時に処理できるジョブ数 $cb = 100$ に等しい.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{experiment_4_K_sensitivity_short.pdf}
+        \caption{短フェーズ ($r_1 = 0.1$).}
+        \label{fig:exp4-K-short}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{experiment_4_K_sensitivity_long.pdf}
+        \caption{長フェーズ ($r_1 = 17.8$).}
+        \label{fig:exp4-K-long}
+    \end{subfigure}
+    \caption{バッファ容量 $K$ ごとの $\rho$ に対する 4 指標の応答.}
+    \label{fig:exp4-K}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{代表的な $\rho$ での $P_{\mathrm{block}}$.}
+\label{tab:exp4-pblock}
+\small
+\begin{tabular}{lllrrrrr}
+\toprule
+フェーズ & $\rho$ & $\rho_B$ & $K=100$ & $K=200$ & $K=500$ & $K=1000$ & 比 \\
+\midrule
+短 & $0.3$ & $0.48$ & $4.91 \times 10^{-2}$ & $1.21 \times 10^{-2}$ & $1.54 \times 10^{-3}$ & $1.27 \times 10^{-4}$ & $95.6$ \\
+短 & $0.5$ & $0.80$ & $1.60 \times 10^{-1}$ & $7.15 \times 10^{-2}$ & $2.16 \times 10^{-2}$ & $5.13 \times 10^{-3}$ & $13.9$ \\
+短 & $0.7$ & $1.12$ & $2.83 \times 10^{-1}$ & $2.09 \times 10^{-1}$ & $1.23 \times 10^{-1}$ & $5.84 \times 10^{-2}$ & $3.59$ \\
+短 & $0.95$ & $1.52$ & $3.90 \times 10^{-1}$ & $3.41 \times 10^{-1}$ & $2.66 \times 10^{-1}$ & $1.94 \times 10^{-1}$ & $1.76$ \\
+\midrule
+長 & $0.3$ & $0.48$ & $1.44 \times 10^{-2}$ & $5.94 \times 10^{-3}$ & $4.39 \times 10^{-3}$ & $2.48 \times 10^{-3}$ & $2.40$ \\
+長 & $0.5$ & $0.80$ & $7.20 \times 10^{-2}$ & $1.68 \times 10^{-2}$ & $1.36 \times 10^{-2}$ & $1.21 \times 10^{-2}$ & $1.39$ \\
+長 & $0.7$ & $1.12$ & $1.92 \times 10^{-1}$ & $1.09 \times 10^{-1}$ & $1.08 \times 10^{-1}$ & $1.06 \times 10^{-1}$ & $1.03$ \\
+長 & $0.95$ & $1.52$ & $3.24 \times 10^{-1}$ & $2.87 \times 10^{-1}$ & $2.87 \times 10^{-1}$ & $2.86 \times 10^{-1}$ & $1.00$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{ブロッキング確率}
+短フェーズでは, $K$ を大きくすると $P_{\mathrm{block}}$ が大きく下がる. これは, 1 回の繁忙期で処理しきれない到着が
+バッファに収まるようになるためである. 長フェーズでは, $K \ge 200$ での下がり方が短フェーズより小さい.
+$\rho_B < 1$ で残る棄却は繁忙期の始まりの立ち上がりで生じ (実験 3-B), セットアップを終えるまでに処理しきれない到着は
+バッファの容量を大きく超える. $\rho_B > 1$ では, 処理しきれない到着が繁忙期の長さに比例して増える.
+
+$\rho$ に対する概形も短フェーズと長フェーズで異なる. 短フェーズでは, どの $K$ でも $P_{\mathrm{block}}$ は $\rho$ とともに
+滑らかに増え, $\rho_B = 1$ で目立った変化はない. これは, 繁忙期が短く, 処理能力を超えた到着の多くがバッファに
+吸収されるためである. 長フェーズの $P_{\mathrm{block}}$ は, $K \ge 200$ では $\rho$ の範囲によって増え方が異なる.
+低い負荷では急激に増え, 中程度の負荷から $\rho_B = 1$ までは増え方が緩やかになり, $\rho_B = 1$ の直後に再び急に増えた後, 緩やかになる.
+以下, この 3 つの範囲を順に説明する.
+
+低い負荷では, 繁忙期の始まりにたまる到着は多くの場合バッファに収まり, セットアップが偶然遅れたときだけバッファがあふれる.
+$P_{\mathrm{block}}$ は, このあふれる確率とともに指数的に増える.
+
+中程度の負荷から $\rho_B = 1$ までは, 繁忙期の始まりにたまる到着がバッファの容量を超え, ほぼすべての繁忙期の始まりで
+バッファがあふれる. したがって, 傾きが低$\rho$より小さいのは, あふれる確率がほぼ $1$ で頭打ちになり, $P_{\mathrm{block}}$ を
+増やす要因があふれる量だけになるためである. $\rho_B = 1$ に近づくと, 増え方は再び大きくなる. これは, $\rho$ が大きいほど
+繁忙期に必要な台数が増えてセットアップを待つ時間が延び, セットアップを終えた後にバッファにたまった到着を処理する
+余力 $cb\mu - \lambda_1$ も小さくなるためである.
+
+$\rho_B = 1$ を越えると, 全サーバーが起動していても繁忙期の到着を処理しきれず, 繁忙期の始まりだけでなく
+繁忙期を通じてバッファがあふれる. これを確かめるため, 長フェーズの棄却を原因によって 2 つに分ける (表~\ref{tab:exp4-split}).
+一つは実験 3-A の超過による棄却 (式~\eqref{eq:excess-fraction}) であり, 繁忙期の到着率 $\lambda_1$ が処理能力 $cb\mu$ を
+超えるために生じる. もう一つは立ち上がりによる棄却であり, 繁忙期の始まりに, 閑散期に切られたサーバーがまだセットアップ中で
+処理能力が足りないために生じる. その割合は $P_{\mathrm{block}}$ から超過による棄却を引いて求めた.
+
+\begin{table}[H]
+\centering
+\caption{長フェーズ ($K = 1000$) の $P_{\mathrm{block}}$ の原因別の内訳.}
+\label{tab:exp4-split}
+\small
+\begin{tabular}{llrrr}
+\toprule
+$\rho$ & $\rho_B$ & $P_{\mathrm{block}}$ & 超過による棄却 & 立ち上がりによる棄却 \\
+\midrule
+$0.6$   & $0.96$ & $0.0218$ & $0$      & $0.0218$ \\
+$0.625$ & $1.00$ & $0.0279$ & $0$      & $0.0279$ \\
+$0.65$  & $1.04$ & $0.0541$ & $0.0308$ & $0.0233$ \\
+$0.7$   & $1.12$ & $0.1065$ & $0.0857$ & $0.0208$ \\
+$0.95$  & $1.52$ & $0.2861$ & $0.2737$ & $0.0124$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+超過による棄却は, $\rho_B = 1$ を越えると $0$ から急に増える. 立ち上がりによる棄却は, $\rho_B = 1$ で
+最大となり, その後は減る. $\rho_B < 1$ の棄却はすべて立ち上がりによる棄却である.
+$\rho_B > 1$ で立ち上がりによる棄却が減るのは, 繁忙期の始まりの棄却のうち, 全サーバーが起動していても棄却される分
+(率 $\lambda_1 - cb\mu$) は, 超過による棄却として数えられるうえ, 閑散期の負荷も上がって繁忙期の始まりに起動済みの台が増えるためと考えられる. 2 つの和である $P_{\mathrm{block}}$ は, $\rho_B = 1$ の
+直後に超過による棄却が立ち上がって急に増え, その後は超過による棄却の増え方が鈍るうえに立ち上がりによる棄却が
+減るので, 増え方が緩やかになる.
+
+\paragraph{平均応答時間と ERP}
+短フェーズの $E[W]$ は, $K$ が大きいほど高い負荷まで増え続ける. $K = 200$ では $\rho \approx 0.7$ で最大となった後
+わずかに下がるが (実験 1), $K = 1000$ では $\rho = 0.95$ まで増え続ける. これは, $E[W] = E[N]/\lambda_{\mathrm{eff}}$ の分子 $E[N]$ がバッファの容量で頭打ちになる負荷が, $K$ が大きいほど高いためである.
+$K = 200$ では $\rho = 0.7$ で $E[N]/K$ が $0.56$ に達し, その後は $E[N]$ の増加率が $\lambda_{\mathrm{eff}}$ の増加率を下回るので (実験 1), $E[W]$ が下がる.
+$K = 1000$ の $E[N]/K$ は $\rho = 0.5$ の $0.17$ から $0.95$ の $0.55$ まで増え続け, $E[N]$ の増え方が $\lambda_{\mathrm{eff}}$ の増え方を上回り続ける.
+
+
+長フェーズで $K \ge 500$ のときは, $E[W]$ は $\rho_B = 1$ を越えたところで急に大きくなった後, $\rho$ とともにゆるやかに減る.
+$\rho_B > 1$ ではバッファが繁忙期に満杯に近づき閑散期に空になることを繰り返すので, $E[N]/K$ は約 $0.5$ で頭打ちとなる.
+一方, 受け入れられるジョブの率 $\lambda_{\mathrm{eff}}$ は増え続ける ($K = 1000$ では $\rho = 0.7$ から $0.95$ にかけて
+$62.5$ から $67.8$) ので, $E[W] = E[N]/\lambda_{\mathrm{eff}}$ は下がる. これは, 実験 1 の高負荷での $E[W]$ の減少と
+同じ仕組みである. また $\rho_B > 1$ では $E[W]$ がほぼ $K$ に比例する ($\rho = 0.7$ で $K = 200, 500, 1000$ の順に
+$1.71$, $4.10$, $8.09$) ので, $K$ を大きくしても棄却はほとんど減らずに待ち時間だけが延びる.
+ERP はどの条件でも $K$ が大きいほど大きいが, これは $K$ が小さいほど多くのジョブを棄却しているためである.
+
+
+% ============================================================
+% 実験 1〜4 のまとめ
+% ============================================================
+\section{実験 1〜4 のまとめ}
+\label{sec:exp1-4-summary}
+
+実験 1〜4 から, バースト性が Delayoff を用いたサーバー群の性能をどう変えるかについて,
+次の 3 点が分かった.
+\begin{enumerate}
+    \item[(a)] フェーズがセットアップ時間より短いとき ($r_1 < 1$), 閑散期に切ったサーバーは次の繁忙期に間に合わず,
+        Idle のサーバーをほとんど切らないのが有効的である (実験 2). このときサーバーはほぼ常に On であるから,
+        提案モデルのポリシーである, 事前セットアップで起動できる台はほとんどなく, 閑散期に早く切ること (P2) は ERP を下げる向きと逆である.
+        したがって, フェーズの情報を用いる制御の余地は小さいと予想される.
+    \item[(b)] フェーズが長く $\rho_B > 1$ のとき, 棄却の大半 ($\rho = 0.7$ で約 8 割) は繁忙期の処理能力の不足で生じ
+        (式~\eqref{eq:excess-fraction}), バッファの容量でも Delayoff 率でも減らせない (実験 2, 3, 4).
+    \item[(c)] フェーズが長く $\rho_B < 1$ のとき, 残る棄却の大半はフェーズの切り替わりで生じ,
+        バッファの容量ではほとんど減らない (実験 3-B, 4). また, 準静的な近似の下では, 閑散期の ERP を最小にする
+        $\beta_{\mathrm{qs}}$ を 2 つのフェーズで共通に使っても, 繁忙期の ERP はほとんど悪化しない (実験 2).
+        しかし実際の系では, フェーズの切り替わりによって, 共通の $\beta$ のうち ERP を最小にする値が
+        $\beta_{\mathrm{qs}}$ からずれる可能性がある. ずれた場合, 1 つの $\beta$ では閑散期と繁忙期の両方に合う値を
+        選べないので, フェーズごとに Delayoff 率を変える余地が生じる.
+\end{enumerate}
+提案モデルのポリシーは, いずれもフェーズの情報を用いる. 事前セットアップ (P1) は繁忙期の始まりの
+立ち上がりを, それに伴う保護は繁忙期の間の取り消しと Delayoff を, Delayoff の加速 (P2) は閑散期の Idle のサーバーを
+対象とする. 以上から, 提案モデルがベースモデルより ERP を下げられるのは $r_1 \gg 1$ かつ $\rho_B < 1$ の
+条件に限られると予想される. 次節以降で, この予想を両モデルの比較によって確かめる.
+% ============================================================
+% 実験 5: 比較の地図 (ベースモデルと提案モデル)
+% ============================================================
+
+\section{実験 5: ベースモデルと提案モデルの比較}
+\label{sec:exp5-compare-map}
+
+フェーズの情報を用いる提案モデルの制御がベースモデルより ERP を下げられるかを調べるため, 両モデルの ERP の最小値を比べる.
+
+提案モデルは, ベースモデルに次の 2 つの規則を加えたものである (\ref{sec:pred-rules} 節).
+一つは事前セットアップ (P1) であり, 閑散期から繁忙期に切り替わった時点で, 電源オンの台数が $n_{\mathrm{target}}$ に
+満たなければ, 足りない台数のセットアップを始める. 事前セットアップには保護が伴い, 繁忙期に電源オンの台数が
+$n_{\mathrm{target}}$ 以下の間は, セットアップの取り消しと Delayoff による電源オフを行わない.
+もう一つは Delayoff の加速 (P2) であり, 閑散期に限って Delayoff 率を $\gamma$ 倍にする.
+
+条件は $\rho_B \in \{0.6, 0.8, 1.12\}$ と $r_1$ の組 (以下, マス) である. $r_1$ は $[0.1, 100]$ の 9 点とし, $\delta = 0.6$, $\alpha = 0.005$, $\rho = \rho_B / 1.6$, $\sigma = \alpha / r_1$ とする.
+各マスでは, ベースモデルは $\beta$ について, 提案モデルは$(\beta, n_{\mathrm{target}}, \gamma)$ について ERP を最小にするパラメータ数値を記載する.
+ERP は棄却されたジョブを含まないので, ベースモデルの ERP 最小点のブロッキング確率 $P_{\mathrm{ref}}$ を上限とし,
+$P_{\mathrm{block}} \le P_{\mathrm{ref}}$ を満たす提案モデルの点の中の ERP 最小値をベースモデルの ERP 最小値と比べる.
+この ERP 最小の点を提案モデルの最良点と呼ぶ.
+ベースモデルの ERP の最小値を $\mathit{ERP}_{\mathrm{Base}}$, 提案モデルの最良点の ERP を $\mathit{ERP}_{\mathrm{Pred}}$ とし,
+改善率を $(\mathit{ERP}_{\mathrm{Base}} - \mathit{ERP}_{\mathrm{Pred}}) / \mathit{ERP}_{\mathrm{Base}}$ とする.
+$0.1\%$ 以下は同等とみなす (図~\ref{fig:exp5-map} の灰色のマス).
+図の各マスの数値はベースモデルに対する ERP の改善率, その下は提案モデルの最良点の $n_{\mathrm{target}}$ と $\gamma$ である.
+図中の Base はベースモデルを表す.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{compare_map_improvement_(1).pdf}
+    \caption{ベースモデルと提案モデルの比較.}
+    \label{fig:exp5-map}
+\end{figure}
+
+
+図~\ref{fig:exp5-map} のとおり, 改善率が $0.5\%$ を超えるのは $\rho_B \le 0.8$ かつ $r_1 \ge 10$ のマスだけである. 最大は $\rho_B = 0.8$, $r_1 = 17.8$ の
+$2.68\%$ である. $\rho_B = 0.8$ の改善は $r_1 \le 3.16$ で $0.03\%$ 以下, $r_1 = 5.62$ で $0.27\%$, $r_1 = 10$ で $2.35\%$ であり,
+$r_1 = 5$〜$10$ で立ち上がる. $\rho_B = 0.6$ では最大 $1.09\%$であり, $\rho_B = 1.12$ ではすべてのマスで
+$0.05\%$ 以下である. 実験 1〜4 の条件に当たるマスでは, 短フェーズの改善率は $0.00\%$ ($\rho_B = 0.8$) と
+$0.01\%$ ($\rho_B = 1.12$), 長フェーズは $2.68\%$ と $0.05\%$ であり, \ref{sec:exp1-4-summary} 節の予想 (a)〜(c) と一致する.
+
+\paragraph{改善がどの規則によるものか分解}
+改善がどの規則から生じたものかを調べるため, 事前セットアップと保護だけを使える組 ($\gamma = 1$) と Delayoff の加速だけを使える組
+($n_{\mathrm{target}} = 0$) のそれぞれの中で ERP を最小にする点を求め, 同じ基準で比べた (表~\ref{tab:exp5-decomp}).
+表の「事前セットアップのみ」と「加速のみ」は, それぞれの組の中で ERP を最小にしたときの改善率 [\%] である.
+最良点は両方の規則を使う場合の $(n_{\mathrm{target}}, \gamma)$ であり, $P/P_{\mathrm{ref}}$ はその点の値である.
+右の 2 列は, ベースモデルの ERP を最小にする $\beta$ ($\beta^*$) と, 提案モデルの最良点の閑散期の Delayoff 率 $\gamma\beta$ であり,
+単位は $10^{-4}$ である.
+
+$\rho_B = 0.6$ では, すべてのマスで最良点の $\gamma$ が $1$ であり, 改善はすべて事前セットアップと保護によるものである.
+最良点の $n_{\mathrm{target}}$ は $15$ であり, 繁忙期に必要な台数 ($\lambda_1/(b\mu) = 12$) を少し上回る.
+Delayoff の加速だけでは, $r_1 = 10$ の $0.54\%$ を除いてほとんど改善しない. 
+
+$\rho_B = 0.8$ の $r_1 \ge 10$ では, 事前セットアップと保護だけ ($r_1 = 17.8$ で $2.68\%$) でも, Delayoff の加速だけ ($2.22\%$) でも
+改善の大半が得られ, 両方を使っても改善率は 2 つの和にならない. これは, 2 つの規則が同じ働きをするためだと考えられる.
+事前セットアップと保護だけを使う組の中で ERP を最小にする $n_{\mathrm{target}}$ は $c = 20$ であり, このとき電源オンの台数は
+常に $n_{\mathrm{target}}$ 以下なので, 保護は繁忙期の間ずっと働く. つまり, 繁忙期には Delayoff で切らず, 閑散期だけ率 $\beta$ で切る.
+Delayoff の加速も閑散期の Delayoff 率を繁忙期の $\gamma$ 倍にするので, どちらも Delayoff 率をフェーズによって変える点で同じである.
+
+\begin{table}[H]
+\centering
+\caption{規則ごとの分解.}
+\label{tab:exp5-decomp}
+\small
+\begin{tabular}{llrlrrrrr}
+\toprule
+$\rho_B$ & $r_1$ & 改善率 & 最良点 & 事前セットアップのみ & 加速のみ & $P/P_{\mathrm{ref}}$ & $\beta^*$ & $\gamma\beta$ \\
+\midrule
+$0.6$ & $3.16$ & $0.31$ & (15, 1) & $0.31$ & $0.00$ & $0.919$ & $1.83$ & $1.92$ \\
+$0.6$ & $5.62$ & $0.40$ & (15, 1) & $0.40$ & $0.00$ & $0.576$ & $3.75$ & $2.81$ \\
+$0.6$ & $10$ & $1.09$ & (15, 1) & $1.09$ & $0.54$ & $0.870$ & $7.70$ & $6.67$ \\
+$0.6$ & $17.8$ & $0.73$ & (15, 1) & $0.73$ & $0.00$ & $0.864$ & $7.70$ & $6.06$ \\
+$0.6$ & $31.6$ & $0.62$ & (15, 1) & $0.62$ & $0.04$ & $0.910$ & $6.67$ & $5.50$ \\
+$0.6$ & $56.2$ & $0.58$ & (15, 1) & $0.58$ & $0.00$ & $0.938$ & $5.77$ & $5.00$ \\
+$0.6$ & $100$ & $0.54$ & (15, 1) & $0.54$ & $0.00$ & $0.955$ & $5.00$ & $4.54$ \\
+\midrule
+$0.8$ & $3.16$ & $0.03$ & (15, 30) & $0.00$ & $0.03$ & $0.770$ & $0.50$ & $0.47$ \\
+$0.8$ & $5.62$ & $0.27$ & (20, 30) & $0.00$ & $0.13$ & $0.970$ & $0.89$ & $1.12$ \\
+$0.8$ & $10$ & $2.35$ & (20, 100) & $1.81$ & $1.95$ & $0.977$ & $7.70$ & $8.89$ \\
+$0.8$ & $17.8$ & $2.68$ & (20, 1) & $2.68$ & $2.22$ & $0.993$ & $7.70$ & $9.79$ \\
+$0.8$ & $31.6$ & $2.52$ & (20, 1) & $2.52$ & $1.93$ & $0.982$ & $6.67$ & $8.89$ \\
+$0.8$ & $56.2$ & $2.05$ & (20, 100) & $1.55$ & $1.95$ & $0.967$ & $5.00$ & $6.67$ \\
+$0.8$ & $100$ & $1.91$ & (20, 3) & $1.89$ & $1.67$ & $0.986$ & $4.33$ & $8.44$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{改善の仕組み}
+ベースモデルが 1 つの $\beta$ で直面するトレードオフから説明する (表~\ref{tab:exp5-mechanism}, 図~\ref{fig:exp5-mechanism}).
+準静的な近似 (実験 2) では, 閑散期と繁忙期をそれぞれ到着率 $\lambda_0$, $\lambda_1$ のポアソン到着の系として別々に解き,
+各フェーズが時間の半分を占めるとして 2 つの系の指標を平均する. ただし $E[W]$ は, 2 つの系の $E[N]$ と $\lambda_{\mathrm{eff}}$ を
+それぞれ平均してから比をとり, ERP は平均した $E[W]$ と Cost の積とする. この近似の下で閑散期の ERP を最小にする $\beta$,
+すなわち到着率 $\lambda_0$ のポアソン到着の系で ERP を最小にする $\beta$ は $\beta_{\mathrm{qs}} = 3.16 \times 10^{-4}$ であり,
+実験 2 のとおり共通の $\beta$ をこの値にしても損失は小さい.
+しかし実際の系でベースモデルの ERP を最小にする $\beta$ (以下 $\beta^*$) は $\beta_{\mathrm{qs}}$ より大きい ($r_1 = 17.8$ で $7.70 \times 10^{-4}$).
+これは, 繁忙期が終わるたびに繁忙期に必要だった台が Idle で残り, $\beta$ が小さいと長い閑散期にわたって電力を消費するためである.
+実際, ベースモデルの $\beta$ を $\beta_{\mathrm{qs}}$ にすると, $E[W]$ は $1.193$ から $1.144$ に下がるが Cost は $4.717$ から
+$5.001$ に上がり, ERP は悪化する. 逆に $\beta$ を大きくすると, 繁忙期にも Idle のサーバーを切り, 再起動の遅れで
+$E[W]$ が上がる. 提案モデルの最良点 ($n_{\mathrm{target}} = c$) は, 保護によって繁忙期には切らず閑散期だけ切ることで,
+$\beta$ を $\beta_{\mathrm{qs}}$ にしたベースモデルに近い $E[W]$ ($1.147$) と, $\beta^*$ のベースモデルに近い Cost ($4.776$) を両立する.
+最良点どうしを比べると, 提案モデルはベースモデルより $E[W]$ を下げ, Cost を上げる (図~\ref{fig:exp5-mechanism} の左下).
+$\rho_B = 0.8$, $r_1 = 17.8$ では $E[W]$ が $3.9\%$ 下がり, Cost が $1.2\%$ 上がる. ERP の改善率 ($2.68\%$) はおよそこの 2 つの差である.
+$\rho_B = 0.6$ でも向きは同じである ($r_1 = 17.8$ で $E[W]$ が $2.6\%$ 下がり, Cost が $1.9\%$ 上がる).
+
+表~\ref{tab:exp5-mechanism} の準静的な改善率は, $\beta^*$ のベースモデルに対する, 提案モデルの最良点の形 (閑散期は率 $\gamma\beta$ で切り,
+繁忙期は保護によって切らない) の ERP の改善率を準静的な近似で求めたものである. 右の 3 列は $E[W]$ / Cost であり,
+ベースモデル ($\beta_{\mathrm{qs}}$) の列は, 実際の系でベースモデルの $\beta$ を $\beta_{\mathrm{qs}}$ にした点である.
+図~\ref{fig:exp5-mechanism} は, 左上に改善率 (実線) と準静的な改善率 (破線), 右上に $\beta^*$ (点線は $\beta_{\mathrm{qs}}$),
+左下に最良点どうしの $E[W]$ (実線) と Cost (破線) の変化, 右下に 1 周期あたりに事前セットアップで起動する台数を示す.
+
+\begin{table}[H]
+\centering
+\caption{改善の仕組み ($\rho_B = 0.8$).}
+\label{tab:exp5-mechanism}
+\small
+\begin{tabular}{rrrrlll}
+\toprule
+$r_1$ & 改善率 [\%] & 準静的 [\%] & $\beta^*$ & ベースモデル ($\beta^*$) & ベースモデル ($\beta_{\mathrm{qs}}$) & 提案モデル \\
+\midrule
+$10$ & $2.35$ & $2.77$ & $7.70 \times 10^{-4}$ & $1.229$ / $4.865$ & $1.162$ / $5.194$ & $1.179$ / $4.953$ \\
+$17.8$ & $2.68$ & $2.64$ & $7.70 \times 10^{-4}$ & $1.193$ / $4.717$ & $1.144$ / $5.001$ & $1.147$ / $4.776$ \\
+$31.6$ & $2.52$ & $2.22$ & $6.67 \times 10^{-4}$ & $1.159$ / $4.637$ & $1.127$ / $4.830$ & $1.118$ / $4.685$ \\
+$56.2$ & $2.05$ & $1.66$ & $5.00 \times 10^{-4}$ & $1.129$ / $4.604$ & $1.113$ / $4.699$ & $1.097$ / $4.643$ \\
+$100$ & $1.91$ & $1.10$ & $4.33 \times 10^{-4}$ & $1.114$ / $4.561$ & $1.104$ / $4.611$ & $1.090$ / $4.571$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{compare_map_mechanism_(2).pdf}
+    \caption{改善の仕組み.}
+    \label{fig:exp5-mechanism}
+\end{figure}
+
+フェーズが長くなると, 繁忙期の後に残る Idle の比重が下がり, $\beta^*$ は $\beta_{\mathrm{qs}}$ に近づく. そのため準静的な改善率は
+$r_1$ とともに下がり, 実際の改善率も $r_1 = 17.8$ を過ぎると下がる.
+$\rho_B = 0.8$ の $r_1 \ge 10$ では, $r_1$ が大きいほど $E[W]$ の減少も Cost の増加も小さくなる. Cost の増加のほうが速く縮むので, $r_1 = 100$ でも改善率は $1.91\%$ 残り,
+準静的な値を $0.80$ ポイント上回る. この差は準静的な近似に含まれない
+切り替わりの効果であり, その一部は事前セットアップによるものである.
+$r_1 \le 3.16$ の $\rho_B = 0.8$ では, $\beta^*$ が $\beta_{\mathrm{qs}}$ より約 1 桁小さく,
+サーバーがほとんど切られないため, 事前セットアップはほとんど起こらず, 改善の余地がない
+(\ref{sec:exp1-4-summary} 節の予想 (a)). $\rho_B = 1.12$ では繁忙期に Idle のサーバーがほとんどなく (実験 2),
+繁忙期に切らない規則が効かない.
+
+% ============================================================
+% 実験 6: 頑健性
+% ============================================================
+
+\section{実験 6: 頑健性}
+\label{sec:exp6-robustness}
+
+改善が制御パラメータの設定にどれだけ左右されるかを調べる. 比較の基準 (ベースモデルの ERP 最小値と
+$P_{\mathrm{ref}}$) は実験 5 と同じである. 本実験ではERP の相対差が $+0.1\%$ を超えるか, $P_{\mathrm{block}}/P_{\mathrm{ref}}$ が
+$1.05$ を超える点を悪化の基準とする.
+以下, 最良点は実験 5 と同じく, ブロッキング確率が $P_{\mathrm{ref}}$ 以下の点の中で提案モデルの ERP を最小にする
+$(\beta, n_{\mathrm{target}}, \gamma)$ を指す.
+
+\paragraph{最良点の周りの感度}
+実験 5 の最良点から 1 つのパラメータだけを動かし, 残りの 2 つは最良点の値に固定する.
+$\beta$ は最良点の $\beta$ の $0.1$〜$10$ 倍を対数で等間隔に 15 点, $n_{\mathrm{target}}$ は $0$〜$20$ の 21 点,
+$\gamma$ は $1$〜$1000$ を対数で等間隔に 16 点とる. 対象は実験 5 の 27 マスのうち改善率の上位 2 マスと, 対照となる2 マス
+($\rho_B = 0.8$, $r_1 = 0.1$ と, $\rho_B = 1.12$ で改善率が最も小さい $r_1 = 3.16$) である. ベースモデルより悪くならない範囲を
+表~\ref{tab:exp6-range} に, 改善率が最大のマスの結果を図~\ref{fig:exp6-A} に示す. 表の $\beta$ の列は最良点の $\beta$ に対する倍率である.
+図の各列は 1 つのパラメータだけを動かした結果であり, 縦の点線は最良点 ($\beta_{\mathrm{best}} = 9.79 \times 10^{-4}$, $n_{\mathrm{target}} = 20$,
+$\gamma = 1$) を表す. 上段はベースモデルの ERP 最小値に対する ERP の相対差, 下段は $P_{\mathrm{block}}/P_{\mathrm{ref}}$ であり,
+四角はベースモデルより悪い点である. 図中の Base はベースモデル, best point は最良点を表す.
+
+\begin{table}[H]
+\centering
+\caption{最良点から 1 つのパラメータだけを動かしたとき, ベースモデルより悪くならない範囲.}
+\label{tab:exp6-range}
+\small
+\begin{tabular}{llllll}
+\toprule
+マス & 改善率 & 最良点 $(\beta, n_{\mathrm{target}}, \gamma)$ & $\beta$ & $n_{\mathrm{target}}$ & $\gamma$ \\
+\midrule
+$\rho_B = 0.8$, $r_1 = 17.8$ & $2.68\%$ & $(9.79 \times 10^{-4}, 20, 1)$ & $0.52$〜$1$ & $18$〜$20$ & $1$ \\
+$\rho_B = 0.8$, $r_1 = 31.6$ & $2.52\%$ & $(8.89 \times 10^{-4}, 20, 1)$ & $0.52$〜$1$ & $18$〜$20$ & $1$ \\
+$\rho_B = 0.8$, $r_1 = 0.1$ & $0.00\%$ & $(5.00 \times 10^{-5}, 15, 1)$ & $0.52$〜$1$ & $0$〜$19$ & $1$ \\
+$\rho_B = 1.12$, $r_1 = 3.16$ & $0.00\%$ & ベースモデルの点 & $1$ & すべて & $1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{robustness_A_rhoB0.8_r1_17.8_(3).pdf}
+    \caption{最良点の周りの感度 ($\rho_B = 0.8$, $r_1 = 17.8$).}
+    \label{fig:exp6-A}
+\end{figure}
+
+上位 2 マスはどちらも $n_{\mathrm{target}} = c$, $\gamma = 1$ を最良点とし, ベースモデルより悪くならない範囲も同じである.
+改善率が最大のマスでも, $\beta$ を最良値の $0.37$ 倍以下か $1.39$ 倍以上にすると, ERP かブロッキング確率のどちらかでベースモデルより悪くなる.
+最良点はブロッキング確率の上限の近くにあり ($P_{\mathrm{block}}/P_{\mathrm{ref}} = 0.993$), $\beta$ を大きくすると ERP はさらに下がるが
+($1.39$ 倍で $-2.93\%$), ブロッキング確率が $P_{\mathrm{ref}}$ の $1.09$ 倍になる.
+$n_{\mathrm{target}} = c$ では繁忙期に Delayoff が止まるので, 結果は閑散期の Delayoff 率 $\gamma\beta$ だけで決まり, $\gamma$ を大きくすることは
+$\beta$ を同じ倍率で大きくすることと同じである. そのため $\gamma$ も $1.58$ 以上にすると, ブロッキング確率が $P_{\mathrm{ref}}$ の $1.12$ 倍以上になる.
+$n_{\mathrm{target}}$ を $17$ にするとブロッキング確率が $1.07$ 倍になり, $16$ 以下にすると ERP もベースモデルより $0.21$〜$0.26\%$ 悪化する
+(ブロッキング確率は $1.08$〜$1.09$ 倍). 改善が設定のずれに弱いと考えられる.
+
+\paragraph{ベースモデルの $\beta$ のまま規則を加える}
+実験 5 の 27 マスのそれぞれで, ベースモデルの ERP を最小にする $\beta$ を固定したまま規則を 1 つだけ加えた (図~\ref{fig:exp6-B}).
+加える規則は, 事前セットアップと保護 ($(n_{\mathrm{target}}, \gamma) = (10, 1), (20, 1)$. 図の上の 2 段の pre-setup) と,
+Delayoff の加速 ($(n_{\mathrm{target}}, \gamma) = (0, 3), (0, 10)$. 下の 2 段の delayoff accel.) である.
+図の各マスの $\Delta$ERP はベースモデルの ERP 最小値に対する ERP の相対差, $P/P_{\mathrm{ref}}$ は $P_{\mathrm{block}}/P_{\mathrm{ref}}$ である.
+各マスは, ERP の相対差が $\pm 0.1\%$ 以内, $P/P_{\mathrm{ref}}$ が $0.95$〜$1.05$ を同等とみなして, 次の 4 つに分類した.
+ERP が $0.1\%$ を超えて下がり, $P/P_{\mathrm{ref}}$ が $1.05$ 以下なら改善 (Improved), ERP もブロッキング確率も同等なら同等 (Equal),
+一方が良くなり他方が悪くなれば引き換え (Trade-off), どちらかが悪くなりどちらも良くならなければ悪化 (Worse) とする.
+事前セットアップ ($n_{\mathrm{target}} = 20$, $\gamma = 1$) は, $\rho_B = 0.8$ で $r_1 \ge 5.62$ の 6 マスで ERP とブロッキング確率を
+ともに改善した ($r_1 = 17.8$ で ERP $-2.24\%$, $P_{\mathrm{block}}/P_{\mathrm{ref}} = 0.91$). $(\beta, n_{\mathrm{target}}, \gamma)$ をすべて選び直したときの改善率 ($2.68\%$) の大半が
+ベースモデルの $\beta$ のままで得られ, 改善の仕組み (繁忙期には切らず, 閑散期はベースモデルの $\beta$ に近い率で切る) と整合する.
+一方, $\rho_B = 0.6$ の全マスと $\rho_B = 0.8$ の $r_1 \le 3.16$ では, ブロッキング確率が下がる代わりに ERP が悪化した
+(最大 $+17.4\%$). これは, $\rho_B = 0.6$ では繁忙期に必要な台数 ($\lambda_1/(b\mu) = 12$) を超える $20$ 台を保つためである.
+$n_{\mathrm{target}} = 10$ ではすべてのマスで同等であった. Delayoff の加速 ($n_{\mathrm{target}} = 0$, $\gamma = 3$ と $10$) は,
+54 の組 (27 マス $\times$ 2 設定) のうち 50 でベースモデルより悪かった. これは, 閑散期だけ早く切っても, ベースモデルの $\beta$ のままでは繁忙期にも切る
+ことに変わりがないためである. したがって, ベースモデルの $\beta$ のまま改善を得るには, 事前セットアップと保護を,
+繁忙期に必要な台数に見合った $n_{\mathrm{target}}$ で加える必要がある ($\rho_B = 0.8$ では $20$ で改善するが,
+$\rho_B = 0.6$ では $20$ は多すぎて ERP が悪化し, $10$ はどちらでも効かない). そうでなければ, $\beta$ を規則と合わせて調整し直す必要がある.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{robustness_B_(4).pdf}
+    \caption{ベースモデルの ERP を最小にする $\beta$ のまま規則を 1 つ加えたときの判定.}
+    \label{fig:exp6-B}
+\end{figure}
+
+以上より, 提案モデルの改善は小さいうえに, 制御パラメータの設定に強く左右される. 実運用で改善を得るには,
+フェーズごとの負荷に合わせて $n_{\mathrm{target}}$ と $\beta$ を選ぶ必要がある.
+\begin{thebibliography}{9}
+
+\bibitem{LeAnh2025}
+Thu Le-Anh and Tuan Phung-Duc, 
+``Energy-performance tradeoffs in server farms with batch services and setup times, '' 
+\textit{Performance Evaluation}, vol.  168, p.  102468, 2025. 
+
+\bibitem{GrassmannTaksarHeyman1985}
+W. ~K. ~Grassmann, M. ~I. ~Taksar, and D. ~P. ~Heyman, ``Regenerative Analysis and Steady State Distributions for Markov Chains, '' \textit{Operations Research}, vol. ~33, no. ~5, pp. ~1107--1116, 1985. 
+
+\bibitem{OCinneide1996}
+Colm Art O'Cinneide, 
+``Relative-error bounds for the LU decomposition via the GTH algorithm, '' 
+\textit{Numerische Mathematik}, vol.  73, pp.  507--519, 1996. 
+
+\bibitem{OCinneide1993}
+C. ~A. ~O'Cinneide, ``Entrywise perturbation theory and error analysis for Markov chains, '' \textit{Numerische Mathematik}, vol. ~65, pp. ~109--120, 1993. 
+
+\bibitem{IEA2025}
+International Energy Agency, ``Energy and {AI}, '' Technical Report, IEA, Paris, 2025.  Licence: CC BY 4. 0. 
+
+\bibitem{WoodMackenzie2025}
+Wood Mackenzie, ``Japan's data centre gold rush: the battle to power a data-driven future, '' Press release, 2025. 
+
+\bibitem{BarrosoHolzle2007}
+L. ~A. ~Barroso and U. ~H{\"o}lzle, ``The Case for Energy-Proportional Computing, '' \textit{Computer}, vol. ~40, no. ~12, pp. ~33--37, 2007. 
+
+\bibitem{Shehabi2024}
+A. ~Shehabi, S. ~J. ~Smith, A. ~Hubbard, A. ~Newkirk, N. ~Lei, M. ~A. ~B. ~Siddik, B. ~Holecek, J. ~Koomey, E. ~Masanet, and D. ~Sartor, ``2024 United States Data Center Energy Usage Report, '' Technical Report LBNL-2001637, Lawrence Berkeley National Laboratory, 2024. 
+
+\bibitem{Gandhi2014}
+A. ~Gandhi, S. ~Doroudi, M. ~Harchol-Balter, and A. ~Scheller-Wolf, ``Exact analysis of the {M/M/k/setup} class of {M}arkov chains via recursive renewal reward, '' \textit{Queueing Systems}, vol. ~77, pp. ~177--209, 2014. 
+
+\bibitem{Gandhi2012AutoScale}
+A. ~Gandhi, M. ~Harchol-Balter, R. ~Raghunathan, and M. ~A. ~Kozuch, 
+``{AutoScale}: Dynamic, robust capacity management for multi-tier data
+centers, '' \textit{ACM Transactions on Computer Systems}, vol. ~30, no. ~4, 
+Art. ~no. ~14, 2012. 
+
+\bibitem{Shahrad2020}
+M. ~Shahrad, R. ~Fonseca, \'{I}. ~Goiri, G. ~Chaudhry, P. ~Batum, J. ~Cooke, 
+E. ~Laureano, C. ~Tresness, M. ~Russinovich, and R. ~Bianchini, ``Serverless in
+the wild: Characterizing and optimizing the serverless workload at a large
+cloud provider, '' in \textit{Proc.  2020 USENIX Annual Technical Conference
+(USENIX ATC 20)}, 2020, pp. ~205--218. 
+
+\bibitem{AWSPredictive}
+Amazon Web Services, ``How predictive scaling works, '' \textit{Amazon EC2
+Auto Scaling User Guide}.  [Online].  Available: \url{}
+
+\bibitem{Triton}
+NVIDIA, ``Batchers, '' \textit{NVIDIA Triton Inference Server User Guide}. 
+[Online].  Available:
+\url{https://docs. nvidia. com/deeplearning/triton-inference-server/user-guide/docs/user_guide/batcher. html}
+
+\bibitem{Benson2010}
+T. ~Benson, A. ~Akella, and D. ~A. ~Maltz, ``Network traffic characteristics of
+data centers in the wild, '' in \textit{Proc.  10th ACM SIGCOMM Conference on
+Internet Measurement (IMC '10)}, 2010, pp. ~267--280. 
+
+\bibitem{AYearLLMServing}
+William Nixon, Jon Durbin, Florian Standhartinger, Haryadi S.  Gunawi, and Juncheng Yang, ``A year in {LLM} serving: Workload evolution, caching and load-balancing, '' arXiv preprint arXiv:2608. 13573, 2026. 
+
+\bibitem{PhungDuc2015}
+T. ~Phung-Duc, ``Multiserver queues with finite capacity and setup time, '' in
+\textit{Analytical and Stochastic Modelling Techniques and Applications
+(ASMTA 2015)}, Lecture Notes in Computer Science, vol. ~9081, Springer, 2015, 
+pp. ~173--187. 
+
+\bibitem{AWSBlog2018}
+J. ~Barr, ``New -- Predictive scaling for {EC2}, powered by machine learning, ''
+\textit{AWS News Blog}, 2018.  [Online].  Available:
+\url{https://aws. amazon. com/blogs/aws/new-predictive-scaling-for-ec2-powered-by-machine-learning}
+
+\end{thebibliography}
+
+
+\end{document}
