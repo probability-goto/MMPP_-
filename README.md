@@ -46,6 +46,7 @@ MMPP_-/
 ├── results/               # 実験の CSV とレポート (results/gth_validation/ は GTH 移行の検証記録)
 ├── figures/               # 論文で使う図 (GTH 法 + 安定版の P_block). 使わない図は archive/figures_not_in_thesis/
 ├── thesis_assets/         # 論文用の数値マクロ・表・図 (scripts/make_thesis_numbers.py が生成)
+├── paper/                 # 論文の .tex と校正のメモ, 空白の整理 (clean_tex.py)
 ├── docs/                  # モデルと解法の説明 (model_and_methods.tex)
 └── archive/               # 使わないが記録として残すもの (旧比較, GTH 移行時の図・CSV・スクリプト)
 ```
@@ -180,6 +181,33 @@ r1 ∈ {0.1 (短), 1, 17.8 (長)} と ρ_B ∈ {0.8, 1.12} で条件を決める
 `experiment_6_gamma.py`, `compare_experiment_*.py`, `evaluate_predictive_comparison.py`) は
 論文では使わないが, 再現できるように残している。図と再生成の手順は
 `archive/old_comparison_beta_fixed_no_protect/README.md` を参照。
+
+## 論文の空白の整理 (`paper/clean_tex.py`)
+
+論文の .tex から, 日本語と英数字・インライン数式の間の不要な半角スペースを削除する
+(`サーバー台数 $c=20$ で` → `サーバー台数$c=20$で`, `Fig. 1 に示す` → `Fig. 1に示す`)。
+英単語どうしの空白, 数式の内部, コメント, コマンドとその引数, 全角スペース, 改行とインデント,
+表紙 (`titlepage`) と参考文献 (`thebibliography`) は変更しない。`\input`・`\include` で読み込む .tex もたどる。
+
+```bash
+cd paper
+python clean_tex.py --dry-run                  # 削除する空白を表示するだけ (何も書き換えない)
+python clean_tex.py --dry-run --show-skipped   # 表紙の中などで残した候補も表示する
+python clean_tex.py --dry-run --diff-out changes.diff   # 差分をファイルに書き出す
+python clean_tex.py                            # 確認 (y/N) のあと, バックアップを取って書き換える
+python clean_tex.py --list-backups             # バックアップの一覧
+python clean_tex.py --restore                  # 最新のバックアップから戻す (--restore <日時> で指定)
+```
+
+ルートの .tex は, フォルダの中で `\documentclass` を含む .tex を探して決める (複数あるときは
+`python clean_tex.py "main2 (13).tex"` のように指定する)。書き換える前に, 処理前と処理後を一時フォルダで
+コンパイルし (エンジンは `\documentclass` から判定し, `--engine` でも指定できる), エラーが増えるときは書き換えない。
+書き換えた後にもう一度コンパイルし, エラーが増えていればバックアップから自動で戻す。
+バックアップと差分 (`changes.diff`) は `paper/.clean_tex_backup/<日時>/` に置く。
+2 回目以降の実行では変更は出ない。
+
+この環境には `algorithm.sty`, `algpseudocode.sty` と論文の図の一部が無い。そのため, コンパイルの検査ではこれらの
+パッケージを空のスタブで代用し, 図が見つからないエラーは処理前と同じ件数かどうかで判定する。図をそろえた環境でのコンパイルは別に確かめる。
 
 ## 数値解法の方針
 
