@@ -29,7 +29,7 @@
 % 表紙
 \begin{titlepage}
     \begin{center}
-        \vspace*{0. 1cm}
+        \vspace*{0.1cm}
         {\huge 令和 8年度}\\[1cm]
         {\huge 筑波大学大学院}\\[1cm]
         {\huge 修士論文}\\[3cm]
@@ -603,7 +603,7 @@ $Q^{(0)}_K$ に補正する.
 差分である制御規則, 状態空間, 遷移率, 生成行列の構造を述べる. 
 
 ベースモデルであるDelayoff単体の制御は, 系内のジョブ数 $j$ だけに基づく反応的な制御である. 
-この制御には次の 2 つの弱点がある. 
+この制御には次の 2 つの制約がある. 
  
 \begin{itemize}
     \item \textbf{起動の遅れ. }\\
@@ -883,8 +883,8 @@ $I_{N_{IS}} \otimes C_0$ ではなく $R \otimes E_{01}$ と $I_{N_{IS}} \otimes
 本章では, 第~\ref{chap:mathematical_model} 章で定式化した 2 つのモデルに共通の解析手法と
 性能評価指標を述べる.  \ref{sec:numerical} 節で定常分布と到達可能な状態への縮約, 
 \ref{sec:gth} 節で GTH アルゴリズム, \ref{sec:band} 節で帯構造と計算量, 
-\ref{sec:performance_metrics} 節で性能評価指標を述べる. 2 つのモデルの比較方法は
-\ref{sec:exp5-compare-map} 節で述べる. 
+\ref{sec:performance_metrics} 節で性能評価指標, \ref{sec:comparison} 節で
+2 つのモデルの比較方法を述べる. 
 
 \section{定常分布の数値計算}
 \label{sec:numerical}
@@ -1048,7 +1048,7 @@ $\widehat{Q}^{(1)} = Q$ であり, $\widehat{Q}^{(m)}$ を
 \subsection{掃き出し行列と LU 分解の関係}
 \label{sec:gth-lu}
 
-\paragraph{LU 分解との関係}GTH2 で計算した値によって元の非対角要素を順に上書きすると, 消去の終了後, 位置 $(r, s)$ ($r \ne s$) には $h_{rs} = q^{(\min(r, s))}_{rs}$ が格納される. この行列 $H = (h_{rs})$ ($h_{rr} = 0$) を掃き出し行列 (sweep matrix) と呼ぶ\cite{OCinneide1996}.  $H$ の狭義下三角部分を $H_{\mathrm{L}}$, 狭義上三角部分を$H_{\mathrm{U}}$ とし, $\Delta = \mathrm{diag}(\eta_1, \ldots, \eta_{N-1}, 0)$, $\Delta^{-} = \mathrm{diag}(\eta_1^{-1}, \ldots, \eta_{N-1}^{-1}, 0)$ とすると, \begin{equation}    L = H_{\mathrm{L}} - \Delta, \qquad U = I - \Delta^{-} H_{\mathrm{U}}    \label{eq:gth-lu}\end{equation}に対して $Q = LU$ が成り立つ \cite[式~(3. 1)]{OCinneide1996}.  $L$ は最終列が零ベクトルの下三角行列, $U$ は対角要素がすべて $1$ の上三角行列である.  すなわちGTH の消去過程は, $Q$ の LU 分解を計算する過程にほかならない.  $U$ は正則であるから, $\bm{a} Q = \bm{0}$ は $\bm{a} L = \bm{0}$ と同値であり, $L$ の第 $m$列 ($m \le N-1$) についてこれを書き下したものが GTH3 である.  また $L$ の第 $N$列は零ベクトルであるため $a_N$ は自由に定めることができ, これが $a_N = 1$ の正規化に対応する.  以上より, GTH は「ピボットを非対角要素の和として計算するLU 分解」と「$L$ による後退代入」からなる直接法として位置づけられる.
+\paragraph{LU 分解との関係}GTH2 で計算した値によって元の非対角要素を順に上書きすると, 消去の終了後, 位置 $(r, s)$ ($r \ne s$) には $h_{rs} = q^{(\min(r, s))}_{rs}$ が格納される. この行列 $H = (h_{rs})$ ($h_{rr} = 0$) を掃き出し行列 (sweep matrix) と呼ぶ\cite{OCinneide1996}.  $H$ の狭義下三角部分を $H_{\mathrm{L}}$, 狭義上三角部分を$H_{\mathrm{U}}$ とし, $\Delta = \mathrm{diag}(\eta_1, \ldots, \eta_{N-1}, 0)$, $\Delta^{-} = \mathrm{diag}(\eta_1^{-1}, \ldots, \eta_{N-1}^{-1}, 0)$ とすると, \begin{equation}    L = H_{\mathrm{L}} - \Delta, \qquad U = I - \Delta^{-} H_{\mathrm{U}}    \label{eq:gth-lu}\end{equation}に対して $Q = LU$ が成り立つ \cite[式~(3. 1)]{OCinneide1996}.  $L$ は最終列が零ベクトルの下三角行列, $U$ は対角要素がすべて $1$ の上三角行列である.  すなわちGTH の消去過程は, $Q$ の LU 分解を計算する過程にほかならない.  $U$ は正則であるから, $\bm{a} Q = \bm{0}$ は $\bm{a} L = \bm{0}$ と同値であり, $L$ の第 $m$列 ($m \le N-1$) についてこれを書き下したものが GTH3 である.  また $L$ の第 $N$列は零ベクトルであるため $a_N$ は自由に定めることができ, これが $a_N = 1$ の正規化に対応する.  以上より, GTH は「ピボットを非対角要素の和として計算するLU 分解」と「$L$ による後退代入」からなる直接法として位置づけられる.  
 
 
 % ===================================================================
@@ -1716,7 +1716,6 @@ ERP はどの条件でも $K$ が大きいほど大きいが, これは $K$ が�
 % ============================================================
 % 実験 1〜4 のまとめ
 % ============================================================
-
 \section{実験 1〜4 のまとめ}
 \label{sec:exp1-4-summary}
 
@@ -1926,7 +1925,7 @@ $\rho_B = 1.12$, $r_1 = 3.16$ & $0.00\%$ & ベースモデルの点 & $1$ & す�
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{robustness_A_rhoB0.8_r1_17.8_(2).pdf}
+    \includegraphics[width=\textwidth]{robustness_A_rhoB0.8_r1_17.8_(3).pdf}
     \caption{最良点の周りの感度 ($\rho_B = 0.8$, $r_1 = 17.8$).}
     \label{fig:exp6-A}
 \end{figure}
@@ -1961,14 +1960,13 @@ $\rho_B = 0.6$ では $20$ は多すぎて ERP が悪化し, $10$ はどちら�
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{robustness_B_(3).pdf}
+    \includegraphics[width=\textwidth]{robustness_B_(4).pdf}
     \caption{ベースモデルの ERP を最小にする $\beta$ のまま規則を 1 つ加えたときの判定.}
     \label{fig:exp6-B}
 \end{figure}
 
 以上より, 提案モデルの改善は小さいうえに, 制御パラメータの設定に強く左右される. 実運用で改善を得るには,
 フェーズごとの負荷に合わせて $n_{\mathrm{target}}$ と $\beta$ を選ぶ必要がある.
-
 \begin{thebibliography}{9}
 
 \bibitem{LeAnh2025}
