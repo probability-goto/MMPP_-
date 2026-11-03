@@ -56,8 +56,9 @@ def plot_delta(rows: Sequence[dict], out_dir: str) -> List[str]:
             series.append((rf"$\rho={rho:g}$, $r_1={r1:.3g}$",
                            [r for r in rows if r["condition"] == name],
                            dict(color=RHO_COLOR[rho], linestyle=ls)))
+    # 点線は rho = 0.7 で rho_B = 1 となる delta = 3/7 (rho = 0.5 は走査範囲で rho_B < 1)
     return plot_four_metrics(series, "delta", r"$\delta$", out_dir,
-                             "experiment_3_burstiness_delta")
+                             "experiment_3_burstiness_delta", vline=1 / 0.7 - 1)
 
 
 def plot_r1(rows: Sequence[dict], out_dir: str) -> List[str]:
