@@ -15,20 +15,28 @@ results/compare_map/ の CSV と summary.csv を読み, マスごとに次を計
        Base: セットアップの完了 alpha E[S]. Predictive: セットアップの完了, 事前セットアップで起動した台数.
 新しく解くのは 2. のポアソン到着の点と 3. の点だけ.
 
-出力: results/compare_map/mechanism.csv, results/compare_map/mechanism.md, figures/compare_map_mechanism.{pdf,png}
+出力: results/compare_map/mechanism.csv, results/compare_map/mechanism.md,
+      results/compare_map/mechanism_base_beta_dense.csv, figures/compare_map_mechanism.{pdf,png}
+
+図の右上 (Base の beta*, 縦軸は線形目盛) だけは r1 を 1 桁あたり 4 点 (R1_DENSE, 0.1〜100 の 13 点) にとる.
+地図の 9 点はその値をそのまま使い, 足りない 4 点は Base の beta を地図と同じ規則 (粗い 9 点,
+細かい 21 点, 範囲の拡張) で探索して mechanism_base_beta_dense.csv に書く. ほかの 3 つの図は地図の 9 点.
 
 使用例:
     python scripts/compare_map_mechanism.py
+    python scripts/compare_map_mechanism.py --plot-only    # 計算せず, CSV から図だけ描き直す
+    python scripts/compare_map_mechanism.py --dense-base   # 右上の図の足りない r1 だけ Base を探索して図を描く
 """
+import argparse
 import csv
 import os
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 import numpy as np
 
 from mmpp_experiments import design as d
-from mmpp_experiments.csvio import read_rows
-from mmpp_experiments.plotting import save_figure
+from mmpp_experiments.csvio import append_row, read_rows
+from mmpp_experiments.plotting import save_figure, set_log_xaxis, ylim_from_zero
 
 try:
     import compare_map as cm
@@ -131,7 +139,63 @@ def analyze() -> List[dict]:
     return out
 
 
-def plot(rows: List[dict], fig_dir: str = cm.FIG_DIR) -> List[str]:
+# 右上の図の縦軸 (Base の beta*, 単位 1e-3, 線形目盛). beta* の最大は 2.1e-3.
+# 0 付近の線が枠に重ならないよう下限は 0 より少し下
+BETA_UNIT = 1e-3
+BETA_YLIM = ylim_from_zero(2.5)
+
+# 右上の図の r1 (1 桁あたり 4 点). 地図の 9 点 (cm.R1_ALL) を含む
+R1_DENSE = [float(10 ** (k / 4)) for k in range(-4, 9)]
+DENSE_CSV = os.path.join(cm.OUT_DIR, "mechanism_base_beta_dense.csv")
+DENSE_FIELDS = ["rho_B", "r1", "sigma", "base_beta", "base_ERP", "base_P", "n_points"]
+
+
+def _on_map_grid(r1: float) -> bool:
+    return any(np.isclose(r1, x, rtol=1e-9) for x in cm.R1_ALL)
+
+
+def base_search(rho_B: float, r1: float) -> List[dict]:
+    """マス (rho_B, r1) で Base の beta を地図と同じ規則で探索し, 計算した点をすべて返す."""
+    cp = cm.cell_params(rho_B, r1)
+    betas = cm.coarse_betas(cp["sigma"])
+    name = cm.row_name(rho_B)
+    rows = [cm.e8.compute_base(name, cp, "coarse", b)[0] for b in betas]
+    while True:
+        done = {cm.rkey(r) for r in rows}
+
+        def missing(pts):
+            return [p for p in pts if cm.pkey(r1, p[0], p[2], p[3], p[4]) not in done]
+
+        nxt = cm._refine(rows, "Base", 0, 1.0, betas, cm.N_FINE_BASE, None, missing)
+        if not nxt:
+            return rows
+        rows += [cm.e8.compute_base(name, cp, stage, b)[0] for _, stage, b, _, _ in nxt]
+
+
+def dense_base_rows(compute: bool) -> List[dict]:
+    """右上の図の, 地図にない r1 での Base の beta*. compute=True なら足りないマスを探索して CSV に追記する."""
+    have = [{k: float(v) for k, v in r.items()} for r in read_rows(DENSE_CSV)]
+    if not compute:
+        return have
+    for rho_B in cm.RHO_B_LEVELS:
+        for r1 in R1_DENSE:
+            if _on_map_grid(r1) or any(r["rho_B"] == rho_B and np.isclose(r["r1"], r1, rtol=1e-9)
+                                       for r in have):
+                continue
+            pts = base_search(rho_B, r1)
+            best = min(pts, key=lambda r: _f(r, "ERP"))
+            row = dict(rho_B=rho_B, r1=r1, sigma=cm.ALPHA / r1, base_beta=_f(best, "beta"),
+                       base_ERP=_f(best, "ERP"), base_P=_f(best, "P_block_arrival_stable"),
+                       n_points=len(pts))
+            append_row(DENSE_CSV, DENSE_FIELDS, row)
+            have.append(row)
+            print(f"Base beta*: rho_B={rho_B:g}, r1={r1:.3g}, beta*={row['base_beta']:.3g} "
+                  f"({len(pts)} 点)")
+    return have
+
+
+def plot(rows: List[dict], fig_dir: str = cm.FIG_DIR, dense: Sequence[dict] = ()) -> List[str]:
+    """dense は右上の図に加える, 地図にない r1 での Base の beta* (dense_base_rows の行)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -146,26 +210,29 @@ def plot(rows: List[dict], fig_dir: str = cm.FIG_DIR) -> List[str]:
                         color=c, label=rf"$\rho_B={rho_B:g}$")
         axes[0, 0].plot(xs, [100 * r["qs_improvement"] for r in rr], marker="s", markersize=3,
                         linestyle="--", color=c)
-        axes[0, 1].plot(xs, [r["base_beta"] for r in rr], marker="o", markersize=4, color=c)
+        bb = sorted([(r["r1"], r["base_beta"]) for r in rr]
+                    + [(r["r1"], r["base_beta"]) for r in dense if r["rho_B"] == rho_B])
+        axes[0, 1].plot([x for x, _ in bb], [b / BETA_UNIT for _, b in bb], marker="o",
+                        markersize=4, color=c)
         axes[1, 0].plot(xs, [100 * r["dEW"] for r in rr], marker="o", markersize=4, color=c)
         axes[1, 0].plot(xs, [100 * r["dCost"] for r in rr], marker="s", markersize=3,
                         linestyle="--", color=c)
         axes[1, 1].plot(xs, [r["pred_p1_launch_per_cycle"] for r in rr], marker="o",
                         markersize=4, color=c)
     labels = ["ERP improvement [%] (solid: actual, dashed: quasi-static)",
-              r"Base $\beta^*$ (dotted: quiet-phase optimum, quasi-static)",
+              r"Base $\beta^*$ [$\times 10^{-3}$] (dotted: $\beta_{\mathrm{qs}}$)",
               r"Pred/Base $-1$ [%] (solid: $E[W]$, dashed: Cost)",
               "Pred: P1 launches per cycle"]
     for ax, lab in zip(axes.flat, labels):
-        ax.set_xscale("log")
+        set_log_xaxis(ax)
         ax.set_xlabel(r"$r_1=\alpha/\sigma$", fontsize=14)
         ax.set_ylabel(lab, fontsize=11)
         ax.grid(alpha=0.3)
         ax.tick_params(labelsize=10)
-    axes[0, 1].set_yscale("log")
+    axes[0, 1].set_ylim(*BETA_YLIM)
     # beta_qs は rho_B によらず同じ格子点になる (閑散期の到着率の違いが格子の間隔より小さい)
     for v in sorted({r["beta_qs"] for r in rows}):
-        axes[0, 1].axhline(v, color="0.4", linestyle=":", linewidth=1)
+        axes[0, 1].axhline(v / BETA_UNIT, color="0.4", linestyle=":", linewidth=1)
     for ax in (axes[0, 0], axes[1, 0], axes[1, 1]):
         ax.axhline(0, color="0.5", linewidth=0.8)
     handles, labs = axes[0, 0].get_legend_handles_labels()
@@ -204,9 +271,19 @@ def report(rows: List[dict], figs: List[str]) -> str:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--plot-only", action="store_true",
+                        help="計算せず, mechanism.csv と mechanism_base_beta_dense.csv から図だけ描く")
+    parser.add_argument("--dense-base", action="store_true",
+                        help="右上の図の足りない r1 だけ Base を探索し, mechanism.csv から図を描く")
+    args = parser.parse_args()
+    if args.plot_only or args.dense_base:
+        rows = [{k: float(v) for k, v in r.items()} for r in read_rows(OUT_CSV)]
+        plot(rows, dense=dense_base_rows(compute=args.dense_base))
+        return
     rows = analyze()
     d.write_rows(OUT_CSV, rows, FIELDS)
-    figs = plot(rows)
+    figs = plot(rows, dense=dense_base_rows(compute=True))
     print(report(rows, figs))
 
 

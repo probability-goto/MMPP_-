@@ -10,17 +10,24 @@ delta = 0.6, alpha = 0.005, beta は損益分岐の値 0.6 alpha = 0.003
     python scripts/experiment_4_K_sensitivity.py              # 短と長の両方
     python scripts/experiment_4_K_sensitivity.py --phase long
     python scripts/experiment_4_K_sensitivity.py --quick      # rho を 3 点だけ (動作確認用)
+    python scripts/experiment_4_K_sensitivity.py --plot-only  # 計算せず, CSV から図だけ描き直す
 """
 import argparse
 import os
 from typing import Dict, List, Sequence
 
 from mmpp_experiments import design as d
-from mmpp_experiments.plotting import plot_four_metrics
+from mmpp_experiments.csvio import read_rows
+from mmpp_experiments.plotting import plot_four_metrics, ylim_from_zero
 
 K_LEVELS = [100, 200, 500, 1000]
 PHASES: Dict[str, float] = {"short": d.R1_SHORT, "long": d.R1_LONG}
 K_COLOR = {100: "tab:red", 200: "tab:orange", 500: "tab:green", 1000: "tab:blue"}
+# 縦軸の範囲 (線形目盛). 論文では短と長の図を並べるので, 4 指標とも両方で同じ範囲にする.
+# 最大は P_block 0.390, E[W] 8.09, Cost 6.90, ERP 49.4 (最小は E[W] 1.09, Cost 1.29).
+# P_block は 0 付近の線が枠に重ならないよう下限を 0 より少し下げる
+YLIMS = {"P_block_arrival_stable": ylim_from_zero(0.4), "E_W": (1.0, 8.5), "Cost": (1.0, 7.0),
+         "ERP": (0.0, 50.0)}
 
 # 長フェーズの P_block の原因別の内訳 (論文の表 tab:exp4-split)
 SPLIT_K = 1000
@@ -68,7 +75,7 @@ def plot(phase: str, rows: Sequence[dict], out_dir: str) -> List[str]:
               for K in K_LEVELS]
     return plot_four_metrics(series, "rho", r"$\rho$", out_dir,
                              f"experiment_4_K_sensitivity_{phase}", vline=1 / (1 + d.DELTA),
-                             legend_ncol=4)
+                             legend_ncol=4, ylims=YLIMS)
 
 
 def main() -> None:
@@ -77,9 +84,14 @@ def main() -> None:
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument("--csv-dir", default="results")
     parser.add_argument("--quick", action="store_true", help="rho を 3 点だけ計算する")
+    parser.add_argument("--plot-only", action="store_true", help="計算せず, CSV から図だけ描く")
     args = parser.parse_args()
     rhos = [0.1, 0.5, 0.95] if args.quick else d.RHO_GRID
     for phase in (PHASES if args.phase == "all" else [args.phase]):
+        if args.plot_only:
+            plot(phase, read_rows(os.path.join(args.csv_dir, f"experiment_4_{phase}.csv")),
+                 args.out_dir)
+            continue
         rows = compute(phase, rhos)
         d.report_checks(rows)
         d.write_rows(os.path.join(args.csv_dir, f"experiment_4_{phase}.csv"), rows)

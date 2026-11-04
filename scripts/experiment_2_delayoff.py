@@ -11,6 +11,7 @@
 使用例:
     python scripts/experiment_2_delayoff.py
     python scripts/experiment_2_delayoff.py --quick   # beta を 5 点だけ (動作確認用)
+    python scripts/experiment_2_delayoff.py --plot-only   # 計算せず, CSV から図だけ描き直す
 """
 import argparse
 import os
@@ -19,7 +20,8 @@ from typing import List, Sequence, Tuple
 import numpy as np
 
 from mmpp_experiments import design as d
-from mmpp_experiments.plotting import log_scale_label, save_figure
+from mmpp_experiments.csvio import read_rows
+from mmpp_experiments.plotting import save_figure, set_log_xaxis, ylim_from_zero
 
 ALPHA_LEVELS = [0.005, 0.1, 1.0]
 BETA_GRID = [float(x) for x in np.logspace(-8, 2, 41)]
@@ -33,6 +35,9 @@ ALPHA_STYLE = {0.005: dict(color="tab:green"), 0.1: dict(color="tab:blue"),
                1.0: dict(color="tab:orange")}
 
 CSV_A = "experiment_2.csv"
+# P_block の図の縦軸の範囲 (線形目盛). 4 つのパネルで共通にする. 最大は 0.542.
+# 0 付近の線 (alpha = 1 など) が軸の枠に重ならないよう, 下限を 0 より少し下げる
+PBLOCK_YLIM = ylim_from_zero(0.6)
 CSV_B = "experiment_2_phasewise.csv"
 FIELDS_A = ["phase"] + d.ROW_FIELDS
 FIELDS_B = ["phase", "rho_B_mmpp"] + d.ROW_FIELDS
@@ -76,14 +81,18 @@ def _select(rows, **cond) -> List[dict]:
     return sorted(out, key=lambda r: float(r["beta"]))
 
 
-def plot_A(rows: Sequence[dict], out_dir: str, metric: str, ylabel: str, ylog: bool,
-           stem: str) -> List[str]:
-    """2x2 (行 rho_B, 列 フェーズの長さ) に, alpha ごとの線と損益分岐の点, ERP を最小にする点を描く."""
+def plot_A(rows: Sequence[dict], out_dir: str, metric: str, ylabel: str,
+           stem: str, ylim=None) -> List[str]:
+    """2x2 (行 rho_B, 列 フェーズの長さ) に, alpha ごとの線と損益分岐の点, ERP を最小にする点を描く.
+
+    横軸 beta は対数目盛 (ラベルは 1 桁ごと), 縦軸は線形目盛. ylim を与えると 4 つのパネルの縦軸を
+    その範囲で共通にする.
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(2, 2, figsize=(11, 9), sharex=True)
+    fig, axes = plt.subplots(2, 2, figsize=(11, 9), sharex=True, sharey=ylim is not None)
     for i, rho_B in enumerate(d.RHO_B_LEVELS):
         for j, (phase, sigma) in enumerate(PHASES):
             ax = axes[i, j]
@@ -102,14 +111,14 @@ def plot_A(rows: Sequence[dict], out_dir: str, metric: str, ylabel: str, ylog: b
                 ax.plot([float(best["beta"])], [float(best[metric])], marker="o",
                         markersize=13, markerfacecolor="none", markeredgecolor="black",
                         markeredgewidth=1.5, linestyle="none", zorder=4)
-            ax.set_xscale("log")
-            if ylog:
-                ax.set_yscale("log")
-                ax.set_ylim(top=1)
+            set_log_xaxis(ax)
+            ax.tick_params(axis="x", labelsize=9)
+            if ylim is not None:
+                ax.set_ylim(*ylim)
             ax.set_title(rf"$\rho_B={rho_B:g}$, $\sigma={sigma:.3g}$ "
                          rf"($r_1={d.ALPHA / sigma:.3g}$ at $\alpha=0.005$)", fontsize=12)
             ax.set_xlabel(r"$\beta$", fontsize=14)
-            ax.set_ylabel(log_scale_label(ylabel) if ylog else ylabel, fontsize=14)
+            ax.set_ylabel(ylabel, fontsize=14)
             ax.grid(alpha=0.3)
     from matplotlib.lines import Line2D
     handles, labels = axes[0, 0].get_legend_handles_labels()
@@ -129,9 +138,9 @@ def plot_A(rows: Sequence[dict], out_dir: str, metric: str, ylabel: str, ylog: b
 
 def plot(rows_a: Sequence[dict], out_dir: str) -> List[str]:
     """パート A の図 (ERP と P_block). パート B は論文で表にするので図は描かない."""
-    return (plot_A(rows_a, out_dir, "ERP", "ERP", False, "experiment_2_delayoff_erp")
-            + plot_A(rows_a, out_dir, "P_block_arrival_stable", r"$P_{\mathrm{block}}$", True,
-                     "experiment_2_delayoff_pblock"))
+    return (plot_A(rows_a, out_dir, "ERP", "ERP", "experiment_2_delayoff_erp")
+            + plot_A(rows_a, out_dir, "P_block_arrival_stable", r"$P_{\mathrm{block}}$",
+                     "experiment_2_delayoff_pblock", ylim=PBLOCK_YLIM))
 
 
 def main() -> None:
@@ -139,7 +148,11 @@ def main() -> None:
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument("--csv-dir", default="results")
     parser.add_argument("--quick", action="store_true", help="beta を 5 点だけ計算する")
+    parser.add_argument("--plot-only", action="store_true", help="計算せず, CSV から図だけ描く")
     args = parser.parse_args()
+    if args.plot_only:
+        plot(read_rows(os.path.join(args.csv_dir, CSV_A)), args.out_dir)
+        return
     grid = [float(x) for x in np.logspace(-8, 2, 5)] if args.quick else BETA_GRID
     rows_a, rows_b = compute_A(grid), compute_B(grid)
     d.report_checks(rows_a + rows_b)

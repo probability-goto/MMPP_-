@@ -8,13 +8,15 @@ rho を [0.1, 0.95] で 0.025 刻みに走査し, 4 指標 (P_block, E[W], Cost,
 使用例:
     python scripts/experiment_1_traffic.py
     python scripts/experiment_1_traffic.py --quick   # rho を 3 点だけ (動作確認用)
+    python scripts/experiment_1_traffic.py --plot-only   # 計算せず, CSV から図だけ描き直す
 """
 import argparse
 import os
 from typing import Dict, List, Sequence, Tuple
 
 from mmpp_experiments import design as d
-from mmpp_experiments.plotting import plot_four_metrics
+from mmpp_experiments.csvio import read_rows
+from mmpp_experiments.plotting import plot_four_metrics, ylim_from_zero
 
 # (条件名, delta, r1). ポアソンでは sigma は結果に効かないので r1 = 1 の sigma を使い, r1 列は空にする
 CONDITIONS: List[Tuple[str, float, float]] = [
@@ -32,6 +34,8 @@ STYLE: Dict[str, Tuple[str, dict]] = {
 }
 
 CSV_NAME = "experiment_1.csv"
+# 縦軸の範囲 (線形目盛). P_block の最大は 0.355. 0 付近の線が枠に重ならないよう下限は 0 より少し下
+YLIMS = {"P_block_arrival_stable": ylim_from_zero(0.4)}
 FIG_STEM = "experiment_1_traffic"
 
 
@@ -48,7 +52,7 @@ def plot(rows: Sequence[dict], out_dir: str) -> List[str]:
     series = [(STYLE[name][0], [r for r in rows if r["condition"] == name], STYLE[name][1])
               for name, _, _ in CONDITIONS]
     return plot_four_metrics(series, "rho", r"$\rho$", out_dir, FIG_STEM,
-                             vline=1 / (1 + d.DELTA))
+                             vline=1 / (1 + d.DELTA), ylims=YLIMS)
 
 
 def main() -> None:
@@ -56,7 +60,11 @@ def main() -> None:
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument("--csv-dir", default="results")
     parser.add_argument("--quick", action="store_true", help="rho を 3 点だけ計算する")
+    parser.add_argument("--plot-only", action="store_true", help="計算せず, CSV から図だけ描く")
     args = parser.parse_args()
+    if args.plot_only:
+        plot(read_rows(os.path.join(args.csv_dir, CSV_NAME)), args.out_dir)
+        return
     rhos = [0.1, 0.5, 0.95] if args.quick else d.RHO_GRID
     rows = compute(rhos)
     d.report_checks(rows)

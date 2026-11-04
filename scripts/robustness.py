@@ -53,7 +53,7 @@ from mmpp_experiments.classify import (
     CATEGORIES5, ERP_TIE, P_HI, P_LO, category5, erp_state, intervals, p_state,
 )
 from mmpp_experiments.csvio import append_row, log_line, progress_message, read_rows
-from mmpp_experiments.plotting import log_scale_label, save_figure
+from mmpp_experiments.plotting import save_figure
 
 try:
     import compare_map as cm
@@ -553,13 +553,13 @@ def _style(ax):
 def plot_A(key, cr, s, fig_dir) -> List[str]:
     """パラメータごとに, ERP の相対差 (上段) と P/P_ref (下段). 「Base より悪い」点は赤の四角.
 
-    書式は実験 1〜4 の図 (mmpp_experiments.plotting.plot_four_metrics) にそろえる.
+    書式は実験 1〜4 の図 (mmpp_experiments.plotting.plot_four_metrics) にそろえる. 縦軸は上段も下段も
+    線形目盛で, 範囲は列ごとにデータに合わせる (下段は 1 と P_HI の線を必ず含む).
     """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
-    from matplotlib.ticker import FuncFormatter, NullFormatter
 
     # 論文では β^* をベースモデルの ERP を最小にする β に使うので, 最良点の β は β_best と書く
     xlabels = {"beta_mult": r"$\beta / \beta_{\mathrm{best}}$", "n_target": r"$n_{\mathrm{target}}$",
@@ -583,25 +583,16 @@ def plot_A(key, cr, s, fig_dir) -> List[str]:
         axes[0, j].axhline(0, color="0.5", linewidth=0.8)
         axes[1, j].axhline(P_HI, color="0.3", linestyle="--", linewidth=1)
         axes[1, j].axhline(1, color="0.5", linewidth=0.8)
-        axes[1, j].set_yscale("log")
-        # 範囲が 1 桁未満だと副目盛りに 1.04×10^0 のような表記が出るので, 小数で書く
         lo, hi = min(list(yp) + [1.0, P_HI]), max(list(yp) + [1.0, P_HI])
-        axes[1, j].yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
-        if hi / lo < 2:
-            minor = FuncFormatter(lambda v, _: f"{v:.3g}")
-        elif hi / lo < 10:
-            minor = FuncFormatter(lambda v, _: f"{v:.3g}" if round(
-                v / 10 ** np.floor(np.log10(v))) in (2, 5) else "")
-        else:
-            minor = NullFormatter()
-        axes[1, j].yaxis.set_minor_formatter(minor)
+        pad = 0.05 * (hi - lo)
+        axes[1, j].set_ylim(lo - pad, hi + pad)
         if sw != "n_target":
             axes[1, j].set_xscale("log")
         else:
             axes[1, j].set_xticks(range(0, int(max(x)) + 1, 5))
         axes[1, j].set_xlabel(xlabels[sw], fontsize=16)
     axes[0, 0].set_ylabel(r"$\Delta$ERP vs Base min [%]", fontsize=14)
-    axes[1, 0].set_ylabel(log_scale_label(r"$P / P_{\mathrm{ref}}$"), fontsize=14)
+    axes[1, 0].set_ylabel(r"$P / P_{\mathrm{ref}}$", fontsize=14)
     handles = [
         Line2D([], [], color="tab:blue", marker="o", markersize=4),
         Line2D([], [], color="tab:red", marker="s", markersize=6, linestyle="none"),

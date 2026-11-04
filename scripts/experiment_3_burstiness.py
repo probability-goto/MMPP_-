@@ -10,6 +10,7 @@ alpha = 0.005, beta は損益分岐の値 0.6 alpha = 0.003 (mmpp_experiments/de
     python scripts/experiment_3_burstiness.py --sweep delta
     python scripts/experiment_3_burstiness.py --sweep r1
     python scripts/experiment_3_burstiness.py --sweep delta --quick   # 3 点だけ (動作確認用)
+    python scripts/experiment_3_burstiness.py --sweep r1 --plot-only  # 計算せず, CSV から図だけ描き直す
 """
 import argparse
 import os
@@ -18,7 +19,8 @@ from typing import List, Sequence
 import numpy as np
 
 from mmpp_experiments import design as d
-from mmpp_experiments.plotting import plot_four_metrics
+from mmpp_experiments.csvio import read_rows
+from mmpp_experiments.plotting import plot_four_metrics, ylim_from_zero
 
 DELTA_GRID = [float(x) for x in np.round(np.linspace(0.0, 0.95, 20), 4)]
 R1_GRID = [float(x) for x in np.logspace(-2, 3, 21)]
@@ -27,6 +29,12 @@ R1_LEVELS_A = [d.R1_SHORT, d.R1_LONG]
 
 RHO_COLOR = {0.5: "tab:blue", 0.7: "tab:red"}
 RHO_B_COLOR = {0.8: "tab:blue", 1.12: "tab:red"}
+
+CSV_NAME = {"delta": "experiment_3_delta.csv", "r1": "experiment_3_r1.csv"}
+# 縦軸の範囲 (線形目盛). P_block の最大は 3-A で 0.431, 3-B で 0.236.
+# 0 付近の線が枠に重ならないよう下限は 0 より少し下
+YLIMS_A = {"P_block_arrival_stable": ylim_from_zero(0.45)}
+YLIMS_B = {"P_block_arrival_stable": ylim_from_zero(0.25)}
 
 
 def compute_delta(deltas: Sequence[float]) -> List[dict]:
@@ -58,14 +66,16 @@ def plot_delta(rows: Sequence[dict], out_dir: str) -> List[str]:
                            dict(color=RHO_COLOR[rho], linestyle=ls)))
     # 点線は rho = 0.7 で rho_B = 1 となる delta = 3/7 (rho = 0.5 は走査範囲で rho_B < 1)
     return plot_four_metrics(series, "delta", r"$\delta$", out_dir,
-                             "experiment_3_burstiness_delta", vline=1 / 0.7 - 1)
+                             "experiment_3_burstiness_delta", vline=1 / 0.7 - 1,
+                             ylims=YLIMS_A)
 
 
 def plot_r1(rows: Sequence[dict], out_dir: str) -> List[str]:
     series = [(rf"$\rho_B={rho_B:g}$", [r for r in rows if r["condition"] == f"rhoB{rho_B:g}"],
                dict(color=RHO_B_COLOR[rho_B])) for rho_B in d.RHO_B_LEVELS]
     return plot_four_metrics(series, "r1", r"$r_1=\alpha/\sigma$", out_dir,
-                             "experiment_3_burstiness_r1", xlog=True, vline=1.0)
+                             "experiment_3_burstiness_r1", xlog=True, vline=1.0,
+                             ylims=YLIMS_B)
 
 
 def main() -> None:
@@ -74,17 +84,20 @@ def main() -> None:
     parser.add_argument("--out-dir", default="figures")
     parser.add_argument("--csv-dir", default="results")
     parser.add_argument("--quick", action="store_true", help="3 点だけ計算する")
+    parser.add_argument("--plot-only", action="store_true", help="計算せず, CSV から図だけ描く")
     args = parser.parse_args()
+    csv_path = os.path.join(args.csv_dir, CSV_NAME[args.sweep])
+    plot = plot_delta if args.sweep == "delta" else plot_r1
+    if args.plot_only:
+        plot(read_rows(csv_path), args.out_dir)
+        return
     if args.sweep == "delta":
         rows = compute_delta([0.0, 0.5, 0.95] if args.quick else DELTA_GRID)
-        d.report_checks(rows)
-        d.write_rows(os.path.join(args.csv_dir, "experiment_3_delta.csv"), rows)
-        plot_delta(rows, args.out_dir)
     else:
         rows = compute_r1([0.01, 1.0, 1000.0] if args.quick else R1_GRID)
-        d.report_checks(rows)
-        d.write_rows(os.path.join(args.csv_dir, "experiment_3_r1.csv"), rows)
-        plot_r1(rows, args.out_dir)
+    d.report_checks(rows)
+    d.write_rows(csv_path, rows)
+    plot(rows, args.out_dir)
     print("キャプション用情報: c=20, K=200, b=5, 1/mu=1, alpha=0.005, beta=0.003 (損益分岐)")
 
 
