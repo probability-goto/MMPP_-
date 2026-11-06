@@ -1,0 +1,61 @@
+% 付録: Delayoff率の設定理由 (main2 (13).tex から \input される)
+\chapter{Delayoff率の設定}
+\label{app:delayoff}
+
+本付録では, 実験1, 3, 4で用いる損益分岐の値$\beta_{\mathrm{BE}}$ (式~\eqref{eq:beta-be}) の設定理由を示す.
+
+1台のサーバーがIdleになった時刻を$0$とし, 次のジョブがこのサーバーに来る時刻を$x > 0$とする.
+Idleの間, サーバーは電力$C_i$を使う. 電源を切った後にジョブが来ると再びセットアップが必要となり,
+セットアップ時間の平均は$1/\alpha$であるから, その電力量は$C_s/\alpha$である.
+
+時刻$w$に電源を切る規則の電力量は, 切る時刻と$x$の前後で次のように分かれる.
+\begin{equation*}
+    E_w(x) =
+    \begin{cases}
+        C_i x, & x \le w, \\
+        C_i w + C_s/\alpha, & x > w
+    \end{cases}
+\end{equation*}
+
+ここで$x$を1つ固定したとき, どの場合の電力量も
+\begin{equation}
+    E_{\min}(x) = \min\!\left(C_i x,\ \frac{C_s}{\alpha}\right)
+    \label{eq:app-emin}
+\end{equation}
+を下回らず, $\tau = 1/\beta_{\mathrm{BE}} = C_s/(C_i\alpha)$を用いて次のように書き直せる.
+\begin{equation*}
+    E_{\min}(x) = \min(C_i x,\ C_i \tau) = C_i \min(x, \tau).
+    \label{eq:app-emin-tau}
+\end{equation*}
+倍率$R_w(x) = E_w(x)/E_{\min}(x)$を, $w$と$\tau$の大小で分けて考える.
+
+\paragraph{$w < \tau$のとき}
+\begin{itemize}
+    \item $x \le w$では, $x < \tau$より$\min(x, \tau) = x$であるから, $R_w(x) = C_i x / (C_i x) = 1$である.
+    \item $w < x \le \tau$では, $R_w(x) = C_i(w+\tau)/(C_i x) = (w+\tau)/x$であり, これは$x$について減少する.
+          $x$を$w$に上から近づけると$R_w(x) \to (w+\tau)/w = 1 + \tau/w$である.
+    \item $x > \tau$では, $R_w(x) = (w+\tau)/\tau = 1 + w/\tau$である. $w < \tau$より$w/\tau < 1 < \tau/w$であるから, これは$1 + \tau/w$より小さい.
+\end{itemize}
+したがって倍率の上限は$1 + \tau/w$である.
+
+\paragraph{$w \ge \tau$のとき}
+\begin{itemize}
+    \item $x \le \tau$では, $R_w(x) = C_i x/(C_i x) = 1$である.
+    \item $\tau < x \le w$では, $R_w(x) = C_i x/(C_i\tau) = x/\tau$であり, その最大値は$x = w$での$w/\tau$である.
+    \item $x > w$では, $x > \tau$より$R_w(x) = (w+\tau)/\tau = 1 + w/\tau$である.
+\end{itemize}
+したがって倍率の上限は$1 + w/\tau$である.
+
+2つの場合を合わせると, 一定時間$w$待つ規則の倍率の上限は
+\begin{equation}
+    \sup_{x > 0} R_w(x) = 1 + \max\!\left(\frac{\tau}{w},\ \frac{w}{\tau}\right)
+    \label{eq:app-sup-deterministic}
+\end{equation}
+である.
+$\tau/w$と$w/\tau$の積は$1$であるから,
+\begin{equation*}
+    1 + \max\!\left(\frac{\tau}{s},\ \frac{s}{\tau}\right) \ \ge\ 2
+\end{equation*}
+であり, 等号は$w = \tau$のときに限り成り立つ.
+
+以上より, $\beta = 1/\tau = \beta_{\mathrm{BE}}$は次のジョブが来る時刻$x$がどのような値であっても, Idleになってから次のジョブが来るまでの電力量の期待値は, 電力量$E_{\min}(x)$の$2$倍以内に収まる.
