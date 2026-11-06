@@ -219,8 +219,8 @@ def plot(rows: List[dict], fig_dir: str = cm.FIG_DIR, dense: Sequence[dict] = ()
                         linestyle="--", color=c)
         axes[1, 1].plot(xs, [r["pred_p1_launch_per_cycle"] for r in rr], marker="o",
                         markersize=4, color=c)
-    labels = ["ERP improvement [%] (solid: actual, dashed: quasi-static)",
-              r"Base $\beta^*$ [$\times 10^{-3}$] (dotted: $\beta_{\mathrm{qs}}$)",
+    labels = ["ERP improvement [%] (solid: actual, dashed: approximation)",
+              r"Base $\beta^*$ [$\times 10^{-3}$] (dotted: $\beta_0$)",
               r"Pred/Base $-1$ [%] (solid: $E[W]$, dashed: Cost)",
               "Pred: P1 launches per cycle"]
     for ax, lab in zip(axes.flat, labels):
