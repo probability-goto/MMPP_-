@@ -14,14 +14,15 @@ Predictive 拡張の 2 機構 (事前セットアップ, Delayoff 加速) が実
 図を experiment_0P_validation_protect.{png,pdf} に保存する. 付けない場合は保護を入れる前の
 モデルで, 図は experiment_0P_validation.{png,pdf}.
 
-既定の設定 (ウォームアップ 100,000 イベント, 計測 1,000,000 イベント, 20 レプリケーション) は
-論文の設定 (results/experiment_0/predictive_protect.log). ベースモデルの実験 0 の既定 (1,000,000 / 4,000,000 / 20) とは
-イベント数が違う (レプリケーション数は同じ).
-ベースモデルと同じ設定でやり直した結果は archive/experiment_0P_long_warmup/ (論文では使わない).
+既定の設定 (ウォームアップ 100,000 イベント, 計測 4,000,000 イベント, 20 レプリケーション) は
+論文の設定 (results/experiment_0/predictive_protect.log). 2026-11-19 に, ベースモデルの実験 0
+(1,000,000 / 4,000,000 / 20) と計測イベント数をそろえるため, 1,000,000 から 4,000,000 に変えた
+(計測 1,000,000 の結果は archive/experiment_0P_measure_1M/). ウォームアップはベースモデルと違う.
+ウォームアップもベースモデルと同じにしてやり直しかけた結果は archive/experiment_0P_long_warmup/ (論文では使わない).
 
 使用例:
     python scripts/experiment_0P_validation.py --n-target 10 --gamma 5.0 \
-        --n-replications 20 --warmup-events 100000 --measure-events 1000000
+        --n-replications 20 --warmup-events 100000 --measure-events 4000000
     python scripts/experiment_0P_validation.py --protect
     python scripts/experiment_0P_validation.py --quick  # 開発中の軽量実行
 """
@@ -119,7 +120,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gamma", type=float, default=5.0, help="Delayoff 加速係数 (F=0 で beta -> gamma*beta)")
     parser.add_argument("--n-replications", type=int, default=20, help="独立レプリケーション数")
     parser.add_argument("--warmup-events", type=int, default=100_000)
-    parser.add_argument("--measure-events", type=int, default=1_000_000)
+    parser.add_argument("--measure-events", type=int, default=4_000_000)
     parser.add_argument("--n-points", type=int, default=10, help="rho スイープ点数")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out-dir", default="figures")
