@@ -60,7 +60,9 @@ def check_file(path):
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else "results"
-    files = sorted(glob.glob(os.path.join(target, "*.csv")))
+    # 指標を持たない確認用の CSV (生成行列の既約性の確認, scripts/check_irreducibility.py) は除く
+    files = sorted(p for p in glob.glob(os.path.join(target, "*.csv"))
+                   if os.path.basename(p) != "irreducibility_check.csv")
     if not files:
         print(f"{target}/ に CSV がありません。", file=sys.stderr)
         return 1
