@@ -101,9 +101,14 @@ def direct_reference_pred(params, pi):
 # (a) 正値性
 # ---------------------------------------------------------------------------
 
+# 指標を持たない確認用の CSV (生成行列の既約性の確認, scripts/check_irreducibility.py)
+_NON_METRIC_CSVS = {"irreducibility_check.csv"}
+
+
 def _result_csvs():
-    return sorted(glob.glob(os.path.join(REPO_ROOT, "results", "**", "*.csv"),
-                            recursive=True))
+    return sorted(p for p in glob.glob(os.path.join(REPO_ROOT, "results", "**", "*.csv"),
+                                       recursive=True)
+                  if os.path.basename(p) not in _NON_METRIC_CSVS)
 
 
 class TestPositivityOnExperimentGrids:
